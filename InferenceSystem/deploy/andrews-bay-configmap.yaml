@@ -6,7 +6,7 @@ metadata:
 data:
   config.yml: |
     model_type: "FastAI"
-    model_local_threshold: 0.5
+    model_local_threshold: 0.7
     model_global_threshold: 3
     model_path: "./model"
     model_name: "model.pkl"

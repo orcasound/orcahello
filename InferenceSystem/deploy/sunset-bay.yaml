@@ -5,6 +5,8 @@ metadata:
   namespace: sunset-bay
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: inference-system
@@ -13,13 +15,18 @@ spec:
       labels:
         app: inference-system
     spec:
+      nodeSelector:
+        kubernetes.azure.com/agentpool: f4sv2pool
       containers:
       - name: inference-system
-        image: orcaconservancycr.azurecr.io/live-inference-system:11-19-2025.FastAI.R1-12.v0
+        image: orcaconservancycr.azurecr.io/live-inference-system:01-24-2026.FastAI.R1-12.v0
         resources:
+          requests:
+            cpu: "1"
+            memory: "1600Mi"
           limits:
-            cpu: 1
-            memory: 3G
+            cpu: "1"
+            memory: "2500Mi"
         env:
           - name: AZURE_COSMOSDB_PRIMARY_KEY
             valueFrom:

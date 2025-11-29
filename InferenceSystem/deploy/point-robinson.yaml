@@ -13,9 +13,11 @@ spec:
       labels:
         app: inference-system
     spec:
+      nodeSelector:
+        kubernetes.azure.com/agentpool: f4sv2pool
       containers:
       - name: inference-system
-        image: orcaconservancycr.azurecr.io/live-inference-system:11-19-2025.FastAI.R1-12.v0
+        image: orcaconservancycr.azurecr.io/live-inference-system:12-01-2025.FastAI.R1-12.v0
         resources:
           limits:
             cpu: 1
