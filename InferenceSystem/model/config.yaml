@@ -33,6 +33,6 @@ inference:
 
 global_prediction:
   aggregation_strategy: "mean_top_k"  # "mean_thresholded" or "mean_top_k"
-  mean_top_k: 3               # top segments to average for global_confidence (mean_top_k)
+  mean_top_k: 2               # top segments to average for global_confidence (mean_top_k)
   pred_local_threshold: 0.5   # for local binary predictions, and selecting segments to average for global_confidence (mean_thresholded)
   pred_global_threshold: 0.6  # applied to global_confidence for binary global_prediction
