@@ -49,7 +49,7 @@ jobs:
     - name: Download model
       id: model-path
       run: |
-        if not exist "InferenceSystem/model\" mkdir -p "InferenceSystem/model"
+        if not exist InferenceSystem\model mkdir InferenceSystem\model
         curl -o InferenceSystem/model.zip https://trainedproductionmodels.blob.core.windows.net/dnnmodel/11-15-20.FastAI.R1-12.zip
         unzip InferenceSystem/model.zip -d InferenceSystem
         echo "path=InferenceSystem/model" >> $GITHUB_OUTPUT
