@@ -172,6 +172,8 @@ class OrcaHelloSRKWDetectorV1(
             nn.Linear(512, self.num_classes),
         )
 
+        self.to(device=self._device, dtype=self._dtype)
+
     def forward(self, x: Tensor  # shape: (batch, 1, n_mels, time_frames)
     ) -> Tensor:                 # shape: (batch, num_classes)
         """
@@ -268,15 +270,11 @@ class OrcaHelloSRKWDetectorV1(
         # Process spectrograms in batches to control memory usage
         all_confidences = []
 
-        # Get model device and dtype for input casting
-        model_device = next(self.parameters()).device
-        model_dtype = next(self.parameters()).dtype
-
         for batch_start in range(0, len(spectrograms), max_batch_size):
             batch_end = min(batch_start + max_batch_size, len(spectrograms))
             batch = torch.stack(spectrograms[batch_start:batch_end])
             # Move batch to model's device and cast to model dtype (e.g. fp16)
-            batch = batch.to(device=model_device, dtype=model_dtype)
+            batch = batch.to(device=self._device, dtype=self._dtype)
             batch_confidences = self.predict_call(batch)
             all_confidences.append(batch_confidences.cpu().float())
 
