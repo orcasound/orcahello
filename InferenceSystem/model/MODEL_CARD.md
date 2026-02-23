@@ -35,7 +35,7 @@ This model detects the presence of Southern Resident Killer Whale (SRKW) calls i
 - **License**: OrcaHello RAIL (Responsible AI License) - See LICENSE file
 - **Finetuned from**: ResNet50 ImageNet pretrained weights
 - **Date trained**: November 2020
-- **Code**: [Orcasound/aifororcas-livesystem/InferenceSystem](https://github.com/orcasound/aifororcas-livesystem/tree/main/InferenceSystem); use branch [akash/inference-v1-nofastai](https://github.com/orcasound/aifororcas-livesystem/tree/akash/inference-v1-nofastai/InferenceSystem) for now.
+- **Code**: [Orcasound/aifororcas-livesystem/InferenceSystem](https://github.com/orcasound/aifororcas-livesystem/tree/main/InferenceSystem)
 
 **Note**: This is a port of the original FastAI model to pure PyTorch for easier usage and deployment.
 
