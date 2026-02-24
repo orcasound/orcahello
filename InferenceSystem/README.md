@@ -1,63 +1,32 @@
-# Using the OrcaHello SRKWDetector model
+# OrcaHello SRKW Detector
 
-## model_v1: Audio Frontend
+Southern Resident Killer Whale call detection model and inference system.
 
-`src/model_v1/` contains a [WIP] FastAI-free reimplementation of the audio preprocessing pipeline.
-All preprocessing operations (resampling, freq featurization, segmentation/padding) are combined into a single `AudioPreprocessor` class.
+**Model on HuggingFace**: [orcasound/orcahello-srkw-detector-v1](https://huggingface.co/orcasound/orcahello-srkw-detector-v1)
 
-```python
-AudioPreprocessor(config=DetectorInferenceConfig).process_segments(audio_file_path) -> Generator[Tuple[torch.Tensor, float, float], None, None]
-    - torch.Tensor: mel spectrogram of shape (1, n_mels, target_frames)
-    - float: start time of this segment in seconds
-    - float: duration of this segment in seconds
-```
-
-pytests included test sample-wise parity with outputs generated from legacy code using FastAI audio (including hard to reproduce bugs/quirks).
-
-### Setup
+## Quick Start
 
 ```bash
 cd InferenceSystem
-uv venv model-v1-venv
-source model-v1-venv/bin/activate  # or .\model-v1-venv\Scripts\activate.bat on Windows
+uv venv && source .venv/bin/activate
 uv pip install -r requirements-model-v1.txt
 ```
 
-### Run audio processing (segment + spectrogram generation)
+```python
+from src.model_v1 import OrcaHelloSRKWDetectorV1
 
-```bash
-# Segment a WAV file into 60s chunks and save mel spectrogram images
-python scripts/run_audio_processing.py /path/to/audio.wav
+model = OrcaHelloSRKWDetectorV1.from_pretrained("orcasound/orcahello-srkw-detector-v1")
+result = model.detect_srkw_from_file("audio.wav")
 
-# Use a shorter segment duration (e.g., 30s)
-python scripts/run_audio_processing.py /path/to/audio.wav --segment-duration 30
-
-# Specify output directory
-python scripts/run_audio_processing.py /path/to/audio.flac --output-dir /tmp/segments
+print(f"Orca detected: {result.global_prediction}")
+print(f"Confidence: {result.global_confidence:.2f}")
 ```
 
-Output is written to `tmp/<stem>_segments/` by default (WAV segments + `spectrograms/` subfolder).
+See [MODEL_CARD.md](model/MODEL_CARD.md) for detailed usage, configuration, and API reference.
 
-### Run tests
+## Development
 
-```bash
-cd InferenceSystem
-source model-v1-venv/bin/activate
-
-# Run all audio preprocessing tests (unit + parity)
-python -m pytest tests/test_audio_preprocessing.py -v
-
-# Run only unit tests (no reference files needed)
-python -m pytest tests/test_audio_preprocessing.py::TestAudioPreprocessingUnit -v
-```
-
-The parity tests (`test_mel_raw_parity`, `test_mel_standardized_parity`) compare model_v1 output against pre-generated fastai references. These run automatically — no fastai installation required.
-
-To regenerate reference files (requires fastai environment):
-```bash
-source inference-venv/bin/activate
-python -m pytest tests/test_audio_preprocessing.py::TestAudioPreprocessingParity::test_generate_reference_outputs -v
-```
+For local scripts, testing, and contributing: [DEVELOPMENT.md](DEVELOPMENT.md)
 
 ---
 
@@ -197,17 +166,17 @@ You should see the following logs in your terminal. Since this is a Test config,
 ```
 Listening to location https://s3-us-west-2.amazonaws.com/audio-orcasound-net/rpi_orcasound_lab
 Downloading live879.ts
-live879.ts: 205kB [00:00, 1.17MB/s]                                             
+live879.ts: 205kB [00:00, 1.17MB/s]
 Downloading live880.ts
-live880.ts: 205kB [00:00, 1.11MB/s]                                             
+live880.ts: 205kB [00:00, 1.11MB/s]
 Downloading live881.ts
-live881.ts: 205kB [00:00, 948kB/s]                                              
+live881.ts: 205kB [00:00, 948kB/s]
 Downloading live882.ts
-live882.ts: 205kB [00:00, 1.14MB/s]                                             
+live882.ts: 205kB [00:00, 1.14MB/s]
 Downloading live883.ts
-live883.ts: 205kB [00:00, 1.07MB/s]                                             
+live883.ts: 205kB [00:00, 1.07MB/s]
 Downloading live884.ts
-live884.ts: 205kB [00:00, 1.04MB/s]                                             
+live884.ts: 205kB [00:00, 1.04MB/s]
 rpi_orcasound_lab_2021_10_13_15_11_18_PDT.wav
 Length of Audio Clip:60.010666666666665
 Preprocessing: Downmixing to Mono
