@@ -39,8 +39,8 @@ class TestOrcaHelloSRKWDetectorUnit:
 
     def test_forward_pass_shape(self, model_v1):
         """Test forward() returns (batch, num_classes) logits"""
-        # Standard input shape: (batch, 1, n_mels=256, time_frames=313)
-        x = torch.randn(1, 1, 256, 313)
+        # Standard input shape: (batch, 1, n_mels=256, time_frames=312)
+        x = torch.randn(1, 1, 256, 312)
 
         with torch.no_grad():
             output = model_v1(x)
@@ -49,7 +49,7 @@ class TestOrcaHelloSRKWDetectorUnit:
 
     def test_forward_pass_batch(self, model_v1):
         """Test forward() with batch > 1"""
-        x = torch.randn(4, 1, 256, 313)
+        x = torch.randn(4, 1, 256, 312)
 
         with torch.no_grad():
             output = model_v1(x)
@@ -58,7 +58,7 @@ class TestOrcaHelloSRKWDetectorUnit:
 
     def test_predict_call_shape(self, model_v1):
         """Test predict_call() returns (batch,) probabilities"""
-        x = torch.randn(1, 1, 256, 313)
+        x = torch.randn(1, 1, 256, 312)
         prob = model_v1.predict_call(x)
 
         # predict_call returns scalar for batch=1 due to squeeze()
@@ -66,7 +66,7 @@ class TestOrcaHelloSRKWDetectorUnit:
 
     def test_predict_call_batch(self, model_v1):
         """Test predict_call() with batch > 1"""
-        x = torch.randn(4, 1, 256, 313)
+        x = torch.randn(4, 1, 256, 312)
         probs = model_v1.predict_call(x)
 
         assert probs.shape == (4,), f"Expected (4,), got {probs.shape}"
@@ -75,7 +75,7 @@ class TestOrcaHelloSRKWDetectorUnit:
         """Test predict_call() returns values in [0, 1]"""
         # Run multiple random inputs
         for _ in range(5):
-            x = torch.randn(4, 1, 256, 313)
+            x = torch.randn(4, 1, 256, 312)
             probs = model_v1.predict_call(x)
 
             assert (probs >= 0).all(), f"Found negative probability: {probs}"
@@ -90,7 +90,7 @@ class TestOrcaHelloSRKWDetectorUnit:
         """Test loading from checkpoint file"""
         model_path = model_dir / "model_v1.pt"
         if not model_path.exists():
-            pytest.skip(f"Checkpoint not found: {model_path}. Run extraction script first.")
+            pytest.skip(f"Converted PyTorch checkpoint not found: {model_path}. Run extract_fastai_weights.py script first.")
 
         model = OrcaHelloSRKWDetectorV1.from_checkpoint(str(model_path), v1_config)
 
@@ -99,7 +99,7 @@ class TestOrcaHelloSRKWDetectorUnit:
         assert not model.training
 
         # Verify forward pass works
-        x = torch.randn(1, 1, 256, 313)
+        x = torch.randn(1, 1, 256, 312)
         with torch.no_grad():
             output = model(x)
         assert output.shape == (1, 2)

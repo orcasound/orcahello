@@ -290,7 +290,7 @@ def main():
     print(f"Using config from:  {config_path}")
     print("-" * 60)
 
-    model = OrcaHelloSRKWDetectorV1.from_checkpoint(model_path, config)
+    model = OrcaHelloSRKWDetectorV1.from_pretrained("orcasound/orcahello-srkw-detector-v1", config=config)
     print(f"Device: {model._device}  |  Dtype: {model._dtype}")
     print("-" * 60)
 
