@@ -17,6 +17,9 @@ Output:
 
 import sys
 from pathlib import Path
+import urllib.request
+import zipfile
+import tempfile
 
 import torch
 
@@ -40,6 +43,47 @@ SCRIPT_DIR = Path(__file__).parent
 ROOT_DIR = SCRIPT_DIR.parent
 sys.path.insert(0, str(ROOT_DIR / "src"))
 
+# Model download URL
+FASTAI_MODEL_URL = "https://trainedproductionmodels.blob.core.windows.net/dnnmodel/11-15-20.FastAI.R1-12.zip"
+
+
+def download_fastai_model(model_dir: Path):
+    """
+    Download and extract the FastAI model from Azure blob storage.
+    
+    Args:
+        model_dir: Directory to extract the model into
+    """
+    model_pkl_path = model_dir / "model.pkl"
+    
+    if model_pkl_path.exists():
+        print(f"Model already exists at {model_pkl_path}")
+        return
+    
+    print("=== Downloading FastAI Model ===")
+    print(f"URL: {FASTAI_MODEL_URL}")
+    model_dir.mkdir(parents=True, exist_ok=True)
+    
+    with tempfile.NamedTemporaryFile(suffix=".zip", delete=False) as tmp_file:
+        tmp_path = Path(tmp_file.name)
+        
+        try:
+            urllib.request.urlretrieve(FASTAI_MODEL_URL, tmp_path)
+            print("Download complete. Extracting...")
+            
+            with zipfile.ZipFile(tmp_path, 'r') as zip_ref:
+                zip_ref.extractall(model_dir)
+            
+            if not model_pkl_path.exists():
+                raise FileNotFoundError(f"model.pkl not found after extraction at {model_pkl_path}")
+            
+            print(f"Model ready at: {model_pkl_path}")
+            print(f"Model size: {model_pkl_path.stat().st_size / 1024 / 1024:.2f} MB")
+            
+        finally:
+            if tmp_path.exists():
+                tmp_path.unlink()
+
 
 def inspect_fastai_model(learner_path: Path, learner_name: str = "model.pkl"):
     """Inspect fastai model structure and print key information."""
@@ -57,7 +101,7 @@ def inspect_fastai_model(learner_path: Path, learner_name: str = "model.pkl"):
     for key in state_dict.keys():
         print(f"  {key}: {state_dict[key].shape}")
 
-    print(f"\n=== Summary ===")
+    print("\n=== Summary ===")
     print(f"Total parameters: {sum(p.numel() for p in model.parameters()):,}")
     print(f"State dict keys: {len(state_dict)}")
 
@@ -198,8 +242,10 @@ def extract_weights(
     # Import using direct path since we're in scripts/
     sys.path.insert(0, str(ROOT_DIR / "src"))
     from model_v1.inference import OrcaHelloSRKWDetectorV1
+    from model_v1.types import DetectorInferenceConfig
 
-    test_model = OrcaHelloSRKWDetectorV1()
+    config = DetectorInferenceConfig().as_dict()
+    test_model = OrcaHelloSRKWDetectorV1(config)
     expected_keys = set(test_model.state_dict().keys())
     converted_keys = set(pytorch_state_dict.keys())
 
@@ -223,7 +269,7 @@ def extract_weights(
     print("State dict loaded successfully!")
 
     # Save checkpoint
-    print(f"\n=== Saving Checkpoint ===")
+    print("\n=== Saving Checkpoint ===")
     output_path.parent.mkdir(parents=True, exist_ok=True)
     torch.save(pytorch_state_dict, output_path)
     print(f"Saved to: {output_path}")
@@ -234,6 +280,10 @@ def main():
     learner_path = ROOT_DIR / "model"
     output_path = ROOT_DIR / "model" / "model_v1.pt"
 
+    # Download model if it doesn't exist
+    download_fastai_model(learner_path)
+
+    # Verify model.pkl exists
     if not (learner_path / "model.pkl").exists():
         print(f"Error: model.pkl not found at {learner_path}")
         sys.exit(1)
