@@ -50,7 +50,7 @@ jobs:
     permissions:
       contents: read
     steps:
-    - uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1
+    - uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b # v2.15.0
       with:
         egress-policy: audit
     - name: Checkout
@@ -80,7 +80,7 @@ jobs:
     permissions:
       contents: read
     steps:
-    - uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1
+    - uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b # v2.15.0
       with:
         egress-policy: audit
     - name: Checkout
@@ -108,7 +108,7 @@ jobs:
     permissions:
       contents: read
     steps:
-    - uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1
+    - uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b # v2.15.0
       with:
         egress-policy: audit
     - name: Artifacts cache
@@ -117,7 +117,7 @@ jobs:
         path: ./${{ env.WORKING_DIR}}/${{ env.PUBLISH_DIR }}
         key: ${{ github.sha }}-${{ env.AZURE_APP_NAME }}-${{ env.DOTNET_RUNTIME }}-artifacts
     - name: Deploy to Azure Functions
-      uses: azure/functions-action@0bd707f87c0b6385742bab336c74e1afc61f6369 # v1.5.3
+      uses: azure/functions-action@02a16c5f3a5707fa97fca56c202cc2ef6cc7dccb # v1.5.4
       with:
         app-name: ${{ env.AZURE_APP_NAME }}
         publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
