@@ -25,6 +25,53 @@ public class DetectionsController : ControllerBase
 		HttpContext.Response.Headers.Add("totalAmountPages", totalAmountPages.ToString());
 	}
 
+	private static void ValidateQueryParameters(DetectionQueryParameters queryParameters)
+	{
+		if (string.IsNullOrWhiteSpace(queryParameters.Timeframe))
+			throw new ArgumentNullException("Timeframe");
+
+		if (queryParameters.DateFrom > queryParameters.DateTo)
+			throw new Exception("From Date should be less than To date");
+
+		if (string.IsNullOrWhiteSpace(queryParameters.SortBy))
+			throw new ArgumentNullException("SortBy");
+
+		if (string.IsNullOrWhiteSpace(queryParameters.SortOrder))
+			throw new ArgumentNullException("SortOrder");
+
+		if (string.IsNullOrWhiteSpace(queryParameters.Location))
+			throw new ArgumentNullException("Location");
+
+		if (queryParameters.Page == 0)
+			throw new ArgumentNullException("Page");
+
+		if (queryParameters.RecordsPerPage == 0)
+			throw new ArgumentNullException("RecordsPerPage");
+	}
+
+	private static void ApplyOptionalLocationAndHydrophoneFilters(ref IQueryable<Metadata> queryable, DetectionQueryParameters queryParameters)
+	{
+		if (queryParameters.Location.ToLower() != "all")
+			MetadataFilters.ApplyLocationFilter(ref queryable, queryParameters.Location);
+
+		if (queryParameters.HydrophoneId.ToLower() != "all")
+			MetadataFilters.ApplyHydrophoneIdFilter(ref queryable, queryParameters.HydrophoneId);
+	}
+
+	private void ApplySortPaginationAndHeaders(ref List<Detection> results, double recordCount, DetectionQueryParameters queryParameters)
+	{
+		if (queryParameters.SortBy.ToLower() == "confidence")
+			DetectionFilters.ApplyConfidenceSortFilter(ref results, queryParameters.SortOrder);
+		else if (queryParameters.SortBy.ToLower() == "timestamp")
+			DetectionFilters.ApplyTimestampSortFilter(ref results, queryParameters.SortOrder);
+
+		DetectionFilters.ApplyPaginationFilter(ref results, queryParameters.Page, queryParameters.RecordsPerPage);
+
+		SetHeaderCounts(recordCount,
+			(queryParameters.RecordsPerPage > 0 ? queryParameters.RecordsPerPage :
+				MetadataFilters.DefaultRecordsPerPage));
+	}
+
 	#endregion
 
 	/// <summary>
@@ -40,44 +87,16 @@ public class DetectionsController : ControllerBase
 	{
 		try
 		{
-			if (string.IsNullOrWhiteSpace(queryParameters.Timeframe))
-				throw new ArgumentNullException("Timeframe");
-
-			if (queryParameters.DateFrom > queryParameters.DateTo)
-				throw new Exception("From Date should be less than To date");
-
-			if (string.IsNullOrWhiteSpace(queryParameters.SortBy))
-				throw new ArgumentNullException("SortBy");
-
-			if (string.IsNullOrWhiteSpace(queryParameters.SortOrder))
-				throw new ArgumentNullException("SortOrder");
-
-			if (string.IsNullOrWhiteSpace(queryParameters.Location))
-				throw new ArgumentNullException("Location");
-
-			if (queryParameters.Page == 0)
-				throw new ArgumentNullException("Page");
-
-			if (queryParameters.RecordsPerPage == 0)
-				throw new ArgumentNullException("RecordsPerPage");
+			ValidateQueryParameters(queryParameters);
 
 			// start with all records
 			var queryable = _repository.GetAll();
 
 			// apply timeframe filter
-			MetadataFilters.ApplyTimeframeFilter(ref queryable, queryParameters.Timeframe, queryParameters.DateFrom,queryParameters.DateTo);
+			MetadataFilters.ApplyTimeframeFilter(ref queryable, queryParameters.Timeframe, queryParameters.DateFrom, queryParameters.DateTo);
 
-			// apply location filter
-			if (queryParameters.Location.ToLower() != "all")
-			{
-				MetadataFilters.ApplyLocationFilter(ref queryable, queryParameters.Location);
-			}
-
-			// apply hydrophoneId filter
-			if (queryParameters.HydrophoneId.ToLower() != "all")
-			{
-				MetadataFilters.ApplyHydrophoneIdFilter(ref queryable, queryParameters.HydrophoneId);
-			}
+			// apply location and hydrophone filters
+			ApplyOptionalLocationAndHydrophoneFilters(ref queryable, queryParameters);
 
 			// If no detections found
 			if (queryable == null || queryable.Count() == 0)
@@ -91,19 +110,8 @@ public class DetectionsController : ControllerBase
 			var results = queryable
 				.Select(x => DetectionProcessors.ToDetection(x)).ToList();
 
-			// apply sort filter
-			if (queryParameters.SortBy.ToLower() == "confidence")
-				DetectionFilters.ApplyConfidenceSortFilter(ref results, queryParameters.SortOrder);
-			else if (queryParameters.SortBy.ToLower() == "timestamp")
-				DetectionFilters.ApplyTimestampSortFilter(ref results, queryParameters.SortOrder);
-
-			// apply pagination filter
-			DetectionFilters.ApplyPaginationFilter(ref results, queryParameters.Page, queryParameters.RecordsPerPage);
-
-			// set page count headers
-			SetHeaderCounts(recordCount,
-				(queryParameters.RecordsPerPage > 0 ? queryParameters.RecordsPerPage :
-					MetadataFilters.DefaultRecordsPerPage));
+			// apply sort, pagination filters and set page count headers
+			ApplySortPaginationAndHeaders(ref results, recordCount, queryParameters);
 
 			// map to returnable data type and return
 			return Ok(results);
@@ -185,26 +193,7 @@ public class DetectionsController : ControllerBase
 	{
 		try
 		{
-			if (string.IsNullOrWhiteSpace(queryParameters.Timeframe))
-				throw new ArgumentNullException("Timeframe");
-
-			if (queryParameters.DateFrom > queryParameters.DateTo)
-				throw new Exception("From Date should be less than To date");
-
-			if (string.IsNullOrWhiteSpace(queryParameters.SortBy))
-				throw new ArgumentNullException("SortBy");
-
-			if (string.IsNullOrWhiteSpace(queryParameters.SortOrder))
-				throw new ArgumentNullException("SortOrder");
-
-			if (string.IsNullOrWhiteSpace(queryParameters.Location))
-				throw new ArgumentNullException("Location");
-			
-			if (queryParameters.Page == 0)
-				throw new ArgumentNullException("Page");
-
-			if (queryParameters.RecordsPerPage == 0)
-				throw new ArgumentNullException("RecordsPerPage");
+			ValidateQueryParameters(queryParameters);
 
 			// start with all records
 			var queryable = _repository.GetAll();
@@ -212,17 +201,8 @@ public class DetectionsController : ControllerBase
 			// apply reviewed status
 			MetadataFilters.ApplyReviewedFilter(ref queryable, false);
 
-			// apply location filter
-			if (queryParameters.Location.ToLower() != "all")
-			{
-				MetadataFilters.ApplyLocationFilter(ref queryable, queryParameters.Location);
-			}
-
-			// apply hydrophoneId filter
-			if (queryParameters.HydrophoneId.ToLower() != "all")
-			{
-				MetadataFilters.ApplyHydrophoneIdFilter(ref queryable, queryParameters.HydrophoneId);
-			}
+			// apply location and hydrophone filters
+			ApplyOptionalLocationAndHydrophoneFilters(ref queryable, queryParameters);
 
 			// apply timeframe filter
 			MetadataFilters.ApplyTimeframeFilter(ref queryable, queryParameters.Timeframe, queryParameters.DateFrom, queryParameters.DateTo);
@@ -244,20 +224,8 @@ public class DetectionsController : ControllerBase
 			//       Had to convert from string (how stored in Cosmos) to DateTime in order to apply the
 			//       select, but that messed up the SortBy since Cosmos is expecting a string.
 
-			// apply sort filter
-			if (queryParameters.SortBy.ToLower() == "confidence")
-				DetectionFilters.ApplyConfidenceSortFilter(ref results, queryParameters.SortOrder);
-			else if (queryParameters.SortBy.ToLower() == "timestamp")
-				DetectionFilters.ApplyTimestampSortFilter(ref results, queryParameters.SortOrder);
-
-			// apply pagination filter
-			DetectionFilters.ApplyPaginationFilter(ref results, queryParameters.Page, queryParameters.RecordsPerPage);
-
-
-                // set page count headers
-                SetHeaderCounts(recordCount,
-				(queryParameters.RecordsPerPage > 0 ? queryParameters.RecordsPerPage :
-					MetadataFilters.DefaultRecordsPerPage));
+			// apply sort, pagination filters and set page count headers
+			ApplySortPaginationAndHeaders(ref results, recordCount, queryParameters);
 
 			// map to returnable data type and return
 			return Ok(results);
@@ -295,26 +263,7 @@ public class DetectionsController : ControllerBase
 	{
 		try
 		{
-			if (string.IsNullOrWhiteSpace(queryParameters.Timeframe))
-				throw new ArgumentNullException("Timeframe");
-
-			if (queryParameters.DateFrom > queryParameters.DateTo)
-				throw new Exception("From Date should be less than To date");
-
-			if (string.IsNullOrWhiteSpace(queryParameters.SortBy))
-				throw new ArgumentNullException("SortBy");
-
-			if (string.IsNullOrWhiteSpace(queryParameters.SortOrder))
-				throw new ArgumentNullException("SortOrder");
-
-			if (string.IsNullOrWhiteSpace(queryParameters.Location))
-				throw new ArgumentNullException("Location");
-
-			if (queryParameters.Page == 0)
-				throw new ArgumentNullException("Page");
-
-			if (queryParameters.RecordsPerPage == 0)
-				throw new ArgumentNullException("RecordsPerPage");
+			ValidateQueryParameters(queryParameters);
 
 			// start with all records
 			var queryable = _repository.GetAll();
@@ -328,17 +277,8 @@ public class DetectionsController : ControllerBase
 			// apply timeframe filter
 			MetadataFilters.ApplyTimeframeFilter(ref queryable, queryParameters.Timeframe, queryParameters.DateFrom, queryParameters.DateTo);
 
-			// apply location filter
-			if (queryParameters.Location.ToLower() != "all")
-			{
-				MetadataFilters.ApplyLocationFilter(ref queryable, queryParameters.Location);
-			}
-
-			// apply hydrophoneId filter
-			if (queryParameters.HydrophoneId.ToLower() != "all")
-			{
-				MetadataFilters.ApplyHydrophoneIdFilter(ref queryable, queryParameters.HydrophoneId);
-			}
+			// apply location and hydrophone filters
+			ApplyOptionalLocationAndHydrophoneFilters(ref queryable, queryParameters);
 
 			// If no detections found
 			if (queryable == null || queryable.Count() == 0)
@@ -352,19 +292,8 @@ public class DetectionsController : ControllerBase
 			var results = queryable
 				.Select(x => DetectionProcessors.ToDetection(x)).ToList();
 
-			// apply sort filter
-			if (queryParameters.SortBy.ToLower() == "confidence")
-				DetectionFilters.ApplyConfidenceSortFilter(ref results, queryParameters.SortOrder);
-			else if (queryParameters.SortBy.ToLower() == "timestamp")
-				DetectionFilters.ApplyTimestampSortFilter(ref results, queryParameters.SortOrder);
-
-			// apply pagination filter
-			DetectionFilters.ApplyPaginationFilter(ref results, queryParameters.Page, queryParameters.RecordsPerPage);
-
-			// set page count headers
-			SetHeaderCounts(recordCount,
-				(queryParameters.RecordsPerPage > 0 ? queryParameters.RecordsPerPage :
-					MetadataFilters.DefaultRecordsPerPage));
+			// apply sort, pagination filters and set page count headers
+			ApplySortPaginationAndHeaders(ref results, recordCount, queryParameters);
 
 			// map to returnable data type and return
 			return Ok(results);
@@ -402,26 +331,7 @@ public class DetectionsController : ControllerBase
 	{
 		try
 		{
-			if (string.IsNullOrWhiteSpace(queryParameters.Timeframe))
-				throw new ArgumentNullException("Timeframe");
-
-			if (queryParameters.DateFrom > queryParameters.DateTo)
-				throw new Exception("From Date should be less than To date");
-
-			if (string.IsNullOrWhiteSpace(queryParameters.SortBy))
-				throw new ArgumentNullException("SortBy");
-
-			if (string.IsNullOrWhiteSpace(queryParameters.SortOrder))
-				throw new ArgumentNullException("SortOrder");
-
-			if (string.IsNullOrWhiteSpace(queryParameters.Location))
-				throw new ArgumentNullException("Location");
-
-			if (queryParameters.Page == 0)
-				throw new ArgumentNullException("Page");
-
-			if (queryParameters.RecordsPerPage == 0)
-				throw new ArgumentNullException("RecordsPerPage");
+			ValidateQueryParameters(queryParameters);
 
 			// start with all records
 			var queryable = _repository.GetAll();
@@ -435,17 +345,8 @@ public class DetectionsController : ControllerBase
 			// apply timeframe filter
 			MetadataFilters.ApplyTimeframeFilter(ref queryable, queryParameters.Timeframe, queryParameters.DateFrom, queryParameters.DateTo);
 
-			// apply location filter
-			if (queryParameters.Location.ToLower() != "all")
-			{
-				MetadataFilters.ApplyLocationFilter(ref queryable, queryParameters.Location);
-			}
-
-			// apply hydrophoneId filter
-			if (queryParameters.HydrophoneId.ToLower() != "all")
-			{
-				MetadataFilters.ApplyHydrophoneIdFilter(ref queryable, queryParameters.HydrophoneId);
-			}
+			// apply location and hydrophone filters
+			ApplyOptionalLocationAndHydrophoneFilters(ref queryable, queryParameters);
 
 			// If no detections found
 			if (queryable == null || queryable.Count() == 0)
@@ -459,19 +360,8 @@ public class DetectionsController : ControllerBase
 			var results = queryable
 				.Select(x => DetectionProcessors.ToDetection(x)).ToList();
 
-			// apply sort filter
-			if (queryParameters.SortBy.ToLower() == "confidence")
-				DetectionFilters.ApplyConfidenceSortFilter(ref results, queryParameters.SortOrder);
-			else if (queryParameters.SortBy.ToLower() == "timestamp")
-				DetectionFilters.ApplyTimestampSortFilter(ref results, queryParameters.SortOrder);
-
-			// apply pagination filter
-			DetectionFilters.ApplyPaginationFilter(ref results, queryParameters.Page, queryParameters.RecordsPerPage);
-
-			// set page count headers
-			SetHeaderCounts(recordCount,
-				(queryParameters.RecordsPerPage > 0 ? queryParameters.RecordsPerPage :
-					MetadataFilters.DefaultRecordsPerPage));
+			// apply sort, pagination filters and set page count headers
+			ApplySortPaginationAndHeaders(ref results, recordCount, queryParameters);
 
 			// map to returnable data type and return
 			return Ok(results);
@@ -509,26 +399,7 @@ public class DetectionsController : ControllerBase
 	{
 		try
 		{
-			if (string.IsNullOrWhiteSpace(queryParameters.Timeframe))
-				throw new ArgumentNullException("Timeframe");
-
-			if (queryParameters.DateFrom > queryParameters.DateTo)
-				throw new Exception("From Date should be less than To date");
-
-			if (string.IsNullOrWhiteSpace(queryParameters.SortBy))
-				throw new ArgumentNullException("SortBy");
-
-			if (string.IsNullOrWhiteSpace(queryParameters.SortOrder))
-				throw new ArgumentNullException("SortOrder");
-
-			if (string.IsNullOrWhiteSpace(queryParameters.Location))
-				throw new ArgumentNullException("Location");
-
-			if (queryParameters.Page == 0)
-				throw new ArgumentNullException("Page");
-
-			if (queryParameters.RecordsPerPage == 0)
-				throw new ArgumentNullException("RecordsPerPage");
+			ValidateQueryParameters(queryParameters);
 
 			// start with all records
 			var queryable = _repository.GetAll();
@@ -542,17 +413,8 @@ public class DetectionsController : ControllerBase
 			// apply timeframe filter
 			MetadataFilters.ApplyTimeframeFilter(ref queryable, queryParameters.Timeframe, queryParameters.DateFrom, queryParameters.DateTo);
 
-			// apply location filter
-			if (queryParameters.Location.ToLower() != "all")
-			{
-				MetadataFilters.ApplyLocationFilter(ref queryable, queryParameters.Location);
-			}
-
-			// apply hydrophoneId filter
-			if (queryParameters.HydrophoneId.ToLower() != "all")
-			{
-				MetadataFilters.ApplyHydrophoneIdFilter(ref queryable, queryParameters.HydrophoneId);
-			}
+			// apply location and hydrophone filters
+			ApplyOptionalLocationAndHydrophoneFilters(ref queryable, queryParameters);
 
 			// If no detections found
 			if (queryable == null || queryable.Count() == 0)
@@ -566,19 +428,8 @@ public class DetectionsController : ControllerBase
 			var results = queryable
 				.Select(x => DetectionProcessors.ToDetection(x)).ToList();
 
-			// apply sort filter
-			if (queryParameters.SortBy.ToLower() == "confidence")
-				DetectionFilters.ApplyConfidenceSortFilter(ref results, queryParameters.SortOrder);
-			else if (queryParameters.SortBy.ToLower() == "timestamp")
-				DetectionFilters.ApplyTimestampSortFilter(ref results, queryParameters.SortOrder);
-
-			// apply pagination filter
-			DetectionFilters.ApplyPaginationFilter(ref results, queryParameters.Page, queryParameters.RecordsPerPage);
-
-			// set page count headers
-			SetHeaderCounts(recordCount,
-				(queryParameters.RecordsPerPage > 0 ? queryParameters.RecordsPerPage :
-					MetadataFilters.DefaultRecordsPerPage));
+			// apply sort, pagination filters and set page count headers
+			ApplySortPaginationAndHeaders(ref results, recordCount, queryParameters);
 
 			// map to returnable data type and return
 			return Ok(results);
