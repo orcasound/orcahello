@@ -137,7 +137,7 @@ class OrcaHelloSRKWDetectorV1(
     def __init__(self, config: Dict):
         super().__init__()
 
-        # `config` needs to Dict not DetectorInferenceConfig for serialization with PyTorchModelHubMixin
+        # `config` must be a Dict, not DetectorInferenceConfig, for serialization with PyTorchModelHubMixin
         self.config = DetectorInferenceConfig.from_dict(config)
 
         self.num_classes = self.config.model.num_classes
