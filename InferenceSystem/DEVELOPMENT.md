@@ -55,7 +55,7 @@ python scripts/extract_fastai_weights.py model/model.pkl model/model_v1.pt
 ### Upload to HuggingFace Hub
 
 ```bash
-python scripts/upload_to_hub.py --repo orcasound/orcahello-srkw-detector-v1
+HF_TOKEN=<your_huggingface_token> python scripts/upload_to_hf_hub.py --checkpoint model/model_v1.pt -m "Update model checkpoint"
 ```
 
 ## Testing
@@ -151,7 +151,4 @@ global_prediction:
 
 ## CI/CD
 
-Tests run via `.github/workflows/InferenceSystem.yaml`:
-- Runs on Ubuntu and Windows
-- Downloads production model from Azure
-- Tests audio preprocessing and model inference parity
+Tests run via `.github/workflows/InferenceSystem.yaml`. Rewritten `model_v1` tests don't yet run in CI.
