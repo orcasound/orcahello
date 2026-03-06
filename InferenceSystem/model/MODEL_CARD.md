@@ -101,9 +101,13 @@ inference:
   window_s: 2.0               # segment length
   window_hop_s: 1.0           # hop between segments
   max_batch_size: 8           # max segments to process at once in detect_srkw_from_file
-  local_conf_threshold: 0.5
-  global_pred_threshold: 3
   strict_segments: true       # if false, allow partial final segment
+
+global_prediction:
+  aggregation_strategy: mean_top_k  # aggregation method for global file-level prediction
+  mean_top_k: 2               # top segments to average for global_confidence
+  pred_local_threshold: 0.5   # threshold for local binary per-segments predictions
+  pred_global_threshold: 0.6  # applied to global_confidence for file-level prediction
 ```
 
 
@@ -161,7 +165,7 @@ Example below:
 @misc{akash_mahajan_2026,
 	author       = { Akash Mahajan and Prakruti Gogia and Aayush Agrawal },
 	title        = { orcahello-srkw-detector-v1 (Revision 6ccff28) },
-  year         = { 2020 },
+	year         = { 2020 },
 	url          = { https://huggingface.co/orcasound/orcahello-srkw-detector-v1 },
 	doi          = { 10.57967/hf/7703 },
 	publisher    = { Hugging Face },

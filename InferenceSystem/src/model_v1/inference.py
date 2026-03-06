@@ -273,7 +273,7 @@ class OrcaHelloSRKWDetectorV1(
         for batch_start in range(0, len(spectrograms), max_batch_size):
             batch_end = min(batch_start + max_batch_size, len(spectrograms))
             batch = torch.stack(spectrograms[batch_start:batch_end])
-            # Move batch to model's device and cast to model dtype (e.g. fp16)
+            # Move batch to model's device and cast to model dtype (e.g., fp16)
             batch = batch.to(device=self._device, dtype=self._dtype)
             batch_confidences = self.predict_call(batch)
             all_confidences.append(batch_confidences.cpu().float())
