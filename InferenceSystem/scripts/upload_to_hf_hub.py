@@ -54,6 +54,7 @@ def main():
     print(f"Loading config from {args.config}")
     with open(args.config) as f:
         config_dict = yaml.safe_load(f)
+    config_dict["model"]["precision"] = "float32"  # pin this so that a float32 safetensors file is created
 
     # Load model
     print(f"Loading model from {args.checkpoint}")
