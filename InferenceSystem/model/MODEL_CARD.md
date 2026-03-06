@@ -149,13 +149,6 @@ Softmax → [P(negative), P(positive)]
 - **Framework**: FastAI (original training)
 
 
-## Evaluation
-
-### Testing Data & Metrics
-
-TODO: WIP
-
-
 ## Citation
 
 **BibTeX:**
