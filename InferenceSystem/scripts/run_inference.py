@@ -8,10 +8,12 @@ Usage:
     python scripts/run_inference.py path/to/audio.wav --output results.json
     python scripts/run_inference.py path/to/audio_dir/          # recurse over wav/flac/mp3
     python scripts/run_inference.py path/to/audio_dir/ --output path/to/out_dir/
+    python scripts/run_inference.py path/to/audio.wav --config path/to/custom_config.yaml
 
     # Re-aggregate existing results with new config (no model inference):
     python scripts/run_inference.py results.json --reaggregate
     python scripts/run_inference.py results_dir/ --reaggregate
+    python scripts/run_inference.py results_dir/ --reaggregate --config path/to/custom_config.yaml
 """
 import argparse
 import csv
@@ -152,7 +154,7 @@ def run_single(model, audio_path: Path, config: dict, output_path: Path | None, 
     """Run inference on a single file. Returns a summary dict."""
     if verbose:
         print(f"Processing: {audio_path}")
-
+    
     result = model.detect_srkw_from_file(str(audio_path), config)
 
     if verbose:
@@ -250,19 +252,22 @@ def _from_dict(cls, d: dict):
 
 
 def main():
+    # Default config path relative to InferenceSystem directory
+    default_config_path = os.path.join(os.path.dirname(__file__), '..', 'model', 'config.yaml')
+    
     parser = argparse.ArgumentParser(description="Run model_v1 inference on audio files or directories")
     parser.add_argument("path", nargs="?", default=DEFAULT_AUDIO_PATH,
                         help="Path to audio file/directory or JSON result file/directory")
     parser.add_argument("--output", "-o",
                         help="Output path: JSON file (single-file mode) or directory (directory mode)")
+    parser.add_argument("--config", "-c", default=default_config_path,
+                        help=f"Path to config YAML file (default: {default_config_path})")
     parser.add_argument("--reaggregate", action="store_true",
                         help="Re-aggregate existing JSON results with current config (no model inference)")
     args = parser.parse_args()
 
     input_path = Path(args.path)
-
-    # Config path relative to InferenceSystem directory
-    config_path = os.path.join(os.path.dirname(__file__), '..', 'model', 'config.yaml')
+    config_path = args.config
 
     with open(config_path, 'r') as f:
         config = yaml.safe_load(f)

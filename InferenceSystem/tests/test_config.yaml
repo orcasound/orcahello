@@ -33,6 +33,5 @@ inference:
 
 global_prediction:
   aggregation_strategy: "mean_thresholded"  # aggregation method for global file-level prediction; mean_top_k | mean_thresholded
-  mean_top_k: 2               # top segments to average for global_confidence
   pred_local_threshold: 0.5   # threshold for local binary per-segment predictions
   pred_global_threshold: 0.6  # applied to global_confidence for file-level prediction
