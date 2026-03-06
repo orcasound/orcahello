@@ -51,7 +51,7 @@ jobs:
     permissions:
       contents: read
     steps:
-    - uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1
+    - uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b # v2.15.0
       with:
         egress-policy: audit
     - name: Checkout
@@ -82,7 +82,7 @@ jobs:
     permissions:
       contents: read
     steps:
-    - uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1
+    - uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b # v2.15.0
       with:
         egress-policy: audit
     - name: Artifacts cache
@@ -91,7 +91,7 @@ jobs:
         path: ./${{ env.WORKING_DIR}}/${{ env.PUBLISH_DIR }}
         key: ${{ github.sha }}-${{ env.AZURE_APP_NAME }}-${{ env.DOTNET_RUNTIME }}-artifacts
     - name: Deploy to azure
-      uses: azure/webapps-deploy@657f0700ea5214d56a0400d8ac5e8023c963d25d # v3.0.6
+      uses: azure/webapps-deploy@84a80cfe7e9889f35148ed88c307e6e93bf02578 # v3.0.7
       with:
         app-name: ${{ env.AZURE_APP_NAME }}
         publish-profile: ${{ secrets.AZURE_ORCAHELLO_PUBLISH_PROFILE }}
