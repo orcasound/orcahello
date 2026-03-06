@@ -201,7 +201,7 @@ class OrcaHelloSRKWDetectorV1(
         self.eval()
         with torch.no_grad():
             logits = self.forward(x)
-            return F.softmax(logits, dim=1)[:, self.call_class_index].squeeze()
+            return F.softmax(logits, dim=1)[:, self.call_class_index]
     
     def detect_srkw_from_file(
         self,
