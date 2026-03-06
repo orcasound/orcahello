@@ -62,7 +62,7 @@ class GlobalPredictionConfig:
         pred_global_threshold: applied to global_confidence for binary global_prediction (0-1)
     """
     aggregation_strategy: str = "mean_top_k"
-    mean_top_k: int = 3
+    mean_top_k: int = 2
     pred_local_threshold: float = 0.5
     pred_global_threshold: float = 0.6
 

@@ -32,7 +32,7 @@ inference:
   strict_segments: true       # if false, allow partial final segment (true for fastai parity)
 
 global_prediction:
-  aggregation_strategy: "mean_thresholded"  # "mean_thresholded" or "mean_top_k"
-  mean_top_k: 3               # top segments to average for global_confidence (mean_top_k)
-  pred_local_threshold: 0.5   # for local binary predictions, and selecting segments to average for global_confidence (mean_thresholded)
-  pred_global_threshold: 0.6  # applied to global_confidence for binary global_prediction
+  aggregation_strategy: "mean_thresholded"  # aggregation method for global file-level prediction; mean_top_k | mean_thresholded
+  mean_top_k: 2               # top segments to average for global_confidence
+  pred_local_threshold: 0.5   # threshold for local binary per-segment predictions
+  pred_global_threshold: 0.6  # applied to global_confidence for file-level prediction
