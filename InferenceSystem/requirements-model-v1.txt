@@ -31,3 +31,6 @@ pytest-cov>=4.0.0
 # HuggingFace Hub integration
 huggingface-hub>=0.20.0
 safetensors>=0.4.0
+
+# Environment variable loading
+python-dotenv>=1.0.0
