@@ -46,45 +46,44 @@ jobs:
     - name: Checkout
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-    - name: Set up Python
-      uses: actions/setup-python@v6
-      with:
-        python-version: '3.11'
-
     - name: Install FFmpeg
       run: |
         sudo apt-get update
         sudo apt-get install -y ffmpeg
 
-    - name: Cache pip
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+
+    - name: Cache uv
       uses: actions/cache@v5
       with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-v1-${{ hashFiles('InferenceSystem/requirements-model-v1.txt') }}
+        path: ~/.cache/uv
+        key: ${{ runner.os }}-uv-v1-${{ hashFiles('InferenceSystem/pyproject.toml', 'InferenceSystem/uv.lock') }}
         restore-keys: |
-          ${{ runner.os }}-pip-v1-
+          ${{ runner.os }}-uv-v1-
 
     - name: Install dependencies
       working-directory: InferenceSystem
-      run: pip install -r requirements-model-v1.txt
+      run: uv sync --group dev
 
     - name: Download HuggingFace model to local cache
+      working-directory: InferenceSystem
       env:
         HF_HUB_OFFLINE: "0"
-      run: python -c "from huggingface_hub import snapshot_download; snapshot_download('orcasound/orcahello-srkw-detector-v1')"
+      run: uv run python -c "from huggingface_hub import snapshot_download; snapshot_download('orcasound/orcahello-srkw-detector-v1')"
 
     - name: Inference Orchestrator LiveHLS Smoke test
       working-directory: InferenceSystem
-      run: pytest tests/test_orchestrator_v1.py -v -k "livehls"
+      run: uv run pytest tests/test_orchestrator_v1.py -v -k "livehls"
 
     - name: Inference Orchestrator Positive detection tests
       working-directory: InferenceSystem
-      run: pytest tests/test_orchestrator_v1.py -v -k "positive"
+      run: uv run pytest tests/test_orchestrator_v1.py -v -k "positive"
 
     - name: Inference Orchestrator Negative detection test
       working-directory: InferenceSystem
-      run: pytest tests/test_orchestrator_v1.py -v -k "negative"
+      run: uv run pytest tests/test_orchestrator_v1.py -v -k "negative"
 
     - name: Inference Orchestrator Fail/edge-case tests
       working-directory: InferenceSystem
-      run: pytest tests/test_orchestrator_v1.py -v -k "fail"
+      run: uv run pytest tests/test_orchestrator_v1.py -v -k "fail"
