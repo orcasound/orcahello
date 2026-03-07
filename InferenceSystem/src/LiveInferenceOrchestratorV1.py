@@ -239,6 +239,38 @@ def build_hls_stream(config_params, local_dir, logger):
     raise ValueError("hls_stream_type should be one of LiveHLS or DateRangeHLS")
 
 
+def upload_detection_to_azure(
+    clip_path, spectrogram_path, result, start_timestamp,
+    hls_hydrophone_id, model_id, blob_service_client, cosmos_client, logger
+):
+    """Upload audio, spectrogram, and CosmosDB metadata for a positive detection."""
+    audio_clip_name = os.path.basename(clip_path)
+    audio_blob_client = blob_service_client.get_blob_client(
+        container=AZURE_STORAGE_AUDIO_CONTAINER_NAME, blob=audio_clip_name
+    )
+    with open(clip_path, "rb") as data:
+        audio_blob_client.upload_blob(data)
+    audio_uri = assemble_blob_uri(AZURE_STORAGE_AUDIO_CONTAINER_NAME, audio_clip_name)
+    logger.info(f"Uploaded audio to Azure Storage: {audio_clip_name}")
+
+    spectrogram_name = os.path.basename(spectrogram_path)
+    spectrogram_blob_client = blob_service_client.get_blob_client(
+        container=AZURE_STORAGE_SPECTROGRAM_CONTAINER_NAME, blob=spectrogram_name
+    )
+    with open(spectrogram_path, "rb") as data:
+        spectrogram_blob_client.upload_blob(data)
+    spectrogram_uri = assemble_blob_uri(AZURE_STORAGE_SPECTROGRAM_CONTAINER_NAME, spectrogram_name)
+    logger.info(f"Uploaded spectrogram to Azure Storage: {spectrogram_name}")
+
+    metadata = build_cosmosdb_metadata(
+        audio_uri, spectrogram_uri, result, start_timestamp, hls_hydrophone_id, model_id
+    )
+    database = cosmos_client.get_database_client(COSMOSDB_DATABASE_NAME)
+    container = database.get_container_client(COSMOSDB_CONTAINER_NAME)
+    container.create_item(body=metadata)
+    logger.info(f"Added metadata to CosmosDB: id={metadata['id']}")
+
+
 def run_loop(
     hls_stream,
     model,
@@ -254,6 +286,8 @@ def run_loop(
     hls_polling_interval = config_params["hls_polling_interval"]
     hls_hydrophone_id = config_params["hls_hydrophone_id"]
 
+    # Cursor tracking where we are in the audio timeline.
+    # Initialized slightly in the past so the first get_next_clip call fetches immediately.
     current_clip_end_time = datetime.utcnow() - timedelta(seconds=10)
     iteration_count = 0
 
@@ -262,6 +296,7 @@ def run_loop(
             break
         iteration_count += 1
 
+        # --- Phase 1: Fetch next audio clip ---
         try:
             clip_path, start_timestamp, next_clip_end_time = hls_stream.get_next_clip(
                 current_clip_end_time
@@ -277,13 +312,13 @@ def run_loop(
                 f"next_clip_end_time={next_clip_end_time}, current_clip_end_time={current_clip_end_time}. "
                 f"{type(e).__name__}: {e}"
             )
+            # Advance cursor and retry next iteration
             if next_clip_end_time is not None:
                 current_clip_end_time = next_clip_end_time
-            current_clip_end_time = current_clip_end_time + timedelta(
-                seconds=hls_polling_interval
-            )
+            current_clip_end_time += timedelta(seconds=hls_polling_interval)
             continue
 
+        # --- Phase 2: Run inference (clip_path is None if no audio was available) ---
         if clip_path:
             logger.info(f"Processing clip: {os.path.basename(clip_path)}")
             spectrogram_path = spectrogram_visualizer.write_spectrogram(clip_path)
@@ -302,54 +337,22 @@ def run_loop(
                     "Orca Found: ",
                     extra={"custom_dimensions": {"Hydrophone ID": hls_hydrophone_id}},
                 )
-
                 if config_params["upload_to_azure"]:
-                    audio_clip_name = os.path.basename(clip_path)
-                    audio_blob_client = blob_service_client.get_blob_client(
-                        container=AZURE_STORAGE_AUDIO_CONTAINER_NAME,
-                        blob=audio_clip_name,
+                    upload_detection_to_azure(
+                        clip_path, spectrogram_path, result, start_timestamp,
+                        hls_hydrophone_id, model_id, blob_service_client, cosmos_client, logger
                     )
-                    with open(clip_path, "rb") as data:
-                        audio_blob_client.upload_blob(data)
-                    audio_uri = assemble_blob_uri(
-                        AZURE_STORAGE_AUDIO_CONTAINER_NAME, audio_clip_name
-                    )
-                    logger.info(f"Uploaded audio to Azure Storage: {audio_clip_name}")
-
-                    spectrogram_name = os.path.basename(spectrogram_path)
-                    spectrogram_blob_client = blob_service_client.get_blob_client(
-                        container=AZURE_STORAGE_SPECTROGRAM_CONTAINER_NAME,
-                        blob=spectrogram_name,
-                    )
-                    with open(spectrogram_path, "rb") as data:
-                        spectrogram_blob_client.upload_blob(data)
-                    spectrogram_uri = assemble_blob_uri(
-                        AZURE_STORAGE_SPECTROGRAM_CONTAINER_NAME, spectrogram_name
-                    )
-                    logger.info(f"Uploaded spectrogram to Azure Storage: {spectrogram_name}")
-
-                    metadata = build_cosmosdb_metadata(
-                        audio_uri,
-                        spectrogram_uri,
-                        result,
-                        start_timestamp,
-                        hls_hydrophone_id,
-                        model_id,
-                    )
-                    database = cosmos_client.get_database_client(COSMOSDB_DATABASE_NAME)
-                    container = database.get_container_client(COSMOSDB_CONTAINER_NAME)
-                    container.create_item(body=metadata)
-                    logger.info(f"Added metadata to CosmosDB: id={metadata['id']}")
 
             if config_params["delete_local_wavs"]:
                 os.remove(clip_path)
                 os.remove(spectrogram_path)
 
+        # --- Phase 3: Advance the timeline cursor ---
+        # Use next_clip_end_time if provided by the stream, then add polling interval
+        # to ensure we always request the next non-overlapping window.
         if next_clip_end_time is not None:
             current_clip_end_time = next_clip_end_time
-        current_clip_end_time = current_clip_end_time + timedelta(
-            seconds=hls_polling_interval
-        )
+        current_clip_end_time += timedelta(seconds=hls_polling_interval)
 
 
 if __name__ == "__main__":
