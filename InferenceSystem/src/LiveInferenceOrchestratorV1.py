@@ -221,6 +221,12 @@ def build_hls_stream(config_params, local_dir, logger):
         end_dt = datetime.strptime(hls_end_time_pst, "%Y-%m-%d %H:%M")
         hls_end_time_unix = int(timezone("US/Pacific").localize(end_dt).timestamp())
 
+        logger.info(
+            f"Initializing DateRangeHLSStream for hydrophone: {hls_hydrophone_id}, "
+            f"start_unix: {hls_start_time_unix}, end_unix: {hls_end_time_unix}, "
+            f"start_pst: {hls_start_time_pst}, end_pst: {hls_end_time_pst}"
+        )
+
         try:
             return DateRangeHLSStream(
                 hydrophone_stream_url,
