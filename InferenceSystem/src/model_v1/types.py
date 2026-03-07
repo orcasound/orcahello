@@ -163,11 +163,11 @@ class DetectionResult:
                 print(f"{i+1:<10} {seg.start_time_s:<12.1f} {seg.duration_s:<14.1f} {pred:<12} {conf:<12.3f}")
             print("-" * 60)
 
-            meta = self.metadata
-            print("\n=== Performance ===")
-            print(f"File duration:   {meta.file_duration_s:.2f}s")
-            print(f"Processing time: {meta.processing_time_s:.2f}s")
-            print(f"Realtime factor: {meta.realtime_factor:.2f}x")
+        meta = self.metadata
+        print("\n=== Performance ===")
+        print(f"File duration:   {meta.file_duration_s:.2f}s")
+        print(f"Processing time: {meta.processing_time_s:.2f}s")
+        print(f"Realtime factor: {meta.realtime_factor:.2f}x")
 
         num_positive = sum(self.local_predictions)
         print("\n=== Summary ===")
