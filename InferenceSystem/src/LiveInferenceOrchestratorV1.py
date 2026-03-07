@@ -153,7 +153,9 @@ def parse_args():
 
 
 def setup_logger(connection_string):
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s"
+    )
     logger = logging.getLogger(__name__)
     if connection_string is not None:
         logger.addHandler(AzureLogHandler(connection_string=connection_string))
@@ -170,7 +172,9 @@ def load_model(config_params, logger):
         "model_v1_repo_id", "orcasound/orcahello-srkw-detector-v1"
     )
     if os.getenv("HF_HUB_OFFLINE", "0") == "1":
-        logger.info(f"Loading model from local HuggingFace cache (HF_HUB_OFFLINE=1): {repo_id}")
+        logger.info(
+            f"Loading model from local HuggingFace cache (HF_HUB_OFFLINE=1): {repo_id}"
+        )
     else:
         logger.info(f"Loading model from HuggingFace Hub: {repo_id}")
 
@@ -240,8 +244,15 @@ def build_hls_stream(config_params, local_dir, logger):
 
 
 def upload_detection_to_azure(
-    clip_path, spectrogram_path, result, start_timestamp,
-    hls_hydrophone_id, model_id, blob_service_client, cosmos_client, logger
+    clip_path,
+    spectrogram_path,
+    result,
+    start_timestamp,
+    hls_hydrophone_id,
+    model_id,
+    blob_service_client,
+    cosmos_client,
+    logger,
 ):
     """Upload audio, spectrogram, and CosmosDB metadata for a positive detection."""
     audio_clip_name = os.path.basename(clip_path)
@@ -259,7 +270,9 @@ def upload_detection_to_azure(
     )
     with open(spectrogram_path, "rb") as data:
         spectrogram_blob_client.upload_blob(data)
-    spectrogram_uri = assemble_blob_uri(AZURE_STORAGE_SPECTROGRAM_CONTAINER_NAME, spectrogram_name)
+    spectrogram_uri = assemble_blob_uri(
+        AZURE_STORAGE_SPECTROGRAM_CONTAINER_NAME, spectrogram_name
+    )
     logger.info(f"Uploaded spectrogram to Azure Storage: {spectrogram_name}")
 
     metadata = build_cosmosdb_metadata(
@@ -304,7 +317,8 @@ def run_loop(
         except (IndexError, ValueError) as e:
             time_range = (
                 f" Time range: {config_params['hls_start_time_pst']} to {config_params['hls_end_time_pst']} PST."
-                if hls_stream_type == "DateRangeHLS" else ""
+                if hls_stream_type == "DateRangeHLS"
+                else ""
             )
             logger.warning(
                 f"Unable to retrieve audio clip — no audio may exist for this time range. "
@@ -339,8 +353,15 @@ def run_loop(
                 )
                 if config_params["upload_to_azure"]:
                     upload_detection_to_azure(
-                        clip_path, spectrogram_path, result, start_timestamp,
-                        hls_hydrophone_id, model_id, blob_service_client, cosmos_client, logger
+                        clip_path,
+                        spectrogram_path,
+                        result,
+                        start_timestamp,
+                        hls_hydrophone_id,
+                        model_id,
+                        blob_service_client,
+                        cosmos_client,
+                        logger,
                     )
 
             if config_params["delete_local_wavs"]:
@@ -367,7 +388,9 @@ if __name__ == "__main__":
         "INFERENCESYSTEM_APPINSIGHTS_CONNECTION_STRING"
     )
     logger = setup_logger(app_insights_connection_string)
-    logger.info(f"App Insights connection string present: {app_insights_connection_string is not None}")
+    logger.info(
+        f"App Insights connection string present: {app_insights_connection_string is not None}"
+    )
 
     model_id = config_params.get("model_id", "OrcaHelloSRKWDetectorV1.v1_0")
     logger.info(f"Model ID: {model_id}")
