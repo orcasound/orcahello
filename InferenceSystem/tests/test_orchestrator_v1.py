@@ -62,7 +62,7 @@ POSITIVE_CONFIGS = [
     "DateRangeHLS_BushPoint.yml",
     "DateRangeHLS_NorthSJC.yml",
     "DateRangeHLS_PortTownsend.yml",
-    "DateRangeHLS_SunsetBay.yml",  # TODO: time window may need updating for V1 model
+    "DateRangeHLS_SunsetBay.yml",
     "DateRangeHLS_MastCenter.yml",
 ]
 
