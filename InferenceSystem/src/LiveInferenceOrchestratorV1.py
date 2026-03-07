@@ -307,7 +307,7 @@ def run_loop(
 
     # Cursor tracking where we are in the audio timeline.
     # Initialized slightly in the past so the first get_next_clip call fetches immediately.
-    current_clip_end_time = datetime.now(datetime.UTC) - timedelta(seconds=10)
+    current_clip_end_time = datetime.utcnow() - timedelta(seconds=10)
     iteration_count = 0
 
     while not hls_stream.is_stream_over():
