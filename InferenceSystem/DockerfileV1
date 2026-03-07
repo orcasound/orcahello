@@ -7,7 +7,6 @@ RUN apt-get update && apt-get install -y \
         libxrender-dev \
         libglib2.0-0 \
         ffmpeg \
-        python3 \
         curl \
         ca-certificates \
     && rm -rf /var/lib/apt/lists/*
@@ -17,11 +16,13 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 ENV PATH="/root/.local/bin:$PATH"
 
 # Install Python deps via uv (prod group only — no pytest in prod image)
+# UV_PYTHON pins to 3.11 to avoid issues with newer system pythons
 WORKDIR /usr/src/install
 COPY ./pyproject.toml ./pyproject.toml
 COPY ./uv.lock ./uv.lock
 ENV UV_PROJECT_ENVIRONMENT=/usr/src/venv
-RUN uv sync --group prod --no-dev
+ENV UV_PYTHON=3.11
+RUN uv python install 3.11 && uv sync --group prod --no-dev
 
 # Bake HuggingFace model into image cache at build time
 ENV HF_HOME=/usr/src/hf_cache
