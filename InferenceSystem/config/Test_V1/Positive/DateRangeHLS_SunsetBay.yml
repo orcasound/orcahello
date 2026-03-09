@@ -3,8 +3,8 @@ model_v1_repo_id: "orcasound/orcahello-srkw-detector-v1"
 model_v1_config_path: "./model/config.yaml"
 hls_stream_type: "DateRangeHLS"
 hls_polling_interval: 60
-hls_start_time_pst: "2025-09-18 01:14"
-hls_end_time_pst: "2025-09-18 01:15"
+hls_start_time_pst: "2025-09-18 01:06"  # example 1 here (SRKW calf): https://github.com/orcasound/orcahello/issues/430
+hls_end_time_pst: "2025-09-18 01:07"
 hls_hydrophone_id: "rpi_sunset_bay"
 upload_to_azure: False
 delete_local_wavs: True
