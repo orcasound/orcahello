@@ -120,7 +120,7 @@ def build_cosmosdb_metadata(
         "imageUri": image_uri,
         "reviewed": False,
         "timestamp": timestamp_in_iso,
-        "whaleFoundConfidence": result.global_confidence,
+        "whaleFoundConfidence": result.global_confidence * 100.0,  # DB assumes 0-100 here
         "location": source_guid_to_location[source_guid],
         "source_guid": source_guid,
         "predictions": prediction_list,
