@@ -288,6 +288,29 @@ def upload_detection_to_azure(
     container = database.get_container_client(COSMOSDB_CONTAINER_NAME)
     container.create_item(body=metadata)
     logger.info(f"Added metadata to CosmosDB: id={metadata['id']}")
+    return audio_clip_name, spectrogram_name, metadata["id"]
+
+
+def cleanup_azure_uploads(uploaded_items, blob_service_client, cosmos_client, source_guid, logger):
+    """Delete blobs and CosmosDB docs created during this run. For testing only."""
+    database = cosmos_client.get_database_client(COSMOSDB_DATABASE_NAME)
+    container = database.get_container_client(COSMOSDB_CONTAINER_NAME)
+    for audio_name, spectrogram_name, cosmos_id in uploaded_items:
+        print(f"\nAbout to delete: {audio_name}, {spectrogram_name}, CosmosDB id={cosmos_id}")
+        confirm = input("Confirm deletion? [y/N]: ").strip().lower()
+        if confirm != "y":
+            logger.info(f"Skipped cleanup for CosmosDB id={cosmos_id}")
+            continue
+        blob_service_client.get_blob_client(
+            container=AZURE_STORAGE_AUDIO_CONTAINER_NAME, blob=audio_name
+        ).delete_blob()
+        logger.info(f"Deleted audio blob: {audio_name}")
+        blob_service_client.get_blob_client(
+            container=AZURE_STORAGE_SPECTROGRAM_CONTAINER_NAME, blob=spectrogram_name
+        ).delete_blob()
+        logger.info(f"Deleted spectrogram blob: {spectrogram_name}")
+        container.delete_item(item=cosmos_id, partition_key=source_guid)
+        logger.info(f"Deleted CosmosDB doc: id={cosmos_id}")
 
 
 def run_loop(
@@ -358,7 +381,7 @@ def run_loop(
                     extra={"custom_dimensions": {"Hydrophone ID": hls_hydrophone_id}},
                 )
                 if config_params["upload_to_azure"]:
-                    upload_detection_to_azure(
+                    uploaded = upload_detection_to_azure(
                         clip_path,
                         spectrogram_path,
                         result,
@@ -369,6 +392,8 @@ def run_loop(
                         cosmos_client,
                         logger,
                     )
+                    if config_params.get("cleanup_azure_uploads", False):  # Used for local testing only
+                        cleanup_azure_uploads([uploaded], blob_service_client, cosmos_client, hls_hydrophone_id, logger)
 
             if config_params["delete_local_wavs"]:
                 os.remove(clip_path)
@@ -383,7 +408,7 @@ def run_loop(
 
 
 if __name__ == "__main__":
-    load_dotenv()
+    load_dotenv()  # for local development. in prod, env vars set by Kubernetes Secret
 
     args = parse_args()
 
@@ -414,7 +439,7 @@ if __name__ == "__main__":
         f"stream type: {config_params['hls_stream_type']}"
     )
 
-    run_loop(
+    uploaded_items = run_loop(
         hls_stream,
         model,
         model_v1_config,
@@ -425,3 +450,4 @@ if __name__ == "__main__":
         model_id,
         max_iterations=args.max_iterations,
     )
+
