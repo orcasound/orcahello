@@ -25,7 +25,7 @@ CONFIG_V1_DIR = INFERENCE_DIR / "config" / "Test_V1"
 def run_orchestrator(config_path: Path, max_iterations: int = 1) -> str:
     """Run the orchestrator and return combined stdout+stderr output."""
     result = subprocess.run(
-        [sys.executable, str(ORCHESTRATOR), "--config", str(config_path), "--max_iterations", str(max_iterations)],
+        [sys.executable, str(ORCHESTRATOR), "--orch_config", str(config_path), "--max_iterations", str(max_iterations)],
         capture_output=True,
         text=True,
         cwd=str(INFERENCE_DIR),

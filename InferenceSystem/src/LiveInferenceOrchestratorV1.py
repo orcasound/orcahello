@@ -130,10 +130,10 @@ def build_cosmosdb_metadata(
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--config",
+        "--orch_config",
         type=str,
         required=False,
-        help="Path to config YAML (default: /config/config.yml)",
+        help="Path to orchestrator config YAML (default: /config/config.yml)",
     )
     parser.add_argument(
         "--max_iterations",
@@ -150,11 +150,11 @@ def parse_args():
     )
     args, _ = parser.parse_known_args()
 
-    if args.config:
-        print(f"Using config from command line argument: {args.config}")
+    if args.orch_config:
+        print(f"Using orch config from command line argument: {args.orch_config}")
     else:
-        args.config = "/config/config.yml"
-        print(f"Using config from ConfigMap: {args.config}")
+        args.orch_config = "/config/config.yml"
+        print(f"Using orch config from ConfigMap: {args.orch_config}")
 
     return args
 
@@ -201,17 +201,17 @@ def apply_model_config_overrides(model_config, overrides, logger):
     return DetectorInferenceConfig.from_dict(config_dict)
 
 
-def load_model(config_params, logger):
+def load_model(orch_config, logger):
     model_config = DetectorInferenceConfig.from_yaml(
-        config_params["model_config_path"]
+        orch_config["model_config_path"]
     )
 
-    overrides = config_params.get("model_config_overrides")
+    overrides = orch_config.get("model_config_overrides")
     if overrides:
         logger.info(f"Applying model config overrides: {overrides}")
         model_config = apply_model_config_overrides(model_config, overrides, logger)
 
-    repo_id = config_params.get(
+    repo_id = orch_config.get(
         "model_hf_repo_id", "orcasound/orcahello-srkw-detector-v1"
     )
     if os.getenv("HF_HUB_OFFLINE", "0") == "1":
@@ -228,9 +228,9 @@ def load_model(config_params, logger):
     return model, model_config
 
 
-def setup_azure_clients(config_params):
+def setup_azure_clients(orch_config):
     """Returns (blob_service_client, cosmos_client), or (None, None) if upload_to_azure is False."""
-    if not config_params["upload_to_azure"]:
+    if not orch_config["upload_to_azure"]:
         return None, None
 
     blob_service_client = BlobServiceClient.from_connection_string(
@@ -243,20 +243,20 @@ def setup_azure_clients(config_params):
     return blob_service_client, cosmos_client
 
 
-def build_hls_stream(config_params, local_dir, logger):
-    hls_hydrophone_id = config_params["hls_hydrophone_id"]
-    hls_polling_interval = config_params["hls_polling_interval"]
+def build_hls_stream(orch_config, local_dir, logger):
+    hls_hydrophone_id = orch_config["hls_hydrophone_id"]
+    hls_polling_interval = orch_config["hls_polling_interval"]
     hydrophone_stream_url = (
         "https://s3-us-west-2.amazonaws.com/audio-orcasound-net/" + hls_hydrophone_id
     )
 
-    hls_stream_type = config_params["hls_stream_type"]
+    hls_stream_type = orch_config["hls_stream_type"]
     if hls_stream_type == "LiveHLS":
         return HLSStream(hydrophone_stream_url, hls_polling_interval, local_dir)
 
     if hls_stream_type == "DateRangeHLS":
-        hls_start_time_pst = config_params["hls_start_time_pst"]
-        hls_end_time_pst = config_params["hls_end_time_pst"]
+        hls_start_time_pst = orch_config["hls_start_time_pst"]
+        hls_end_time_pst = orch_config["hls_end_time_pst"]
 
         start_dt = datetime.strptime(hls_start_time_pst, "%Y-%m-%d %H:%M")
         hls_start_time_unix = int(timezone("US/Pacific").localize(start_dt).timestamp())
@@ -364,16 +364,16 @@ def run_loop(
     hls_stream,
     model,
     model_config,
-    config_params,
+    orch_config,
     blob_service_client,
     cosmos_client,
     logger,
     model_id,
     max_iterations,
 ):
-    hls_stream_type = config_params["hls_stream_type"]
-    hls_polling_interval = config_params["hls_polling_interval"]
-    hls_hydrophone_id = config_params["hls_hydrophone_id"]
+    hls_stream_type = orch_config["hls_stream_type"]
+    hls_polling_interval = orch_config["hls_polling_interval"]
+    hls_hydrophone_id = orch_config["hls_hydrophone_id"]
 
     # Cursor tracking where we are in the audio timeline.
     # Initialized slightly in the past so the first get_next_clip call fetches immediately.
@@ -396,7 +396,7 @@ def run_loop(
             )
         except (IndexError, ValueError) as e:
             time_range = (
-                f" Time range: {config_params['hls_start_time_pst']} to {config_params['hls_end_time_pst']} PST."
+                f" Time range: {orch_config['hls_start_time_pst']} to {orch_config['hls_end_time_pst']} PST."
                 if hls_stream_type == "DateRangeHLS"
                 else ""
             )
@@ -435,7 +435,7 @@ def run_loop(
                     f"[iter {iteration_count}] Orca detected (confidence={result.global_confidence:.3f})",
                     extra={"custom_dimensions": {"Hydrophone ID": hls_hydrophone_id}},
                 )
-                if config_params["upload_to_azure"]:
+                if orch_config["upload_to_azure"]:
                     uploaded = upload_detection_to_azure(
                         clip_path,
                         spectrogram_path,
@@ -447,10 +447,10 @@ def run_loop(
                         cosmos_client,
                         logger,
                     )
-                    if config_params.get("cleanup_azure_uploads", False):  # Used for local testing only
+                    if orch_config.get("cleanup_azure_uploads", False):  # Used for local testing only
                         cleanup_azure_uploads([uploaded], blob_service_client, cosmos_client, hls_hydrophone_id, logger)
 
-            if config_params["delete_local_wavs"]:
+            if orch_config["delete_local_wavs"]:
                 os.remove(clip_path)
                 os.remove(spectrogram_path)
                 logger.debug(f"Deleted local files: {clip_path}, {spectrogram_path}")
@@ -469,40 +469,40 @@ if __name__ == "__main__":
 
     args = parse_args()
 
-    with open(args.config) as f:
-        config_params = yaml.load(f, Loader=yaml.FullLoader)
+    with open(args.orch_config) as f:
+        orch_config = yaml.load(f, Loader=yaml.FullLoader)
 
     app_insights_connection_string = os.getenv(
         "INFERENCESYSTEM_APPINSIGHTS_CONNECTION_STRING"
     )
     logger = setup_logger(app_insights_connection_string, log_level=args.log_level)
-    logger.debug(f"Config: {args.config}")
+    logger.debug(f"Orch config: {args.orch_config}")
     logger.debug(
         f"App Insights connection string present: {app_insights_connection_string is not None}"
     )
 
-    model_id = config_params.get("model_id", "orcasound/orcahello-srkw-detector-v1")
+    model_id = orch_config.get("model_id", "orcasound/orcahello-srkw-detector-v1")
     logger.info(f"Model ID: {model_id}")
-    model, model_config = load_model(config_params, logger)
+    model, model_config = load_model(orch_config, logger)
     logger.info("Model loaded")
 
-    blob_service_client, cosmos_client = setup_azure_clients(config_params)
-    logger.info(f"Azure upload: {config_params['upload_to_azure']}")
+    blob_service_client, cosmos_client = setup_azure_clients(orch_config)
+    logger.info(f"Azure upload: {orch_config['upload_to_azure']}")
 
     local_dir = "wav_dir"
     os.makedirs(local_dir, exist_ok=True)
 
-    hls_stream = build_hls_stream(config_params, local_dir, logger)
+    hls_stream = build_hls_stream(orch_config, local_dir, logger)
     logger.info(
-        f"Starting inference loop: hydrophone={config_params['hls_hydrophone_id']}, "
-        f"stream_type={config_params['hls_stream_type']}"
+        f"Starting inference loop: hydrophone={orch_config['hls_hydrophone_id']}, "
+        f"stream_type={orch_config['hls_stream_type']}"
     )
 
     run_loop(
         hls_stream,
         model,
         model_config,
-        config_params,
+        orch_config,
         blob_service_client,
         cosmos_client,
         logger,
