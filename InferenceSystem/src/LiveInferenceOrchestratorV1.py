@@ -179,10 +179,37 @@ def setup_logger(connection_string, log_level="DEBUG"):
     return logger
 
 
+def apply_model_config_overrides(model_config, overrides, logger):
+    """Apply nested overrides from orchestrator config onto the model config.
+
+    Expects overrides as a dict like:
+        {"inference": {"max_batch_size": 16}, "global_prediction": {"pred_global_threshold": 0.5}}
+    """
+    config_dict = model_config.as_dict()
+    for section, values in overrides.items():
+        if section not in config_dict:
+            logger.warning(f"model_config_overrides: unknown section '{section}', skipping")
+            continue
+        if not isinstance(values, dict):
+            logger.warning(f"model_config_overrides: section '{section}' must be a dict, skipping")
+            continue
+        for key, val in values.items():
+            if key not in config_dict[section]:
+                logger.warning(f"model_config_overrides: unknown key '{section}.{key}', skipping")
+                continue
+            config_dict[section][key] = val
+    return DetectorInferenceConfig.from_dict(config_dict)
+
+
 def load_model(config_params, logger):
     model_config = DetectorInferenceConfig.from_yaml(
         config_params["model_config_path"]
     )
+
+    overrides = config_params.get("model_config_overrides")
+    if overrides:
+        logger.info(f"Applying model config overrides: {overrides}")
+        model_config = apply_model_config_overrides(model_config, overrides, logger)
 
     repo_id = config_params.get(
         "model_hf_repo_id", "orcasound/orcahello-srkw-detector-v1"
@@ -454,7 +481,7 @@ if __name__ == "__main__":
         f"App Insights connection string present: {app_insights_connection_string is not None}"
     )
 
-    model_id = config_params.get("model_id", "OrcaHelloSRKWDetectorV1.v1_0")
+    model_id = config_params.get("model_id", "orcasound/orcahello-srkw-detector-v1")
     logger.info(f"Model ID: {model_id}")
     model, model_config = load_model(config_params, logger)
     logger.info("Model loaded")
