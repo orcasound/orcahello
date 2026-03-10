@@ -5,6 +5,10 @@ metadata:
   namespace: bush-point
 spec:
   replicas: 1
+  # NOTE: This deployment intentionally uses a single replica with a Recreate
+  # strategy due to memory constraints and so that only one inference pod processes
+  # hydrophone audio at a time.  This avoids concurrent inference instances for
+  # this site, and the temporary detection gap during upgrades is acceptable.
   strategy:
     type: Recreate
   selector:
