@@ -50,7 +50,7 @@ jobs:
         fi
         echo "files=$CHANGED" >> $GITHUB_OUTPUT
 
-    - name: Apply configmaps
+    - name: Apply configmaps and restart deployments
       run: |
         CHANGED="${{ steps.changed-files.outputs.files }}"
         if [ -z "$CHANGED" ]; then
@@ -60,4 +60,8 @@ jobs:
         for FILE in $CHANGED; do
           echo "Applying $FILE"
           kubectl apply -f "$FILE"
+          # Derive namespace from filename, e.g. InferenceSystem/deploy/bush-point-configmap.yaml -> bush-point
+          NAMESPACE=$(basename "$FILE" -configmap.yaml)
+          echo "Restarting deployment/inference-system in namespace $NAMESPACE"
+          kubectl rollout restart deployment/inference-system -n "$NAMESPACE"
         done
