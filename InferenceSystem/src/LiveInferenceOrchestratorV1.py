@@ -180,12 +180,12 @@ def setup_logger(connection_string, log_level="DEBUG"):
 
 
 def load_model(config_params, logger):
-    model_v1_config = DetectorInferenceConfig.from_yaml(
-        config_params["model_v1_config_path"]
+    model_config = DetectorInferenceConfig.from_yaml(
+        config_params["model_config_path"]
     )
 
     repo_id = config_params.get(
-        "model_v1_repo_id", "orcasound/orcahello-srkw-detector-v1"
+        "model_hf_repo_id", "orcasound/orcahello-srkw-detector-v1"
     )
     if os.getenv("HF_HUB_OFFLINE", "0") == "1":
         logger.debug(
@@ -195,10 +195,10 @@ def load_model(config_params, logger):
         logger.debug(f"Loading model from HuggingFace Hub: {repo_id}")
 
     model = OrcaHelloSRKWDetectorV1.from_pretrained(
-        repo_id, config=model_v1_config.as_dict()
+        repo_id, config=model_config.as_dict()
     )
     logger.debug(f"Model device: {model._device}  |  Dtype: {model._dtype}")
-    return model, model_v1_config
+    return model, model_config
 
 
 def setup_azure_clients(config_params):
@@ -336,7 +336,7 @@ def cleanup_azure_uploads(uploaded_items, blob_service_client, cosmos_client, so
 def run_loop(
     hls_stream,
     model,
-    model_v1_config,
+    model_config,
     config_params,
     blob_service_client,
     cosmos_client,
@@ -393,7 +393,7 @@ def run_loop(
             )
             spectrogram_path = spectrogram_visualizer.write_spectrogram(clip_path)
             logger.debug(f"Generated spectrogram: {spectrogram_path}")
-            result = model.detect_srkw_from_file(clip_path, model_v1_config)
+            result = model.detect_srkw_from_file(clip_path, model_config)
             result.print_summary(verbose=False)
 
             logger.info(
@@ -456,7 +456,7 @@ if __name__ == "__main__":
 
     model_id = config_params.get("model_id", "OrcaHelloSRKWDetectorV1.v1_0")
     logger.info(f"Model ID: {model_id}")
-    model, model_v1_config = load_model(config_params, logger)
+    model, model_config = load_model(config_params, logger)
     logger.info("Model loaded")
 
     blob_service_client, cosmos_client = setup_azure_clients(config_params)
@@ -474,7 +474,7 @@ if __name__ == "__main__":
     run_loop(
         hls_stream,
         model,
-        model_v1_config,
+        model_config,
         config_params,
         blob_service_client,
         cosmos_client,

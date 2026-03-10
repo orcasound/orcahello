@@ -34,7 +34,7 @@ ENV HF_HUB_OFFLINE=1
 # App working directory
 WORKDIR /usr/src/app
 
-# model/config.yaml — loaded at runtime via model_v1_config_path: "./model/config.yaml"
+# model/config.yaml — loaded at runtime via model_config_path: "./model/config.yaml"
 COPY ./model/config.yaml ./model/config.yaml
 
 # Source code
