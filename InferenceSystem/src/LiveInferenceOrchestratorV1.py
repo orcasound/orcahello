@@ -164,6 +164,13 @@ def setup_logger(connection_string, log_level="DEBUG"):
         level=logging.INFO,
         format="%(asctime)s %(levelname)s %(message)s",
     )
+    # Suppress noisy third-party loggers
+    logging.getLogger("azure").setLevel(logging.WARNING)
+    logging.getLogger("urllib3").setLevel(logging.WARNING)
+    logging.getLogger("botocore").setLevel(logging.WARNING)
+    logging.getLogger("boto3").setLevel(logging.WARNING)
+    logging.getLogger("matplotlib").setLevel(logging.WARNING)
+
     logger = logging.getLogger(__name__)
     logger.setLevel(getattr(logging, log_level))
     if connection_string is not None:
