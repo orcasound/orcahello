@@ -74,8 +74,8 @@ def test_positive_detection(config_file):
     output, returncode = run_orchestrator(config, max_iterations=1)
     print(output)
     assert returncode == 0, f"Orchestrator exited with code {returncode}"
-    assert "global_prediction=1" in output, (
-        f"Expected global_prediction=1 not found in output for {config_file}"
+    assert "global_prediction: 1" in output, (
+        f"Expected global_prediction: 1 not found in output for {config_file}"
     )
 
 
@@ -89,8 +89,8 @@ def test_negative_detection_point_robinson():
     output, returncode = run_orchestrator(config, max_iterations=1)
     print(output)
     assert returncode == 0, f"Orchestrator exited with code {returncode}"
-    assert "global_prediction=0" in output, (
-        "Expected global_prediction=0 not found in output"
+    assert "global_prediction: 0" in output, (
+        "Expected global_prediction: 0 not found in output"
     )
 
 
