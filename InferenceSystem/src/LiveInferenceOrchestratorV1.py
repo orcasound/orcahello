@@ -151,10 +151,10 @@ def parse_args():
     args, _ = parser.parse_known_args()
 
     if args.orch_config:
-        print(f"Using orch config from command line argument: {args.orch_config}")
+        print(f"Using orchestrator config from command line argument: {args.orch_config}")
     else:
         args.orch_config = "/config/config.yml"
-        print(f"Using orch config from ConfigMap: {args.orch_config}")
+        print(f"Using orchestrator config from ConfigMap: {args.orch_config}")
 
     return args
 
@@ -470,13 +470,13 @@ if __name__ == "__main__":
     args = parse_args()
 
     with open(args.orch_config) as f:
-        orch_config = yaml.load(f, Loader=yaml.FullLoader)
+        orch_config = yaml.safe_load(f)
 
     app_insights_connection_string = os.getenv(
         "INFERENCESYSTEM_APPINSIGHTS_CONNECTION_STRING"
     )
     logger = setup_logger(app_insights_connection_string, log_level=args.log_level)
-    logger.debug(f"Orch config: {args.orch_config}")
+    logger.debug(f"Orchestrator config: {args.orch_config}")
     logger.debug(
         f"App Insights connection string present: {app_insights_connection_string is not None}"
     )
