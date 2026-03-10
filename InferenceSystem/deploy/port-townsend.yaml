@@ -23,7 +23,7 @@ spec:
         kubernetes.azure.com/agentpool: f4sv2pool
       containers:
       - name: inference-system
-        image: orcaconservancycr.azurecr.io/live-inference-system:01-24-2026.FastAI.R1-12.v0
+        image: orcaconservancycr.azurecr.io/live-inference-system-v1:03-09-2026.v1.0.0
         resources:
           requests:
             cpu: "1"
