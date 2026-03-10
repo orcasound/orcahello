@@ -5,6 +5,8 @@ metadata:
   namespace: orcasound-lab
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: inference-system
