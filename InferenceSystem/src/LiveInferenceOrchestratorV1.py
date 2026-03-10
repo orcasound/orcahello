@@ -141,6 +141,13 @@ def parse_args():
         default=None,
         help="Maximum number of clips to process",
     )
+    parser.add_argument(
+        "--log-level",
+        type=str,
+        default="DEBUG",
+        choices=["DEBUG", "INFO", "WARNING"],
+        help="Log level (default: DEBUG)",
+    )
     args, _ = parser.parse_known_args()
 
     if args.config:
@@ -152,11 +159,13 @@ def parse_args():
     return args
 
 
-def setup_logger(connection_string):
+def setup_logger(connection_string, log_level="DEBUG"):
     logging.basicConfig(
-        level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s"
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(message)s",
     )
     logger = logging.getLogger(__name__)
+    logger.setLevel(getattr(logging, log_level))
     if connection_string is not None:
         logger.addHandler(AzureLogHandler(connection_string=connection_string))
         logger.addHandler(AzureEventHandler(connection_string=connection_string))
@@ -172,16 +181,16 @@ def load_model(config_params, logger):
         "model_v1_repo_id", "orcasound/orcahello-srkw-detector-v1"
     )
     if os.getenv("HF_HUB_OFFLINE", "0") == "1":
-        logger.info(
+        logger.debug(
             f"Loading model from local HuggingFace cache (HF_HUB_OFFLINE=1): {repo_id}"
         )
     else:
-        logger.info(f"Loading model from HuggingFace Hub: {repo_id}")
+        logger.debug(f"Loading model from HuggingFace Hub: {repo_id}")
 
     model = OrcaHelloSRKWDetectorV1.from_pretrained(
         repo_id, config=model_v1_config.as_dict()
     )
-    logger.info(f"Model loaded. Device: {model._device}  |  Dtype: {model._dtype}")
+    logger.debug(f"Model device: {model._device}  |  Dtype: {model._dtype}")
     return model, model_v1_config
 
 
@@ -221,10 +230,10 @@ def build_hls_stream(config_params, local_dir, logger):
         end_dt = datetime.strptime(hls_end_time_pst, "%Y-%m-%d %H:%M")
         hls_end_time_unix = int(timezone("US/Pacific").localize(end_dt).timestamp())
 
-        logger.info(
-            f"Initializing DateRangeHLSStream for hydrophone: {hls_hydrophone_id}, "
-            f"start_unix: {hls_start_time_unix}, end_unix: {hls_end_time_unix}, "
-            f"start_pst: {hls_start_time_pst}, end_pst: {hls_end_time_pst}"
+        logger.debug(
+            f"DateRangeHLSStream init: hydrophone={hls_hydrophone_id}, "
+            f"start_unix={hls_start_time_unix}, end_unix={hls_end_time_unix}, "
+            f"start_pst={hls_start_time_pst}, end_pst={hls_end_time_pst}"
         )
 
         try:
@@ -268,7 +277,7 @@ def upload_detection_to_azure(
     with open(clip_path, "rb") as data:
         audio_blob_client.upload_blob(data)
     audio_uri = assemble_blob_uri(AZURE_STORAGE_AUDIO_CONTAINER_NAME, audio_clip_name)
-    logger.info(f"Uploaded audio to Azure Storage: {audio_clip_name}")
+    logger.debug(f"Uploaded audio blob: {audio_clip_name}")
 
     spectrogram_name = os.path.basename(spectrogram_path)
     spectrogram_blob_client = blob_service_client.get_blob_client(
@@ -279,7 +288,7 @@ def upload_detection_to_azure(
     spectrogram_uri = assemble_blob_uri(
         AZURE_STORAGE_SPECTROGRAM_CONTAINER_NAME, spectrogram_name
     )
-    logger.info(f"Uploaded spectrogram to Azure Storage: {spectrogram_name}")
+    logger.debug(f"Uploaded spectrogram blob: {spectrogram_name}")
 
     metadata = build_cosmosdb_metadata(
         audio_uri, spectrogram_uri, result, start_timestamp, hls_hydrophone_id, model_id
@@ -287,7 +296,11 @@ def upload_detection_to_azure(
     database = cosmos_client.get_database_client(COSMOSDB_DATABASE_NAME)
     container = database.get_container_client(COSMOSDB_CONTAINER_NAME)
     container.create_item(body=metadata)
-    logger.info(f"Added metadata to CosmosDB: id={metadata['id']}")
+    logger.info(
+        f"Uploaded detection to Azure: audio={audio_clip_name}, "
+        f"spectrogram={spectrogram_name}, cosmos_id={metadata['id']}, "
+        f"timestamp={start_timestamp}"
+    )
     return audio_clip_name, spectrogram_name, metadata["id"]
 
 
@@ -299,18 +312,18 @@ def cleanup_azure_uploads(uploaded_items, blob_service_client, cosmos_client, so
         print(f"\nAbout to delete: {audio_name}, {spectrogram_name}, CosmosDB id={cosmos_id}")
         confirm = input("Confirm deletion? [y/N]: ").strip().lower()
         if confirm != "y":
-            logger.info(f"Skipped cleanup for CosmosDB id={cosmos_id}")
+            logger.debug(f"Skipped cleanup for cosmos_id={cosmos_id}")
             continue
         blob_service_client.get_blob_client(
             container=AZURE_STORAGE_AUDIO_CONTAINER_NAME, blob=audio_name
         ).delete_blob()
-        logger.info(f"Deleted audio blob: {audio_name}")
+        logger.debug(f"Deleted audio blob: {audio_name}")
         blob_service_client.get_blob_client(
             container=AZURE_STORAGE_SPECTROGRAM_CONTAINER_NAME, blob=spectrogram_name
         ).delete_blob()
-        logger.info(f"Deleted spectrogram blob: {spectrogram_name}")
+        logger.debug(f"Deleted spectrogram blob: {spectrogram_name}")
         container.delete_item(item=cosmos_id, partition_key=source_guid)
-        logger.info(f"Deleted CosmosDB doc: id={cosmos_id}")
+        logger.debug(f"Deleted CosmosDB doc: id={cosmos_id}")
 
 
 def run_loop(
@@ -339,6 +352,10 @@ def run_loop(
         iteration_count += 1
 
         # --- Phase 1: Fetch next audio clip ---
+        logger.info("\n\n" + "-"*20 + f" iter {iteration_count} " + "-"*20)
+        logger.info(
+            f"[iter {iteration_count}] Fetching next clip: cursor={current_clip_end_time.isoformat()}"
+        )
         try:
             clip_path, start_timestamp, next_clip_end_time = hls_stream.get_next_clip(
                 current_clip_end_time
@@ -363,21 +380,25 @@ def run_loop(
 
         # --- Phase 2: Run inference (clip_path is None if no audio was available) ---
         if clip_path:
-            logger.info(f"Processing clip: {os.path.basename(clip_path)}")
+            logger.info(
+                f"[iter {iteration_count}] Processing clip: {os.path.basename(clip_path)}, "
+                f"start_timestamp={start_timestamp}"
+            )
             spectrogram_path = spectrogram_visualizer.write_spectrogram(clip_path)
+            logger.debug(f"Generated spectrogram: {spectrogram_path}")
             result = model.detect_srkw_from_file(clip_path, model_v1_config)
             result.print_summary(verbose=False)
 
             logger.info(
-                f"Inference result: global_prediction={result.global_prediction}, "
-                f"global_confidence={result.global_confidence:.3f}, "
+                f"[iter {iteration_count}] Inference: prediction={result.global_prediction}, "
+                f"confidence={result.global_confidence:.3f}, "
                 f"positive_segments={sum(result.local_predictions)}/{len(result.local_predictions)}",
                 extra={"custom_dimensions": {"Hydrophone ID": hls_hydrophone_id}},
             )
 
             if result.global_prediction == 1:
                 logger.info(
-                    "Orca Found: ",
+                    f"[iter {iteration_count}] Orca detected (confidence={result.global_confidence:.3f})",
                     extra={"custom_dimensions": {"Hydrophone ID": hls_hydrophone_id}},
                 )
                 if config_params["upload_to_azure"]:
@@ -398,6 +419,7 @@ def run_loop(
             if config_params["delete_local_wavs"]:
                 os.remove(clip_path)
                 os.remove(spectrogram_path)
+                logger.debug(f"Deleted local files: {clip_path}, {spectrogram_path}")
 
         # --- Phase 3: Advance the timeline cursor ---
         # Use next_clip_end_time if provided by the stream, then add polling interval
@@ -405,6 +427,7 @@ def run_loop(
         if next_clip_end_time is not None:
             current_clip_end_time = next_clip_end_time
         current_clip_end_time += timedelta(seconds=hls_polling_interval)
+        logger.debug(f"[iter {iteration_count}] Cursor advanced to {current_clip_end_time.isoformat()}")
 
 
 if __name__ == "__main__":
@@ -418,28 +441,30 @@ if __name__ == "__main__":
     app_insights_connection_string = os.getenv(
         "INFERENCESYSTEM_APPINSIGHTS_CONNECTION_STRING"
     )
-    logger = setup_logger(app_insights_connection_string)
-    logger.info(
+    logger = setup_logger(app_insights_connection_string, log_level=args.log_level)
+    logger.debug(f"Config: {args.config}")
+    logger.debug(
         f"App Insights connection string present: {app_insights_connection_string is not None}"
     )
 
     model_id = config_params.get("model_id", "OrcaHelloSRKWDetectorV1.v1_0")
     logger.info(f"Model ID: {model_id}")
     model, model_v1_config = load_model(config_params, logger)
+    logger.info("Model loaded")
 
     blob_service_client, cosmos_client = setup_azure_clients(config_params)
-    logger.info(f"Azure upload enabled: {config_params['upload_to_azure']}")
+    logger.info(f"Azure upload: {config_params['upload_to_azure']}")
 
     local_dir = "wav_dir"
     os.makedirs(local_dir, exist_ok=True)
 
     hls_stream = build_hls_stream(config_params, local_dir, logger)
     logger.info(
-        f"Starting inference loop. Hydrophone: {config_params['hls_hydrophone_id']}, "
-        f"stream type: {config_params['hls_stream_type']}"
+        f"Starting inference loop: hydrophone={config_params['hls_hydrophone_id']}, "
+        f"stream_type={config_params['hls_stream_type']}"
     )
 
-    uploaded_items = run_loop(
+    run_loop(
         hls_stream,
         model,
         model_v1_config,
