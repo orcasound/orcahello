@@ -5,6 +5,12 @@ metadata:
   namespace: mast-center
 spec:
   replicas: 1
+  # NOTE: This deployment intentionally uses a single replica with a Recreate
+  # strategy due to memory constraints and so that only one inference pod processes
+  # hydrophone audio at a time.  This avoids concurrent inference instances for
+  # this site, and the temporary detection gap during upgrades is acceptable.
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: inference-system
@@ -13,13 +19,18 @@ spec:
       labels:
         app: inference-system
     spec:
+      nodeSelector:
+        kubernetes.azure.com/agentpool: f4sv2pool
       containers:
       - name: inference-system
-        image: orcaconservancycr.azurecr.io/live-inference-system:11-19-2025.FastAI.R1-12.v0
+        image: orcaconservancycr.azurecr.io/live-inference-system:01-24-2026.FastAI.R1-12.v0
         resources:
+          requests:
+            cpu: "1"
+            memory: "1600Mi"
           limits:
-            cpu: 1
-            memory: 3G
+            cpu: "1"
+            memory: "2500Mi"
         env:
           - name: AZURE_COSMOSDB_PRIMARY_KEY
             valueFrom:
