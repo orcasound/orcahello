@@ -1,3 +1,4 @@
+---
 additional_properties: {}
 apiVersion: '2018-10-01'
 identity: null
@@ -5,115 +6,115 @@ location: westus2
 name: live-inference-system-aci-allhydrophones-3gb-new
 properties:
   containers:
-  - name: orcasound-lab-live
-    properties:
-      environmentVariables:
-      - name: AZURE_COSMOSDB_PRIMARY_KEY
-        secureValue: '<cosmos_primary_key>'
-      - name: AZURE_STORAGE_CONNECTION_STRING
-        secureValue: '<storage_connection_string>'
-      - name: INFERENCESYSTEM_APPINSIGHTS_CONNECTION_STRING
-        secureValue: '<appinsights_connection_string>'
-      image: orcaconservancycr.azurecr.io/live-inference-system:09-18-24.FastAI.R1-12.OrcasoundLab.v0
-      ports: []
-      resources:
-        requests:
-          cpu: 1.0
-          memoryInGB: 3
-  - name: port-townsend-live
-    properties:
-      environmentVariables:
-      - name: AZURE_COSMOSDB_PRIMARY_KEY
-        secureValue: '<cosmos_primary_key>'
-      - name: AZURE_STORAGE_CONNECTION_STRING
-        secureValue: '<storage_connection_string>'
-      - name: INFERENCESYSTEM_APPINSIGHTS_CONNECTION_STRING
-        secureValue: '<appinsights_connection_string>'
-      image: orcaconservancycr.azurecr.io/live-inference-system:09-18-24.FastAI.R1-12.PortTownsend.v0
-      ports: []
-      resources:
-        requests:
-          cpu: 1.0
-          memoryInGB: 3
-  - name: bush-point-live
-    properties:
-      environmentVariables:
-      - name: AZURE_COSMOSDB_PRIMARY_KEY
-        secureValue: '<cosmos_primary_key>'
-      - name: AZURE_STORAGE_CONNECTION_STRING
-        secureValue: '<storage_connection_string>'
-      - name: INFERENCESYSTEM_APPINSIGHTS_CONNECTION_STRING
-        secureValue: '<appinsights_connection_string>'
-      image: orcaconservancycr.azurecr.io/live-inference-system:09-19-24.FastAI.R1-12.BushPoint.v0
-      ports: []
-      resources:
-        requests:
-          cpu: 1.0
-          memoryInGB: 3
-  - name: sunset-bay-live
-    properties:
-      environmentVariables:
-      - name: AZURE_COSMOSDB_PRIMARY_KEY
-        secureValue: '<cosmos_primary_key>'
-      - name: AZURE_STORAGE_CONNECTION_STRING
-        secureValue: '<storage_connection_string>'
-      - name: INFERENCESYSTEM_APPINSIGHTS_CONNECTION_STRING
-        secureValue: '<appinsights_connection_string>'
-      image: orcaconservancycr.azurecr.io/live-inference-system:09-19-24.FastAI.R1-12.SunsetBay.v0
-      ports: []
-      resources:
-        requests:
-          cpu: 1.0
-          memoryInGB: 3
-  - name: point-robinson-live
-    properties:
-      environmentVariables:
-      - name: AZURE_COSMOSDB_PRIMARY_KEY
-        secureValue: '<cosmos_primary_key>'
-      - name: AZURE_STORAGE_CONNECTION_STRING
-        secureValue: '<storage_connection_string>'
-      - name: INFERENCESYSTEM_APPINSIGHTS_CONNECTION_STRING
-        secureValue: '<appinsights_connection_string>'
-      image: orcaconservancycr.azurecr.io/live-inference-system:09-18-24.FastAI.R1-12.PointRobinson.v0
-      ports: []
-      resources:
-        requests:
-          cpu: 1.0
-          memoryInGB: 3
-  - name: mast-center-live
-    properties:
-      environmentVariables:
-      - name: AZURE_COSMOSDB_PRIMARY_KEY
-        secureValue: '<cosmos_primary_key>'
-      - name: AZURE_STORAGE_CONNECTION_STRING
-        secureValue: '<storage_connection_string>'
-      - name: INFERENCESYSTEM_APPINSIGHTS_CONNECTION_STRING
-        secureValue: '<appinsights_connection_string>'
-      image: orcaconservancycr.azurecr.io/live-inference-system:09-19-24.FastAI.R1-12.MastCenter.v0
-      ports: []
-      resources:
-        requests:
-          cpu: 1.0
-          memoryInGB: 3
-  - name: north-sjc-live
-    properties:
-      environmentVariables:
-      - name: AZURE_COSMOSDB_PRIMARY_KEY
-        secureValue: '<cosmos_primary_key>'
-      - name: AZURE_STORAGE_CONNECTION_STRING
-        secureValue: '<storage_connection_string>'
-      - name: INFERENCESYSTEM_APPINSIGHTS_CONNECTION_STRING
-        secureValue: '<appinsights_connection_string>'
-      image: orcaconservancycr.azurecr.io/live-inference-system:09-19-24.FastAI.R1-12.NorthSJC.v0
-      ports: []
-      resources:
-        requests:
-          cpu: 1.0
-          memoryInGB: 3
+    - name: orcasound-lab-live
+      properties:
+        environmentVariables:
+          - name: AZURE_COSMOSDB_PRIMARY_KEY
+            secureValue: '<cosmos_primary_key>'
+          - name: AZURE_STORAGE_CONNECTION_STRING
+            secureValue: '<storage_connection_string>'
+          - name: INFERENCESYSTEM_APPINSIGHTS_CONNECTION_STRING
+            secureValue: '<appinsights_connection_string>'
+        image: orcaconservancycr.azurecr.io/live-inference-system:09-18-24.FastAI.R1-12.OrcasoundLab.v0
+        ports: []
+        resources:
+          requests:
+            cpu: 1.0
+            memoryInGB: 3
+    - name: port-townsend-live
+      properties:
+        environmentVariables:
+          - name: AZURE_COSMOSDB_PRIMARY_KEY
+            secureValue: '<cosmos_primary_key>'
+          - name: AZURE_STORAGE_CONNECTION_STRING
+            secureValue: '<storage_connection_string>'
+          - name: INFERENCESYSTEM_APPINSIGHTS_CONNECTION_STRING
+            secureValue: '<appinsights_connection_string>'
+        image: orcaconservancycr.azurecr.io/live-inference-system:09-18-24.FastAI.R1-12.PortTownsend.v0
+        ports: []
+        resources:
+          requests:
+            cpu: 1.0
+            memoryInGB: 3
+    - name: bush-point-live
+      properties:
+        environmentVariables:
+          - name: AZURE_COSMOSDB_PRIMARY_KEY
+            secureValue: '<cosmos_primary_key>'
+          - name: AZURE_STORAGE_CONNECTION_STRING
+            secureValue: '<storage_connection_string>'
+          - name: INFERENCESYSTEM_APPINSIGHTS_CONNECTION_STRING
+            secureValue: '<appinsights_connection_string>'
+        image: orcaconservancycr.azurecr.io/live-inference-system:09-19-24.FastAI.R1-12.BushPoint.v0
+        ports: []
+        resources:
+          requests:
+            cpu: 1.0
+            memoryInGB: 3
+    - name: sunset-bay-live
+      properties:
+        environmentVariables:
+          - name: AZURE_COSMOSDB_PRIMARY_KEY
+            secureValue: '<cosmos_primary_key>'
+          - name: AZURE_STORAGE_CONNECTION_STRING
+            secureValue: '<storage_connection_string>'
+          - name: INFERENCESYSTEM_APPINSIGHTS_CONNECTION_STRING
+            secureValue: '<appinsights_connection_string>'
+        image: orcaconservancycr.azurecr.io/live-inference-system:09-19-24.FastAI.R1-12.SunsetBay.v0
+        ports: []
+        resources:
+          requests:
+            cpu: 1.0
+            memoryInGB: 3
+    - name: point-robinson-live
+      properties:
+        environmentVariables:
+          - name: AZURE_COSMOSDB_PRIMARY_KEY
+            secureValue: '<cosmos_primary_key>'
+          - name: AZURE_STORAGE_CONNECTION_STRING
+            secureValue: '<storage_connection_string>'
+          - name: INFERENCESYSTEM_APPINSIGHTS_CONNECTION_STRING
+            secureValue: '<appinsights_connection_string>'
+        image: orcaconservancycr.azurecr.io/live-inference-system:09-18-24.FastAI.R1-12.PointRobinson.v0
+        ports: []
+        resources:
+          requests:
+            cpu: 1.0
+            memoryInGB: 3
+    - name: mast-center-live
+      properties:
+        environmentVariables:
+          - name: AZURE_COSMOSDB_PRIMARY_KEY
+            secureValue: '<cosmos_primary_key>'
+          - name: AZURE_STORAGE_CONNECTION_STRING
+            secureValue: '<storage_connection_string>'
+          - name: INFERENCESYSTEM_APPINSIGHTS_CONNECTION_STRING
+            secureValue: '<appinsights_connection_string>'
+        image: orcaconservancycr.azurecr.io/live-inference-system:09-19-24.FastAI.R1-12.MastCenter.v0
+        ports: []
+        resources:
+          requests:
+            cpu: 1.0
+            memoryInGB: 3
+    - name: north-sjc-live
+      properties:
+        environmentVariables:
+          - name: AZURE_COSMOSDB_PRIMARY_KEY
+            secureValue: '<cosmos_primary_key>'
+          - name: AZURE_STORAGE_CONNECTION_STRING
+            secureValue: '<storage_connection_string>'
+          - name: INFERENCESYSTEM_APPINSIGHTS_CONNECTION_STRING
+            secureValue: '<appinsights_connection_string>'
+        image: orcaconservancycr.azurecr.io/live-inference-system:09-19-24.FastAI.R1-12.NorthSJC.v0
+        ports: []
+        resources:
+          requests:
+            cpu: 1.0
+            memoryInGB: 3
   imageRegistryCredentials:
-  - server: orcaconservancycr.azurecr.io
-    username: orcaconservancycr
-    password: '<image_registry_password>'
+    - server: orcaconservancycr.azurecr.io
+      username: orcaconservancycr
+      password: '<image_registry_password>'
   osType: Linux
   restartPolicy: Always
 tags:

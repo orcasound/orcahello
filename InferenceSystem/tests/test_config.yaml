@@ -1,6 +1,6 @@
 ## V1 inference configuration (used by model_v1 audio + inference)
 # Safe defaults preserve fastai parity; adjust thresholds/windowing as needed.
-
+---
 audio:
   downmix_mono: true
   resample_rate: 20000        # Hz
