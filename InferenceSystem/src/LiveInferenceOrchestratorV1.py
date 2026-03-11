@@ -29,6 +29,7 @@ AZURE_STORAGE_ACCOUNT_NAME = "livemlaudiospecstorage"
 AZURE_STORAGE_AUDIO_CONTAINER_NAME = "audiowavs"
 AZURE_STORAGE_SPECTROGRAM_CONTAINER_NAME = "spectrogramspng"
 
+COSMOSDB_ACCOUNT_NAME = "aifororcasmetadatastore"
 COSMOSDB_DATABASE_NAME = "predictions"
 COSMOSDB_CONTAINER_NAME = "metadata"
 
@@ -161,10 +162,10 @@ def parse_args():
 
 def setup_logger(connection_string, log_level="DEBUG"):
     logging.basicConfig(
-        level=logging.INFO,
+        level=logging.INFO,  # set here to avoid verbose third-party DEBUG logs
         format="%(asctime)s %(levelname)s %(message)s",
     )
-    # Suppress noisy third-party loggers
+    # Suppress noisy third-party INFO loggers
     logging.getLogger("azure").setLevel(logging.WARNING)
     logging.getLogger("urllib3").setLevel(logging.WARNING)
     logging.getLogger("botocore").setLevel(logging.WARNING)
@@ -172,6 +173,7 @@ def setup_logger(connection_string, log_level="DEBUG"):
     logging.getLogger("matplotlib").setLevel(logging.WARNING)
 
     logger = logging.getLogger(__name__)
+    # CLI specified log_level only applies to this module
     logger.setLevel(getattr(logging, log_level))
     if connection_string is not None:
         logger.addHandler(AzureLogHandler(connection_string=connection_string))
@@ -237,7 +239,7 @@ def setup_azure_clients(orch_config):
         os.getenv("AZURE_STORAGE_CONNECTION_STRING")
     )
     cosmos_client = CosmosClient(
-        "https://aifororcasmetadatastore.documents.azure.com:443/",
+        f"https://{COSMOSDB_ACCOUNT_NAME}.documents.azure.com:443/",
         os.getenv("AZURE_COSMOSDB_PRIMARY_KEY"),
     )
     return blob_service_client, cosmos_client
@@ -390,6 +392,7 @@ def run_loop(
         logger.info(
             f"[iter {iteration_count}] Fetching next clip: cursor={current_clip_end_time.isoformat()}"
         )
+        next_clip_end_time = None
         try:
             clip_path, start_timestamp, next_clip_end_time = hls_stream.get_next_clip(
                 current_clip_end_time

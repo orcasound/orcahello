@@ -154,8 +154,8 @@ class DetectionResult:
         Args:
             verbose: If True, also prints per-segment local predictions in addition to overall
                      performance and summary metrics.
-                     If False (default, used by orchestrator), prints only overall performance
-                     and summary metrics (no per-segment details).
+                     If False (default, used by orchestrator), prints overall performance
+                     and summary metrics without per-segment details.
         """
         if verbose:
             print("\n=== Local predictions ===")

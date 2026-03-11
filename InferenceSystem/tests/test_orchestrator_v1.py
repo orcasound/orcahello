@@ -22,8 +22,8 @@ ORCHESTRATOR = INFERENCE_DIR / "src" / "LiveInferenceOrchestratorV1.py"
 CONFIG_V1_DIR = INFERENCE_DIR / "config" / "Test_V1"
 
 
-def run_orchestrator(config_path: Path, max_iterations: int = 1) -> str:
-    """Run the orchestrator and return combined stdout+stderr output."""
+def run_orchestrator(config_path: Path, max_iterations: int = 1) -> tuple[str, int]:
+    """Run the orchestrator and return (combined stdout+stderr output, return code)."""
     result = subprocess.run(
         [sys.executable, str(ORCHESTRATOR), "--orch_config", str(config_path), "--max_iterations", str(max_iterations)],
         capture_output=True,
