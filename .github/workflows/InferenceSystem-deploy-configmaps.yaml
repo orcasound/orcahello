@@ -1,0 +1,67 @@
+name: InferenceSystem-deploy-configmaps
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'InferenceSystem/deploy/*-configmap.yaml'
+  workflow_dispatch: # Allow manual workflow invocation from the Github Actions UI
+
+concurrency:
+  # Cancel any CI/CD workflow currently in progress for the same PR.
+  # Allow running concurrently with any other commits.
+  group: InferenceSystem-deploy-configmaps-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+permissions:  # added using https://github.com/step-security/secure-repo
+  contents: read
+
+jobs:
+  deploy-configmaps:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b # v2.15.0
+      with:
+        egress-policy: audit
+
+    - name: Checkout
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        fetch-depth: 2
+
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@3e0aec4d80787158d308d7b364cb1381784a5cf4 # v4.0.1
+
+    - name: Set Kubernetes context
+      uses: azure/k8s-set-context@2f6bfda1e23e1a8cdfcfabbc0eded32c9d4a7390 # v4.0.1
+      with:
+        method: kubeconfig
+        kubeconfig: ${{ secrets.KUBE_CONFIG }}
+
+    - name: Get configmap files to apply
+      id: changed-files
+      run: |
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          # For manual triggers, apply all configmap files
+          CHANGED=$(ls InferenceSystem/deploy/*-configmap.yaml 2>/dev/null || true)
+        else
+          CHANGED=$(git diff --name-only HEAD~1 HEAD -- 'InferenceSystem/deploy/*-configmap.yaml')
+        fi
+        echo "files=$CHANGED" >> $GITHUB_OUTPUT
+
+    - name: Apply configmaps and restart deployments
+      run: |
+        CHANGED="${{ steps.changed-files.outputs.files }}"
+        if [ -z "$CHANGED" ]; then
+          echo "No configmap files to apply."
+          exit 0
+        fi
+        for FILE in $CHANGED; do
+          echo "Applying $FILE"
+          kubectl apply -f "$FILE"
+          # Derive namespace from filename, e.g. InferenceSystem/deploy/bush-point-configmap.yaml -> bush-point
+          NAMESPACE=$(basename "$FILE" -configmap.yaml)
+          echo "Restarting deployment/inference-system in namespace $NAMESPACE"
+          kubectl rollout restart deployment/inference-system -n "$NAMESPACE"
+        done
