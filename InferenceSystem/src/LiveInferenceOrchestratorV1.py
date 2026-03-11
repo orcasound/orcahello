@@ -8,7 +8,7 @@ import logging
 import os
 import sys
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC as DT_UTC
 
 # local
 import spectrogram_visualizer
@@ -204,6 +204,7 @@ def apply_model_config_overrides(model_config, overrides, logger):
 
 
 def load_model(orch_config, logger):
+    """Load OrcaHelloSRKWDetectorV1 from HuggingFace (or local cache if HF_HUB_OFFLINE=1), applying any model_config_overrides from orch_config."""
     model_config = DetectorInferenceConfig.from_yaml(
         orch_config["model_config_path"]
     )
@@ -246,6 +247,7 @@ def setup_azure_clients(orch_config):
 
 
 def build_hls_stream(orch_config, local_dir, logger):
+    """Construct a LiveHLS or DateRangeHLS stream from orch_config. Exits on DateRangeHLS init failure."""
     hls_hydrophone_id = orch_config["hls_hydrophone_id"]
     hls_polling_interval = orch_config["hls_polling_interval"]
     hydrophone_stream_url = (
@@ -373,13 +375,15 @@ def run_loop(
     model_id,
     max_iterations,
 ):
+    """Main inference loop: fetch clips, run model inference, and upload positive detections to Azure."""
     hls_stream_type = orch_config["hls_stream_type"]
     hls_polling_interval = orch_config["hls_polling_interval"]
     hls_hydrophone_id = orch_config["hls_hydrophone_id"]
 
     # Cursor tracking where we are in the audio timeline.
     # Initialized slightly in the past so the first get_next_clip call fetches immediately.
-    current_clip_end_time = datetime.utcnow() - timedelta(seconds=10)
+    # HLSStream.get_next_clip expects a (deprecated) naive UTC datetime; strip tzinfo before use.
+    current_clip_end_time = datetime.now(DT_UTC).replace(tzinfo=None) - timedelta(seconds=10)
     iteration_count = 0
 
     while not hls_stream.is_stream_over():
