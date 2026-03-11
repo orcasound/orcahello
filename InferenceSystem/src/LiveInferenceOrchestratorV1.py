@@ -121,7 +121,8 @@ def build_cosmosdb_metadata(
         "imageUri": image_uri,
         "reviewed": False,
         "timestamp": timestamp_in_iso,
-        "whaleFoundConfidence": result.global_confidence * 100.0,  # DB assumes 0-100 here
+        "whaleFoundConfidence": result.global_confidence
+        * 100.0,  # DB assumes 0-100 here
         "location": source_guid_to_location[source_guid],
         "source_guid": source_guid,
         "predictions": prediction_list,
@@ -152,7 +153,9 @@ def parse_args():
     args, _ = parser.parse_known_args()
 
     if args.orch_config:
-        print(f"Using orchestrator config from command line argument: {args.orch_config}")
+        print(
+            f"Using orchestrator config from command line argument: {args.orch_config}"
+        )
     else:
         args.orch_config = "/config/config.yml"
         print(f"Using orchestrator config from ConfigMap: {args.orch_config}")
@@ -190,14 +193,20 @@ def apply_model_config_overrides(model_config, overrides, logger):
     config_dict = model_config.as_dict()
     for section, values in overrides.items():
         if section not in config_dict:
-            logger.warning(f"model_config_overrides: unknown section '{section}', skipping")
+            logger.warning(
+                f"model_config_overrides: unknown section '{section}', skipping"
+            )
             continue
         if not isinstance(values, dict):
-            logger.warning(f"model_config_overrides: section '{section}' must be a dict, skipping")
+            logger.warning(
+                f"model_config_overrides: section '{section}' must be a dict, skipping"
+            )
             continue
         for key, val in values.items():
             if key not in config_dict[section]:
-                logger.warning(f"model_config_overrides: unknown key '{section}.{key}', skipping")
+                logger.warning(
+                    f"model_config_overrides: unknown key '{section}.{key}', skipping"
+                )
                 continue
             config_dict[section][key] = val
     return DetectorInferenceConfig.from_dict(config_dict)
@@ -205,9 +214,7 @@ def apply_model_config_overrides(model_config, overrides, logger):
 
 def load_model(orch_config, logger):
     """Load OrcaHelloSRKWDetectorV1 from HuggingFace (or local cache if HF_HUB_OFFLINE=1), applying any model_config_overrides from orch_config."""
-    model_config = DetectorInferenceConfig.from_yaml(
-        orch_config["model_config_path"]
-    )
+    model_config = DetectorInferenceConfig.from_yaml(orch_config["model_config_path"])
 
     overrides = orch_config.get("model_config_overrides")
     if overrides:
@@ -342,12 +349,16 @@ def upload_detection_to_azure(
     return audio_clip_name, spectrogram_name, metadata["id"]
 
 
-def cleanup_azure_uploads(uploaded_items, blob_service_client, cosmos_client, source_guid, logger):
+def cleanup_azure_uploads(
+    uploaded_items, blob_service_client, cosmos_client, source_guid, logger
+):
     """Delete blobs and CosmosDB docs created during this run. For testing only."""
     database = cosmos_client.get_database_client(COSMOSDB_DATABASE_NAME)
     container = database.get_container_client(COSMOSDB_CONTAINER_NAME)
     for audio_name, spectrogram_name, cosmos_id in uploaded_items:
-        print(f"\nAbout to delete: {audio_name}, {spectrogram_name}, CosmosDB id={cosmos_id}")
+        print(
+            f"\nAbout to delete: {audio_name}, {spectrogram_name}, CosmosDB id={cosmos_id}"
+        )
         confirm = input("Confirm deletion? [y/N]: ").strip().lower()
         if confirm != "y":
             logger.debug(f"Skipped cleanup for cosmos_id={cosmos_id}")
@@ -383,7 +394,9 @@ def run_loop(
     # Cursor tracking where we are in the audio timeline.
     # Initialized slightly in the past so the first get_next_clip call fetches immediately.
     # HLSStream.get_next_clip expects a (deprecated) naive UTC datetime; strip tzinfo before use.
-    current_clip_end_time = datetime.now(DT_UTC).replace(tzinfo=None) - timedelta(seconds=10)
+    current_clip_end_time = datetime.now(DT_UTC).replace(tzinfo=None) - timedelta(
+        seconds=10
+    )
     iteration_count = 0
 
     while not hls_stream.is_stream_over():
@@ -392,7 +405,7 @@ def run_loop(
         iteration_count += 1
 
         # --- Phase 1: Fetch next audio clip ---
-        logger.info("\n\n" + "-"*20 + f" iter {iteration_count} " + "-"*20)
+        logger.info("\n\n" + "-" * 20 + f" iter {iteration_count} " + "-" * 20)
         logger.info(
             f"[iter {iteration_count}] Fetching next clip: cursor={current_clip_end_time.isoformat()}"
         )
@@ -454,8 +467,16 @@ def run_loop(
                         cosmos_client,
                         logger,
                     )
-                    if orch_config.get("cleanup_azure_uploads", False):  # Used for local testing only
-                        cleanup_azure_uploads([uploaded], blob_service_client, cosmos_client, hls_hydrophone_id, logger)
+                    if orch_config.get(
+                        "cleanup_azure_uploads", False
+                    ):  # Used for local testing only
+                        cleanup_azure_uploads(
+                            [uploaded],
+                            blob_service_client,
+                            cosmos_client,
+                            hls_hydrophone_id,
+                            logger,
+                        )
 
             if orch_config["delete_local_wavs"]:
                 os.remove(clip_path)
@@ -468,7 +489,9 @@ def run_loop(
         if next_clip_end_time is not None:
             current_clip_end_time = next_clip_end_time
         current_clip_end_time += timedelta(seconds=hls_polling_interval)
-        logger.debug(f"[iter {iteration_count}] Cursor advanced to {current_clip_end_time.isoformat()}")
+        logger.debug(
+            f"[iter {iteration_count}] Cursor advanced to {current_clip_end_time.isoformat()}"
+        )
 
 
 if __name__ == "__main__":
@@ -516,4 +539,3 @@ if __name__ == "__main__":
         model_id,
         max_iterations=args.max_iterations,
     )
-
