@@ -36,6 +36,44 @@ jobs:
             - InferenceSystem/**
             - .github/workflows/InferenceSystemV1.yaml
 
+  test-windows-v1:  # NOTE: only one of `test-ubuntu-v1` pytests is sufficient to verify python setup/functionality
+    runs-on: windows-latest
+    needs: changes
+    if: ${{ needs.changes.outputs.src == 'true' }}
+    env:
+      HF_HUB_OFFLINE: "1"
+    steps:
+    - name: Checkout
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+
+    - name: Install FFmpeg
+      run: choco install ffmpeg -y
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86  # v5.4.2
+
+    - name: Cache uv
+      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306  # v5.0.3
+      with:
+        path: ~\AppData\Local\uv\cache
+        key: ${{ runner.os }}-uv-v1-${{ hashFiles('InferenceSystem/pyproject.toml', 'InferenceSystem/uv.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-uv-v1-
+
+    - name: Install dependencies
+      working-directory: InferenceSystem
+      run: uv sync --group dev
+
+    - name: Download HuggingFace model to local cache
+      working-directory: InferenceSystem
+      env:
+        HF_HUB_OFFLINE: "0"
+      run: uv run python -c "from huggingface_hub import snapshot_download; snapshot_download('orcasound/orcahello-srkw-detector-v1')"
+
+    - name: Positive detection test (SunsetBay)
+      working-directory: InferenceSystem
+      run: uv run pytest tests/test_orchestrator_v1.py -v -k "positive and SunsetBay"
+
   test-ubuntu-v1:
     runs-on: ubuntu-latest
     needs: changes
