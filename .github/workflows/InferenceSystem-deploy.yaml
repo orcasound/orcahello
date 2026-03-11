@@ -5,7 +5,7 @@ on:
   push:
     tags:
       - 'InferenceSystem.v[0-9]+.[0-9]+.[0-9]+'
-  workflow_dispatch: # Allow manual workflow invocation from the Github Actions UI
+  workflow_dispatch:  # Allow manual workflow invocation from the Github Actions UI
 
 concurrency:
   # Cancel any CI/CD workflow currently in progress for the same PR.

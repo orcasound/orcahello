@@ -7,7 +7,7 @@ on:
       - main
     paths:
       - 'InferenceSystem/deploy/*-configmap.yaml'
-  workflow_dispatch: # Allow manual workflow invocation from the Github Actions UI
+  workflow_dispatch:  # Allow manual workflow invocation from the Github Actions UI
 
 concurrency:
   # Cancel any CI/CD workflow currently in progress for the same PR.
@@ -22,20 +22,20 @@ jobs:
   deploy-configmaps:
     runs-on: ubuntu-latest
     steps:
-      - uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b # v2.15.0
+      - uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b  # v2.15.0
         with:
           egress-policy: audit
 
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
         with:
           fetch-depth: 2
 
       - name: Set up kubectl
-        uses: azure/setup-kubectl@3e0aec4d80787158d308d7b364cb1381784a5cf4 # v4.0.1
+        uses: azure/setup-kubectl@3e0aec4d80787158d308d7b364cb1381784a5cf4  # v4.0.1
 
       - name: Set Kubernetes context
-        uses: azure/k8s-set-context@2f6bfda1e23e1a8cdfcfabbc0eded32c9d4a7390 # v4.0.1
+        uses: azure/k8s-set-context@2f6bfda1e23e1a8cdfcfabbc0eded32c9d4a7390  # v4.0.1
         with:
           method: kubeconfig
           kubeconfig: ${{ secrets.KUBE_CONFIG }}

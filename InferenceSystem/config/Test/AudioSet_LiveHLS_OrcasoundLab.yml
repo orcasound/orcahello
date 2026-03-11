@@ -8,4 +8,4 @@ hls_stream_type: "LiveHLS"
 hls_polling_interval: 60
 hls_hydrophone_id: "rpi_orcasound_lab"
 upload_to_azure: false
-delete_local_wavs: 
+delete_local_wavs: true

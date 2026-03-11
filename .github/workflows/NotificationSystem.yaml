@@ -8,7 +8,7 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch: # Allow manual workflow invocation from the Github Actions UI
+  workflow_dispatch:  # Allow manual workflow invocation from the Github Actions UI
 
 env:
   DOTNET_VERSION: 8.0.x
@@ -123,4 +123,3 @@ jobs:
           app-name: ${{ env.AZURE_APP_NAME }}
           publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
           package: ./${{ env.WORKING_DIR }}/${{ env.PUBLISH_DIR }}
-
