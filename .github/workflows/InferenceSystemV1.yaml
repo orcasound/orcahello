@@ -70,9 +70,21 @@ jobs:
         HF_HUB_OFFLINE: "0"
       run: uv run python -c "from huggingface_hub import snapshot_download; snapshot_download('orcasound/orcahello-srkw-detector-v1')"
 
-    - name: Positive detection test (SunsetBay)
+    - name: Inference Orchestrator Positive detection tests
       working-directory: InferenceSystem
-      run: uv run pytest tests/test_orchestrator_v1.py -v -k "positive and SunsetBay"
+      run: uv run pytest tests/test_orchestrator_v1.py -v -k "positive"
+
+    - name: Inference Orchestrator Negative detection test
+      working-directory: InferenceSystem
+      run: uv run pytest tests/test_orchestrator_v1.py -v -k "negative"
+
+    - name: Inference Orchestrator Fail/edge-case tests
+      working-directory: InferenceSystem
+      run: uv run pytest tests/test_orchestrator_v1.py -v -k "fail"
+
+    - name: Inference Orchestrator LiveHLS Smoke test
+      working-directory: InferenceSystem
+      run: uv run pytest tests/test_orchestrator_v1.py -v -k "livehls"
 
   test-ubuntu-v1:
     runs-on: ubuntu-latest
