@@ -8,8 +8,7 @@ Southern Resident Killer Whale call detection model and inference system.
 
 ```bash
 cd InferenceSystem
-uv venv && source .venv/bin/activate
-uv pip install -r requirements-model-v1.txt
+uv sync
 ```
 
 ```python

@@ -6,9 +6,8 @@ Development setup, local scripts, and testing for model_v1.
 
 ```bash
 cd InferenceSystem
-uv venv model-v1-venv
-source model-v1-venv/bin/activate  # or .\model-v1-venv\Scripts\activate.bat on Windows
-uv pip install -r requirements-model-v1.txt
+uv sync --group dev
+source .venv/bin/activate  # or .\.venv\Scripts\activate.bat on Windows
 ```
 
 For model weights, either:
