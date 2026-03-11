@@ -52,10 +52,10 @@ jobs:
         sudo apt-get install -y ffmpeg
 
     - name: Install uv
-      uses: astral-sh/setup-uv@v5
+      uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86  # v5.4.2
 
     - name: Cache uv
-      uses: actions/cache@v5
+      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306  # v5.0.3
       with:
         path: ~/.cache/uv
         key: ${{ runner.os }}-uv-v1-${{ hashFiles('InferenceSystem/pyproject.toml', 'InferenceSystem/uv.lock') }}
