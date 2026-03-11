@@ -1,8 +1,6 @@
 """
-Integration tests for LiveInferenceOrchestratorV1.
-
-Mirrors the CI jobs in .github/workflows/InferenceSystem.yaml (test-ubuntu-v1),
-running the orchestrator as a subprocess against the Test_V1 config files.
+Integration tests for LiveInferenceOrchestratorV1 running the
+orchestrator as a subprocess against Test_V1 orchestrator config files.
 
 Usage:
     pytest tests/test_orchestrator_v1.py -v
