@@ -1,7 +1,10 @@
 inference-venv
+model-v1-venv
 *.html
 *.css
+*.wav
+*.png
 model/*
-notesOnHLSConversion.txt
+!model/config.yaml
 __pycache__
 __PYCACHE__

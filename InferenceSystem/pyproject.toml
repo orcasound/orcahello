@@ -1,0 +1,46 @@
+[project]
+name = "aifororcas-inference-v1"
+version = "1.0.0"
+requires-python = ">=3.11"
+dependencies = [
+    # PyTorch stack
+    "torch==2.9.1",
+    "torchaudio==2.9.1",
+    "torchvision==0.24.1",
+    # Audio processing
+    "librosa==0.11.0",
+    "soundfile==0.13.1",
+    "scipy==1.17.0",
+    # Data
+    "numpy==2.3.5",
+    "pyyaml==6.0.3",
+    # Audio file handling
+    "pydub==0.25.1",
+    # HuggingFace Hub
+    "huggingface-hub==1.3.1",
+    "safetensors==0.7.0",
+    # Environment variable loading
+    "python-dotenv==1.2.2",
+]
+
+[dependency-groups]
+prod = [
+    # Spectrogram generation (cv2)
+    "opencv-python==4.13.0.92",
+    # Azure storage + CosmosDB
+    "azure-cosmos==4.15.0",
+    "azure-storage-blob==12.28.0",
+    # App Insights logging
+    "opencensus-ext-azure==1.1.15",
+    # HLS stream utilities
+    "orca-hls-utils==0.0.4",
+    # Timezone handling
+    "pytz==2025.2",
+    # Spectrogram generation
+    "matplotlib==3.10.8",
+]
+dev = [
+    {include-group = "prod"},
+    "pytest==9.0.2",
+    "pytest-cov==7.0.0",
+]

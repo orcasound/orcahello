@@ -154,36 +154,11 @@ def run_single(model, audio_path: Path, config: dict, output_path: Path | None, 
     """Run inference on a single file. Returns a summary dict."""
     if verbose:
         print(f"Processing: {audio_path}")
-    
+
     result = model.detect_srkw_from_file(str(audio_path), config)
 
     if verbose:
-        print("\nLocal Predictions (per segment):")
-        print("-" * 60)
-        print(f"{'Segment':<10} {'Start (s)':<12} {'Duration (s)':<14} {'Prediction':<12} {'Confidence':<12}")
-        print("-" * 60)
-        for i, (pred, conf, seg) in enumerate(zip(result.local_predictions, result.local_confidences, result.segment_predictions)):
-            print(f"{i+1:<10} {seg.start_time_s:<12.1f} {seg.duration_s:<14.1f} {pred:<12} {conf:<12.3f}")
-        print("-" * 60)
-
-        num_positive = sum(result.local_predictions)
-        positive_segments = [i+1 for i, pred in enumerate(result.local_predictions) if pred == 1]
-        positive_segment_times = [result.segment_predictions[i-1].start_time_s for i in positive_segments]
-
-        if positive_segments:
-            print(f"Detected in segments: {positive_segments}")
-            print(f"Detected in times:    {positive_segment_times}")
-
-        print(f"\n--- Summary ---")
-        print(f"{num_positive}/{len(result.local_predictions)} segments predicted positive")
-        print(f"global_confidence: {result.global_confidence:.3f}")
-        print(f"global_prediction: {result.global_prediction}")
-
-        meta = result.metadata
-        print(f"\n--- Performance ---")
-        print(f"File duration:    {meta.file_duration_s:.2f}s")
-        print(f"Processing time:  {meta.processing_time_s:.2f}s")
-        print(f"Realtime factor:  {meta.realtime_factor:.2f}x")
+        result.print_summary(verbose=True)
 
     if output_path is not None:
         output_path.parent.mkdir(parents=True, exist_ok=True)

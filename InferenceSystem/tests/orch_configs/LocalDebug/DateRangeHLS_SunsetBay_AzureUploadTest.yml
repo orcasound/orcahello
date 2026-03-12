@@ -1,0 +1,11 @@
+model_id: "orcasound/orcahello-srkw-detector-v1.030926"
+model_hf_repo_id: "orcasound/orcahello-srkw-detector-v1"
+model_config_path: "./model/config.yaml"
+hls_stream_type: "DateRangeHLS"
+hls_polling_interval: 60
+hls_start_time_pst: "2025-09-18 01:06"
+hls_end_time_pst: "2025-09-18 01:07"
+hls_hydrophone_id: "rpi_sunset_bay"
+upload_to_azure: True
+cleanup_azure_uploads: True  # for local debugging. deletes backend updates (audio, image, DB) after upload
+delete_local_wavs: False

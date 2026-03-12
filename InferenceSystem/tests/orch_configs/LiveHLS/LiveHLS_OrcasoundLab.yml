@@ -1,0 +1,13 @@
+model_id: "orcasound/orcahello-srkw-detector-v1.030926"
+model_hf_repo_id: "orcasound/orcahello-srkw-detector-v1"
+model_config_path: "./model/config.yaml"
+model_config_overrides:
+  inference:
+    max_batch_size: 8
+  global_prediction:
+    pred_global_threshold: 0.6
+hls_stream_type: "LiveHLS"
+hls_polling_interval: 60
+hls_hydrophone_id: "rpi_orcasound_lab"
+upload_to_azure: False
+delete_local_wavs: True

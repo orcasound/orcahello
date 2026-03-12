@@ -147,3 +147,35 @@ class DetectionResult:
     global_prediction: int
     global_confidence: float
     metadata: DetectionMetadata
+
+    def print_summary(self, verbose: bool = False) -> None:
+        """Print detection result summary.
+
+        Args:
+            verbose: If True, also prints per-segment local predictions in addition to overall
+                     performance and summary metrics.
+                     If False (default, used by orchestrator), prints overall performance
+                     and summary metrics without per-segment details.
+        """
+        if verbose:
+            print("\n=== Local predictions ===")
+            print(f"{'Segment':<10} {'Start (s)':<12} {'Duration (s)':<14} {'Prediction':<12} {'Confidence':<12}")
+            print("-" * 60)
+            for i, (pred, conf, seg) in enumerate(zip(self.local_predictions, self.local_confidences, self.segment_predictions)):
+                print(f"{i+1:<10} {seg.start_time_s:<12.1f} {seg.duration_s:<14.1f} {pred:<12} {conf:<12.3f}")
+            print("-" * 60)
+
+        meta = self.metadata
+        print("\n=== Performance ===")
+        print(f"File duration:   {meta.file_duration_s:.2f}s")
+        print(f"Processing time: {meta.processing_time_s:.2f}s")
+        print(f"Realtime factor: {meta.realtime_factor:.2f}x")
+
+        num_positive = sum(self.local_predictions)
+        print("\n=== Summary ===")
+        print(f"{num_positive}/{len(self.local_predictions)} segments predicted positive")
+        if num_positive > 0:
+            positive_segment_times = [seg.start_time_s for seg, pred in zip(self.segment_predictions, self.local_predictions) if pred == 1]
+            print(f"Detected at times: {positive_segment_times!s}")
+        print(f"global_confidence: {self.global_confidence:.3f}")
+        print(f"global_prediction: {self.global_prediction}")
