@@ -1,6 +1,6 @@
 # Development Guide
 
-Development setup, local scripts, and testing for model_v1.
+Development setup, local scripts, and testing for the InferenceSystem.
 
 ## Setup
 
@@ -63,54 +63,43 @@ HF_TOKEN=<your_huggingface_token> python scripts/upload_to_hf_hub.py --checkpoin
 
 ```bash
 cd InferenceSystem
-source model-v1-venv/bin/activate
+uv sync --group dev
 
 # Run all model inference tests
-python -m pytest tests/test_model_inference.py -v
+uv run pytest tests/test_model_inference.py -v
 
 # Run all audio preprocessing tests
-python -m pytest tests/test_audio_preprocessing.py -v
+uv run pytest tests/test_audio_preprocessing.py -v
+
+# Run all orchestrator integration tests
+uv run pytest tests/test_orchestrator.py -v
 ```
 
 ### Test Structure
 
 Tests are organized into three categories:
 
-| Category | Description | Environment |
-|----------|-------------|-------------|
-| Unit tests | Model/audio class instantiation, shapes, ranges | model-v1-venv |
-| Reference generation | Generate FastAI baseline outputs | inference-venv (fastai) |
-| Parity checks | Compare model_v1 against FastAI references | model-v1-venv |
+| Category | Description |
+|----------|-------------|
+| Unit tests | Model/audio class instantiation, shapes, ranges |
+| Parity checks | Compare model outputs against pre-committed FastAI references |
+| Integration tests | Orchestrator end-to-end tests against test config files |
 
 ### Running Specific Tests
 
 ```bash
 # Unit tests only (no reference files needed)
-python -m pytest tests/test_model_inference.py::TestOrcaHelloSRKWDetectorUnit -v
-python -m pytest tests/test_audio_preprocessing.py::TestAudioPreprocessingUnit -v
+uv run pytest tests/test_model_inference.py::TestOrcaHelloSRKWDetectorUnit -v
+uv run pytest tests/test_audio_preprocessing.py::TestAudioPreprocessingUnit -v
 
-# Parity tests (require reference files in tests/reference_outputs/)
-python -m pytest tests/test_model_inference.py::TestParityChecks -v
-```
-
-### Regenerating Reference Files
-
-Reference files are pre-committed for CI. To regenerate (requires fastai):
-
-```bash
-source inference-venv/bin/activate
-
-# Audio preprocessing references
-python -m pytest tests/test_audio_preprocessing.py::TestAudioPreprocessingParity::test_generate_reference_outputs -v
-
-# Model inference references
-python -m pytest tests/test_model_inference.py::TestReferenceGeneration -v
+# Parity tests (use pre-committed reference files in tests/reference_outputs/)
+uv run pytest tests/test_model_inference.py::TestParityChecks -v
 ```
 
 ## Module Structure
 
 ```
-src/model_v1/
+src/model/
 ├── __init__.py           # Public exports
 ├── inference.py          # OrcaHelloSRKWDetectorV1 model class
 ├── audio_frontend.py     # AudioPreprocessor for mel spectrogram generation
@@ -150,4 +139,4 @@ global_prediction:
 
 ## CI/CD
 
-Tests run via `.github/workflows/InferenceSystem.yaml`. Rewritten `model_v1` tests don't yet run in CI.
+Tests run via `.github/workflows/InferenceSystem.yaml`.

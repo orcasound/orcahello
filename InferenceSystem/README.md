@@ -12,7 +12,7 @@ uv sync
 ```
 
 ```python
-from src.model_v1 import OrcaHelloSRKWDetectorV1
+from src.model import OrcaHelloSRKWDetectorV1
 
 model = OrcaHelloSRKWDetectorV1.from_pretrained("orcasound/orcahello-srkw-detector-v1")
 result = model.detect_srkw_from_file("audio.wav")
@@ -33,56 +33,15 @@ For local scripts, testing, and contributing: [DEVELOPMENT.md](DEVELOPMENT.md)
 
 The InferenceSystem is an umbrella term for all the code used to stream audio from Orcasound's S3 buckets, perform inference on audio segments using the deep learning model and upload positive detections to Azure. The entrypoint for the InferenceSystem is [src/LiveInferenceOrchestrator.py](src/LiveInferenceOrchestrator.py).
 
-This document describes the following steps
-1. How to run the InferenceSystem locally.
-2. Deploying an updated docker build to Azure Container Instances.
-
-Note: We use Python 3, specifically tested with Python 3.11.3
-
-**Important:** Python 3.11 or later is now supported. The dependencies have been updated to support Python 3.11, including updated versions of torch, torchaudio, librosa, numpy, and other packages.
-
 # How to run the InferenceSystem locally
-## Create a virtual environment
-
-1. In your working directory, run `python -m venv inference-venv` using Python 3.11 or later. This creates a directory `inference-venv` with relevant files/scripts. 
-2. On Mac or Linux, activate this environment with `source inference-venv/bin/activate` and when you're done, `deactivate`
-
-    On Windows, activate with `.\inference-venv\Scripts\activate.bat` and `.\inference-venv\Scripts\deactivate.bat` when done
-3. In an active environment, cd to `/InferenceSystem` and run `python -m pip install --upgrade pip && pip install -r requirements.txt`
-4. **Python 3.11+ Compatibility Patch**: After installing dependencies, you need to patch the fastai_audio package for Python 3.11+ compatibility:
-   
-   On Mac or Linux:
-   ```bash
-   bash patch_fastai_audio.sh
-   ```
-   
-   On Windows:
-   ```cmd
-   patch_fastai_audio.bat
-   ```
-   
-   This patch fixes a dataclass compatibility issue with Python 3.11+ where mutable default values are not allowed without using `field(default_factory=...)`.
-
-**Troubleshooting:** If you encounter dependency conflicts with standard `pip install`, you can use `uv` which is better at resolving package version conflicts:
+## Setup
 
 ```bash
-# Install uv (on Mac/Linux)
-curl -LsSf https://astral.sh/uv/install.sh | sh
+cd InferenceSystem
+uv sync --group prod
+```
 
-# On Windows, use pip to install uv first
-pip install uv
-
-# Then install dependencies using uv pip
-uv pip install -r requirements.txt
-``` 
-
-## Model download
-
-1.  Download the current production model from [this link.](https://trainedproductionmodels.blob.core.windows.net/dnnmodel/11-15-20.FastAI.R1-12.zip)
-2.  Unzip *.zip and extract to `InferenceSystem/model` using `unzip 11-15-20.FastAI.R1-12.zip`
-3.  Check the contents of `InferenceSystem/model`.
-There should be 1 file
-    * model.pkl
+The model is downloaded automatically from HuggingFace Hub on first use.
 
 ## Get connection string for interface with Azure Storage
 To be able to upload detections to Azure, you will need a connection string.
@@ -157,48 +116,16 @@ export INFERENCESYSTEM_APPINSIGHTS_CONNECTION_STRING="<yourconnectionstring>"
 
 ```
 cd InferenceSystem
-python src/LiveInferenceOrchestrator.py --config ./config/Test/FastAI_LiveHLS_OrcasoundLab.yml
-```
-
-You should see the following logs in your terminal. Since this is a Test config, no audio is uploaded to Azure and no metadata is written to CosmosDB.
-
-```
-Listening to location https://s3-us-west-2.amazonaws.com/audio-orcasound-net/rpi_orcasound_lab
-Downloading live879.ts
-live879.ts: 205kB [00:00, 1.17MB/s]
-Downloading live880.ts
-live880.ts: 205kB [00:00, 1.11MB/s]
-Downloading live881.ts
-live881.ts: 205kB [00:00, 948kB/s]
-Downloading live882.ts
-live882.ts: 205kB [00:00, 1.14MB/s]
-Downloading live883.ts
-live883.ts: 205kB [00:00, 1.07MB/s]
-Downloading live884.ts
-live884.ts: 205kB [00:00, 1.04MB/s]
-rpi_orcasound_lab_2021_10_13_15_11_18_PDT.wav
-Length of Audio Clip:60.010666666666665
-Preprocessing: Downmixing to Mono
-Preprocessing: Resampling to 200009/59 00:00<00:00]
+uv run python src/LiveInferenceOrchestrator.py --orch_config tests/orch_configs/LiveHLS/LiveHLS_OrcasoundLab.yml --max_iterations 2
 ```
 
 # Running inference system in a local docker container
 
-To deploy to production we use Azure Container Instances. To enable deploying to production, you need to first build the docker image for the inference system locally.
-
 ## Prerequisites
 
-- **Docker**: To complete this step, you need Docker installed locally.  Docker provides packages that configure the Docker
-environment on 
-[macOS](https://docs.docker.com/docker-for-mac/),
-[Windows](https://docs.docker.com/docker-for-windows/), and
-[Linux](https://docs.docker.com/engine/installation/#supported-platforms).
+- **Docker**: installation instructions on [macOS](https://docs.docker.com/docker-for-mac/), [Windows](https://docs.docker.com/docker-for-windows/), and [Linux](https://docs.docker.com/engine/installation/#supported-platforms).
 
-- **model.zip**: Download model from 
-[this link](https://trainedproductionmodels.blob.core.windows.net/dnnmodel/11-15-20.FastAI.R1-12.zip).
-Rename the `*.zip` to `model.zip` and place it in `InferenceSystem/model.zip`.
-
-- **Environment Variable File**: Create/get an environment variable file.  This should be a file called `inference-system/.env`.
+- **Environment Variable File**: Create/get an environment variable file `inference-system/.env`.
 This can be completed in two ways.
     1.  Ask an existing contributor for their .env file.
     2.  Create one of your own.  This .env file should be created in the format below.
@@ -217,9 +144,7 @@ This can be completed in two ways.
 
 1. Create a new ConfigMap file for the hydrophone in the deploy folder named `{namespace}-configmap.yaml` (e.g., `new-hydrophone-configmap.yaml`). Use an existing ConfigMap file as a template. The ConfigMap should be in the same namespace as the deployment and contain a single entry with the key `config.yml`.
 
-2. Update [src/globals.py](src/globals.py) to add variables for the new hydrophone location.
-
-3. Create a new deployment YAML under the [deploy](deploy) folder using the namespace as the filename (e.g., `new-hydrophone.yaml`). Use an existing deployment file as a template.
+2. Create a new deployment YAML under the [deploy](deploy) folder using the namespace as the filename (e.g., `new-hydrophone.yaml`). Use an existing deployment file as a template.
 
 4. Follow the deployment steps in the "Deploying an updated docker build to Azure Kubernetes Service" section below to:
    - Create the namespace
@@ -244,114 +169,44 @@ docker build . -t live-inference-system -f ./Dockerfile
 
 ## Running the docker container
 
-From the `InferenceSystem` directory, run the following command. You need to specify the `--config` argument when running locally since the container won't be in a Kubernetes environment with namespace detection.
+From the `InferenceSystem` directory, mount an orchestrator config at `/config/config.yml`:
 
 Linux:
 ```
-docker run --rm -it --env-file .env -v $PWD/config:/config live-inference-system python3 -u ./src/LiveInferenceOrchestrator.py --config /config/Test/FastAI_LiveHLS_OrcasoundLab.yml
+docker run --rm -it --env-file .env \
+  -v $PWD/tests/orch_configs/LiveHLS/LiveHLS_OrcasoundLab.yml:/config/config.yml \
+  live-inference-system \
+  /usr/src/venv/bin/python3 -u ./src/LiveInferenceOrchestrator.py --max_iterations 2
 ```
 
 Windows:
 ```
-docker run --rm -it --env-file .env -v %cd%/config:/config live-inference-system python3 -u ./src/LiveInferenceOrchestrator.py --config /config/Test/FastAI_LiveHLS_OrcasoundLab.yml
+docker run --rm -it --env-file .env ^
+  -v %cd%/tests/orch_configs/LiveHLS/LiveHLS_OrcasoundLab.yml:/config/config.yml ^
+  live-inference-system ^
+  /usr/src/venv/bin/python3 -u ./src/LiveInferenceOrchestrator.py --max_iterations 2
 ```
 
-**Note:** When deployed to Kubernetes, the container automatically detects its namespace and loads the configuration from the ConfigMap. The `--config` argument is only needed for local testing.
-
-In addition, you should see something similar to the following in your console.
-
-```
-Listening to location https://s3-us-west-2.amazonaws.com/audio-orcasound-net/rpi_orcasound_lab
-Downloading live879.ts
-live879.ts: 205kB [00:00, 1.17MB/s]                                             
-Downloading live880.ts
-live880.ts: 205kB [00:00, 1.11MB/s]                                             
-Downloading live881.ts
-live881.ts: 205kB [00:00, 948kB/s]                                              
-Downloading live882.ts
-live882.ts: 205kB [00:00, 1.14MB/s]                                             
-Downloading live883.ts
-live883.ts: 205kB [00:00, 1.07MB/s]                                             
-Downloading live884.ts
-live884.ts: 205kB [00:00, 1.04MB/s]                                             
-rpi_orcasound_lab_2021_10_13_15_11_18_PDT.wav
-Length of Audio Clip:60.010666666666665
-Preprocessing: Downmixing to Mono
-Preprocessing: Resampling to 200009/59 00:00<00:00]
-```
+**Note:** When deployed to Kubernetes, the container automatically detects its namespace and loads the configuration from the ConfigMap.
 
 # Pushing your image to Azure Container Registry
 
-This step pushes your local container to the Azure Container Registry (ACR).  If you would like more information, this
-documentation is adapted from 
-[this tutorial](https://docs.microsoft.com/en-us/azure/container-instances/container-instances-tutorial-prepare-acr).
-
-The github repository contains a workflow that can push the latest image
-build from the `main` branch to ACR.  This is done when the main branch is
-tagged with a tag of the form "InferenceSystem.v#.#.#" where `#.#.#` is a
-semantic version number like "0.9.1" or "1.0.0".  For example:
+The GitHub repository contains a workflow (`.github/workflows/InferenceSystem-deploy.yaml`) that pushes the latest image build to ACR when the main branch is tagged with a tag of the form `InferenceSystem.v#.#.#`. For example:
 
 ```
-git tag InferenceSystem.v0.9.1
+git tag InferenceSystem.v1.0.0
 git push --tags
 ```
 
-The same operations can be done manually as follows, but this is not recommended:
+To push manually:
 
-1. Login to the shared azure directory from the Azure CLI.
-
+1. Login to the Azure CLI: `az login --tenant adminorcasound.onmicrosoft.com`
+2. Login to ACR: `az acr login --name orcaconservancycr`
+3. Tag and push:
 ```
-az login --tenant adminorcasound.onmicrosoft.com
+docker tag live-inference-system orcaconservancycr.azurecr.io/live-inference-system:<date>.<version>
+docker push orcaconservancycr.azurecr.io/live-inference-system:<date>.<version>
 ```
-
-2. We will be using the orcaconservancycr ACR in the LiveSRKWNotificationSystem Resource Group. Log in to the container registry.
-
-```
-az acr login --name orcaconservancycr
-```
-
-You should receive something similar to `Login succeeded`.
-
-3. Tag your docker container with the version number. We use the following versioning scheme (note: hydrophone location is no longer part of the tag since we now use a common image).
-
-```
-docker tag live-inference-system orcaconservancycr.azurecr.io/live-inference-system:<date-of-deployment>.<model-type>.<Rounds-trained-on>.v<Major>
-```
-
-So, for example your command may look like
-
-```
-docker tag live-inference-system orcaconservancycr.azurecr.io/live-inference-system:11-15-20.FastAI.R1-12.v0
-```
-
-4. Push your image to Azure Container Registry once. This single image will be used by all hydrophone deployments.
-
-```
-docker push orcaconservancycr.azurecr.io/live-inference-system:<date-of-deployment>.<model-type>.<Rounds-trained-on>.v<Major>
-```
-
-**Note:** You only need to build and push one container image now, regardless of the number of hydrophones. Each hydrophone deployment references the same image but runs in a different namespace, which the container detects to load the appropriate configuration.
-
-## Migration from Hydrophone-Specific Images
-
-If you're currently using the old hydrophone-specific container images (e.g., tags like `09-19-24.FastAI.R1-12.BushPoint.v0`), you can migrate to the common container image approach:
-
-1. **Build and push a new common container image** using the instructions above (note the new tag format without hydrophone location).
-
-2. **Update each deployment YAML file** in the [deploy](./deploy/) folder to reference the new common image tag. For example:
-   ```yaml
-   image: orcaconservancycr.azurecr.io/live-inference-system:11-15-20.FastAI.R1-12.v0
-   ```
-   (Note: no `.BushPoint`, `.OrcasoundLab`, etc. suffix)
-
-3. **Apply the updated deployment** for each hydrophone:
-   ```bash
-   kubectl apply -f deploy/bush-point.yaml
-   kubectl apply -f deploy/orcasound-lab.yaml
-   # etc. for other hydrophones
-   ```
-
-The container will automatically detect which namespace it's running in and load the appropriate configuration. The old hydrophone-specific images will continue to work, but using the common image approach will significantly reduce build times and simplify maintenance.
 
 # Deploying an updated docker build to Azure Kubernetes Service
 
@@ -477,35 +332,3 @@ az container attach --resource-group LiveSRKWNotificationSystem --name live-infe
 
 </details>
 
-# No changes made to deploy-aci.yaml?
-
-I purposefully told git to ignore all futher changes to the file with this command: `git update-index --assume-unchanged deploy-aci.yaml`.  This is to prevent people from checking in their credentials into the repository.  If you want a change to be tracked, you can turn off this feature with `git update-index --no-assume-unchanged deploy-aci.yaml`
-
-
-# Running the automatic annotation data upload script PrepareDataForPredictionExplorer.py
-
-This script processes audio from a segment of data and uploads it to the annotation website [https://aifororcas-podcast.azurewebsites.net/](https://aifororcas-podcast.azurewebsites.net/).
-
-To run the script, find the connection string for blob storage account `"mldevdatastorage"` and run the following 
-
-### Windows
-
--------
-
-```
-setx PODCAST_AZURE_STORAGE_CONNECTION_STRING "<yourconnectionstring>"
-```
-
-### Mac or Linux
-
--------
-
-```
-export PODCAST_AZURE_STORAGE_CONNECTION_STRING="<copied-connection-string>"
-```
-
-Call the script as follows, substituting appropriate values.
-
-```
-python PrepareDataForPredictionExplorer.py --start_time "2020-07-25 19:15" --end_time "2020-07-25 20:15" --s3_stream https://s3-us-west-2.amazonaws.com/audio-orcasound-net/rpi_orcasound_lab --model_path <folder> --annotation_threshold 0.4 --round_id round5 --dataset_folder <path-to-folder>
-```
