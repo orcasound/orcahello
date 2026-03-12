@@ -1,3 +1,4 @@
+---
 model_type: "AudioSet"
 model_local_threshold: 0.7
 model_global_threshold: 3
@@ -8,5 +9,5 @@ hls_polling_interval: 60
 hls_start_time_pst: "2020-09-01 15:13"
 hls_end_time_pst: "2020-09-01 16:45"
 hls_hydrophone_id: "rpi_orcasound_lab"
-upload_to_azure: False
-delete_local_wavs: True
+upload_to_azure: false
+delete_local_wavs: true

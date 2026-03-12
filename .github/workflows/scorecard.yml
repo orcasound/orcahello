@@ -1,7 +1,7 @@
 # This workflow uses actions that are not certified by GitHub. They are provided
 # by a third-party and are governed by separate terms of service, privacy
 # policy, and support documentation.
-
+---
 name: Scorecard supply-chain security
 on:
   # For Branch-Protection check. Only the default branch is supported. See
@@ -12,7 +12,7 @@ on:
   schedule:
     - cron: '22 16 * * 1'
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 # Declare default permissions as read only.
 permissions: read-all
@@ -31,17 +31,17 @@ jobs:
       # actions: read
 
     steps:
-      - uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b # v2.15.0
+      - uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b  # v2.15.0
         with:
           egress-policy: audit
 
       - name: "Checkout code"
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
         with:
           persist-credentials: false
 
       - name: "Run analysis"
-        uses: ossf/scorecard-action@4eaacf0543bb3f2c246792bd56e8cdeffafb205a # v2.4.3
+        uses: ossf/scorecard-action@4eaacf0543bb3f2c246792bd56e8cdeffafb205a  # v2.4.3
         with:
           results_file: results.sarif
           results_format: sarif
@@ -63,7 +63,7 @@ jobs:
       # Upload the results as artifacts (optional). Commenting out will disable uploads of run results in SARIF
       # format to the repository Actions tab.
       - name: "Upload artifact"
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f  # v7.0.0
         with:
           name: SARIF file
           path: results.sarif
@@ -72,6 +72,6 @@ jobs:
       # Upload the results to GitHub's code scanning dashboard (optional).
       # Commenting out will disable upload of results to your repo's Code Scanning dashboard
       - name: "Upload to code-scanning"
-        uses: github/codeql-action/upload-sarif@89a39a4e59826350b863aa6b6252a07ad50cf83e # v3.29.5
+        uses: github/codeql-action/upload-sarif@89a39a4e59826350b863aa6b6252a07ad50cf83e  # v3.29.5
         with:
           sarif_file: results.sarif

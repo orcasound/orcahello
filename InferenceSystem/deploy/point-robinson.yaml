@@ -1,3 +1,4 @@
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -22,36 +23,36 @@ spec:
       nodeSelector:
         kubernetes.azure.com/agentpool: f4sv2pool
       containers:
-      - name: inference-system
-        image: orcaconservancycr.azurecr.io/live-inference-system:01-24-2026.FastAI.R1-12.v0
-        resources:
-          limits:
-            cpu: 1
-            memory: 3G
-        env:
-          - name: AZURE_COSMOSDB_PRIMARY_KEY
-            valueFrom:
-              secretKeyRef:
-                name: inference-system
-                key: AZURE_COSMOSDB_PRIMARY_KEY
-          - name: AZURE_STORAGE_CONNECTION_STRING
-            valueFrom:
-              secretKeyRef:
-                name: inference-system
-                key: AZURE_STORAGE_CONNECTION_STRING
-          - name: INFERENCESYSTEM_APPINSIGHTS_CONNECTION_STRING
-            valueFrom:
-              secretKeyRef:
-                name: inference-system
-                key: INFERENCESYSTEM_APPINSIGHTS_CONNECTION_STRING
-          - name: OMP_NUM_THREADS
-            value: "1"
-          - name: MKL_NUM_THREADS
-            value: "1"
-        volumeMounts:
-          - name: config-volume
-            mountPath: /config
-            readOnly: true
+        - name: inference-system
+          image: orcaconservancycr.azurecr.io/live-inference-system:01-24-2026.FastAI.R1-12.v0
+          resources:
+            limits:
+              cpu: 1
+              memory: 3G
+          env:
+            - name: AZURE_COSMOSDB_PRIMARY_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: inference-system
+                  key: AZURE_COSMOSDB_PRIMARY_KEY
+            - name: AZURE_STORAGE_CONNECTION_STRING
+              valueFrom:
+                secretKeyRef:
+                  name: inference-system
+                  key: AZURE_STORAGE_CONNECTION_STRING
+            - name: INFERENCESYSTEM_APPINSIGHTS_CONNECTION_STRING
+              valueFrom:
+                secretKeyRef:
+                  name: inference-system
+                  key: INFERENCESYSTEM_APPINSIGHTS_CONNECTION_STRING
+            - name: OMP_NUM_THREADS
+              value: "1"
+            - name: MKL_NUM_THREADS
+              value: "1"
+          volumeMounts:
+            - name: config-volume
+              mountPath: /config
+              readOnly: true
       volumes:
         - name: config-volume
           configMap:

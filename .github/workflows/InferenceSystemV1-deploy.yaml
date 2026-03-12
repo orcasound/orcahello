@@ -1,3 +1,4 @@
+---
 name: InferenceSystemV1-deploy
 
 on:
@@ -30,80 +31,80 @@ jobs:
       IMAGE_NAME: live-inference-system-v1
       ACR_REGISTRY: orcaconservancycr.azurecr.io
     steps:
-    - uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b  # v2.15.0
-      with:
-        egress-policy: audit
+      - uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b  # v2.15.0
+        with:
+          egress-policy: audit
 
-    - name: Checkout
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
-      with:
-        ref: ${{ github.event.inputs.ref || github.ref }}
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          ref: ${{ github.event.inputs.ref || github.ref }}
 
-    - name: Resolve release tag suffix
-      run: |
-        if [ "${{ github.event_name }}" = "push" ]; then
-          echo "RELEASE_TAG=${GITHUB_REF_NAME#InferenceSystemV1.}" >> $GITHUB_ENV
-        else
-          echo "RELEASE_TAG=${{ github.event.inputs.release_tag }}" >> $GITHUB_ENV
-        fi
+      - name: Resolve release tag suffix
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "RELEASE_TAG=${GITHUB_REF_NAME#InferenceSystemV1.}" >> $GITHUB_ENV
+          else
+            echo "RELEASE_TAG=${{ github.event.inputs.release_tag }}" >> $GITHUB_ENV
+          fi
 
-    - name: Check if ACR secrets are set
-      run: |
-        if [ -z "${{ secrets.ACR_USERNAME }}" ] || [ -z "${{ secrets.ACR_PASSWORD }}" ]; then
-          echo "ACR credentials are missing"
-          exit 1
-        else
-          echo "ACR credentials are set"
-        fi
+      - name: Check if ACR secrets are set
+        run: |
+          if [ -z "${{ secrets.ACR_USERNAME }}" ] || [ -z "${{ secrets.ACR_PASSWORD }}" ]; then
+            echo "ACR credentials are missing"
+            exit 1
+          else
+            echo "ACR credentials are set"
+          fi
 
-    - name: Free up disk space
-      run: |
-        echo "Disk space before cleanup:"
-        df -h
-        # Remove unnecessary packages and cached files
-        sudo apt-get clean
-        sudo apt-get autoremove -y
-        sudo rm -rf /usr/share/dotnet
-        sudo rm -rf /opt/ghc
-        sudo rm -rf /usr/local/share/boost
-        sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-        sudo rm -rf /usr/local/lib/android
-        sudo rm -rf /opt/hostedtoolcache/CodeQL
-        sudo rm -rf /usr/local/.ghcup
-        sudo rm -rf /usr/share/swift
-        # Clean up Docker
-        docker system prune -af
-        echo "Disk space after cleanup:"
-        df -h
+      - name: Free up disk space
+        run: |
+          echo "Disk space before cleanup:"
+          df -h
+          # Remove unnecessary packages and cached files
+          sudo apt-get clean
+          sudo apt-get autoremove -y
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo rm -rf /usr/local/.ghcup
+          sudo rm -rf /usr/share/swift
+          # Clean up Docker
+          docker system prune -af
+          echo "Disk space after cleanup:"
+          df -h
 
-    - name: Build DockerfileV1 image
-      working-directory: InferenceSystem
-      run: |
-        docker build -f DockerfileV1 -t $IMAGE_NAME .
+      - name: Build DockerfileV1 image
+        working-directory: InferenceSystem
+        run: |
+          docker build -f DockerfileV1 -t $IMAGE_NAME .
 
-    - name: List Docker images
-      run: docker images
+      - name: List Docker images
+        run: docker images
 
-    - name: Get image creation date in MM-DD-YYYY
-      run: |
-        IMAGE_ID=$(docker images $IMAGE_NAME --format "{{.ID}}" | head -n 1)
-        CREATED=$(docker inspect --format='{{.Created}}' $IMAGE_ID)
-        DATE_STRING=$(date -d "$CREATED" +"%m-%d-%Y")
-        echo "DATE_STRING=$DATE_STRING" >> $GITHUB_ENV
+      - name: Get image creation date in MM-DD-YYYY
+        run: |
+          IMAGE_ID=$(docker images $IMAGE_NAME --format "{{.ID}}" | head -n 1)
+          CREATED=$(docker inspect --format='{{.Created}}' $IMAGE_ID)
+          DATE_STRING=$(date -d "$CREATED" +"%m-%d-%Y")
+          echo "DATE_STRING=$DATE_STRING" >> $GITHUB_ENV
 
-    - name: Define full image tag
-      run: |
-        IMAGE_TAG="$ACR_REGISTRY/$IMAGE_NAME:$DATE_STRING.$RELEASE_TAG"
-        echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+      - name: Define full image tag
+        run: |
+          IMAGE_TAG="$ACR_REGISTRY/$IMAGE_NAME:$DATE_STRING.$RELEASE_TAG"
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
 
-    - name: Tag docker container
-      run: |
-        docker tag $IMAGE_NAME $IMAGE_TAG
+      - name: Tag docker container
+        run: |
+          docker tag $IMAGE_NAME $IMAGE_TAG
 
-    - name: Docker login to ACR
-      run: |
-        echo ${{ secrets.ACR_PASSWORD }} | docker login ${{ env.ACR_REGISTRY }} -u ${{ secrets.ACR_USERNAME }} --password-stdin
+      - name: Docker login to ACR
+        run: |
+          echo ${{ secrets.ACR_PASSWORD }} | docker login ${{ env.ACR_REGISTRY }} -u ${{ secrets.ACR_USERNAME }} --password-stdin
 
-    - name: Push docker container to ACR
-      run: |
-        docker push $IMAGE_TAG
+      - name: Push docker container to ACR
+        run: |
+          docker push $IMAGE_TAG
