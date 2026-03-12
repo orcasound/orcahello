@@ -1,3 +1,4 @@
+---
 model_type: "FastAI"
 model_local_threshold: 0.5
 model_global_threshold: 3
@@ -6,5 +7,5 @@ model_name: "model.pkl"
 hls_stream_type: "LiveHLS"
 hls_polling_interval: 60
 hls_hydrophone_id: "rpi_orcasound_lab"
-upload_to_azure: False
-delete_local_wavs: True
+upload_to_azure: false
+delete_local_wavs: true

@@ -1,12 +1,13 @@
+---
 name: InferenceSystemV1
 
 on:
   pull_request:
     branches:
-    - main
+      - main
   push:
     branches:
-    - main
+      - main
   workflow_dispatch:
 
 concurrency:
@@ -25,16 +26,16 @@ jobs:
     outputs:
       src: ${{ steps.filter.outputs.src }}
     steps:
-    - name: Checkout
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
-    - name: Check for file changes
-      uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36  # v3.0.2
-      id: filter
-      with:
-        filters: |
-          src:
-            - InferenceSystem/**
-            - .github/workflows/InferenceSystemV1.yaml
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - name: Check for file changes
+        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36  # v3.0.2
+        id: filter
+        with:
+          filters: |
+            src:
+              - InferenceSystem/**
+              - .github/workflows/InferenceSystemV1.yaml
 
   inference-v1-test-windows:
     runs-on: windows-latest
@@ -43,48 +44,48 @@ jobs:
     env:
       HF_HUB_OFFLINE: "1"
     steps:
-    - name: Checkout
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
 
-    - name: Install FFmpeg
-      run: choco install ffmpeg -y
+      - name: Install FFmpeg
+        run: choco install ffmpeg -y
 
-    - name: Install uv
-      uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86  # v5.4.2
+      - name: Install uv
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86  # v5.4.2
 
-    - name: Cache uv
-      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306  # v5.0.3
-      with:
-        path: ~\AppData\Local\uv\cache
-        key: ${{ runner.os }}-uv-v1-${{ hashFiles('InferenceSystem/pyproject.toml', 'InferenceSystem/uv.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-uv-v1-
+      - name: Cache uv
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306  # v5.0.3
+        with:
+          path: ~\AppData\Local\uv\cache
+          key: ${{ runner.os }}-uv-v1-${{ hashFiles('InferenceSystem/pyproject.toml', 'InferenceSystem/uv.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-uv-v1-
 
-    - name: Install dependencies
-      working-directory: InferenceSystem
-      run: uv sync --group dev
+      - name: Install dependencies
+        working-directory: InferenceSystem
+        run: uv sync --group dev
 
-    - name: Download HuggingFace model to local cache
-      working-directory: InferenceSystem
-      env:
-        HF_HUB_OFFLINE: "0"
-      run: uv run python -c "from huggingface_hub import snapshot_download; snapshot_download('orcasound/orcahello-srkw-detector-v1')"
+      - name: Download HuggingFace model to local cache
+        working-directory: InferenceSystem
+        env:
+          HF_HUB_OFFLINE: "0"
+        run: uv run python -c "from huggingface_hub import snapshot_download; snapshot_download('orcasound/orcahello-srkw-detector-v1')"
 
-    - name: Inference Orchestrator Positive detection tests
-      working-directory: InferenceSystem
-      run: uv run pytest tests/test_orchestrator_v1.py -v -k "positive"
+      - name: Inference Orchestrator Positive detection tests
+        working-directory: InferenceSystem
+        run: uv run pytest tests/test_orchestrator_v1.py -v -k "positive"
 
-    - name: Inference Orchestrator Negative detection test
-      working-directory: InferenceSystem
-      run: uv run pytest tests/test_orchestrator_v1.py -v -k "negative"
+      - name: Inference Orchestrator Negative detection test
+        working-directory: InferenceSystem
+        run: uv run pytest tests/test_orchestrator_v1.py -v -k "negative"
 
-    - name: Inference Orchestrator Fail/edge-case tests
-      working-directory: InferenceSystem
-      run: uv run pytest tests/test_orchestrator_v1.py -v -k "fail"
+      - name: Inference Orchestrator Fail/edge-case tests
+        working-directory: InferenceSystem
+        run: uv run pytest tests/test_orchestrator_v1.py -v -k "fail"
 
-    - name: Inference Orchestrator LiveHLS Smoke test
-      working-directory: InferenceSystem
-      run: uv run pytest tests/test_orchestrator_v1.py -v -k "livehls"
+      - name: Inference Orchestrator LiveHLS Smoke test
+        working-directory: InferenceSystem
+        run: uv run pytest tests/test_orchestrator_v1.py -v -k "livehls"
 
   inference-v1-test-ubuntu:
     runs-on: ubuntu-latest
@@ -93,50 +94,50 @@ jobs:
     env:
       HF_HUB_OFFLINE: "1"
     steps:
-    - name: Checkout
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
 
-    - name: Install FFmpeg
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y ffmpeg
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
 
-    - name: Install uv
-      uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86  # v5.4.2
+      - name: Install uv
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86  # v5.4.2
 
-    - name: Cache uv
-      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306  # v5.0.3
-      with:
-        path: ~/.cache/uv
-        key: ${{ runner.os }}-uv-v1-${{ hashFiles('InferenceSystem/pyproject.toml', 'InferenceSystem/uv.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-uv-v1-
+      - name: Cache uv
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306  # v5.0.3
+        with:
+          path: ~/.cache/uv
+          key: ${{ runner.os }}-uv-v1-${{ hashFiles('InferenceSystem/pyproject.toml', 'InferenceSystem/uv.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-uv-v1-
 
-    - name: Install dependencies
-      working-directory: InferenceSystem
-      run: uv sync --group dev
+      - name: Install dependencies
+        working-directory: InferenceSystem
+        run: uv sync --group dev
 
-    - name: Download HuggingFace model to local cache
-      working-directory: InferenceSystem
-      env:
-        HF_HUB_OFFLINE: "0"
-      run: uv run python -c "from huggingface_hub import snapshot_download; snapshot_download('orcasound/orcahello-srkw-detector-v1')"
+      - name: Download HuggingFace model to local cache
+        working-directory: InferenceSystem
+        env:
+          HF_HUB_OFFLINE: "0"
+        run: uv run python -c "from huggingface_hub import snapshot_download; snapshot_download('orcasound/orcahello-srkw-detector-v1')"
 
-    - name: Inference Orchestrator Positive detection tests
-      working-directory: InferenceSystem
-      run: uv run pytest tests/test_orchestrator_v1.py -v -k "positive"
+      - name: Inference Orchestrator Positive detection tests
+        working-directory: InferenceSystem
+        run: uv run pytest tests/test_orchestrator_v1.py -v -k "positive"
 
-    - name: Inference Orchestrator Negative detection test
-      working-directory: InferenceSystem
-      run: uv run pytest tests/test_orchestrator_v1.py -v -k "negative"
+      - name: Inference Orchestrator Negative detection test
+        working-directory: InferenceSystem
+        run: uv run pytest tests/test_orchestrator_v1.py -v -k "negative"
 
-    - name: Inference Orchestrator Fail/edge-case tests
-      working-directory: InferenceSystem
-      run: uv run pytest tests/test_orchestrator_v1.py -v -k "fail"
+      - name: Inference Orchestrator Fail/edge-case tests
+        working-directory: InferenceSystem
+        run: uv run pytest tests/test_orchestrator_v1.py -v -k "fail"
 
-    - name: Inference Orchestrator LiveHLS Smoke test
-      working-directory: InferenceSystem
-      run: uv run pytest tests/test_orchestrator_v1.py -v -k "livehls"
+      - name: Inference Orchestrator LiveHLS Smoke test
+        working-directory: InferenceSystem
+        run: uv run pytest tests/test_orchestrator_v1.py -v -k "livehls"
 
   inference-v1-test-docker:
     runs-on: ubuntu-latest
@@ -147,32 +148,32 @@ jobs:
       contents: read
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
 
-    - name: Free up disk space
-      run: |
-        echo "Disk space before cleanup:"
-        df -h
-        sudo apt-get clean
-        sudo apt-get autoremove -y
-        sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost "$AGENT_TOOLSDIRECTORY"
-        sudo rm -rf /usr/local/lib/android /opt/hostedtoolcache/CodeQL /usr/local/.ghcup /usr/share/swift
-        docker system prune -af
-        echo "Disk space after cleanup:"
-        df -h
+      - name: Free up disk space
+        run: |
+          echo "Disk space before cleanup:"
+          df -h
+          sudo apt-get clean
+          sudo apt-get autoremove -y
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost "$AGENT_TOOLSDIRECTORY"
+          sudo rm -rf /usr/local/lib/android /opt/hostedtoolcache/CodeQL /usr/local/.ghcup /usr/share/swift
+          docker system prune -af
+          echo "Disk space after cleanup:"
+          df -h
 
-    - name: Build DockerfileV1 image
-      working-directory: InferenceSystem
-      run: |
-        docker build -f DockerfileV1 -t inference-v1:ci .
+      - name: Build DockerfileV1 image
+        working-directory: InferenceSystem
+        run: |
+          docker build -f DockerfileV1 -t inference-v1:ci .
 
-    - name: Smoke test container (LiveHLS)
-      working-directory: InferenceSystem
-      run: |
-        docker run --rm \
-          -v $PWD/tests/orch_configs/LiveHLS/LiveHLS_OrcasoundLab.yml:/config/config.yml \
-          inference-v1:ci \
-          /usr/src/venv/bin/python3 -u ./src/LiveInferenceOrchestratorV1.py \
-          --max_iterations 2 | tee output.log
-        grep -q "m3u8 file does not exist" output.log || test "$(grep -c "global_prediction" output.log)" -eq 2
+      - name: Smoke test container (LiveHLS)
+        working-directory: InferenceSystem
+        run: |
+          docker run --rm \
+            -v $PWD/tests/orch_configs/LiveHLS/LiveHLS_OrcasoundLab.yml:/config/config.yml \
+            inference-v1:ci \
+            /usr/src/venv/bin/python3 -u ./src/LiveInferenceOrchestratorV1.py \
+            --max_iterations 2 | tee output.log
+          grep -q "m3u8 file does not exist" output.log || test "$(grep -c "global_prediction" output.log)" -eq 2

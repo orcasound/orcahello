@@ -1,13 +1,14 @@
+---
 name: InferenceSystem
 
 on:
   pull_request:
     branches:
-    - main
+      - main
   push:
     branches:
-    - main
-  workflow_dispatch: # Allow manual workflow invocation from the Github Actions UI
+      - main
+  workflow_dispatch:  # Allow manual workflow invocation from the Github Actions UI
 
 concurrency:
   # Cancel any CI/CD workflow currently in progress for the same PR.
@@ -27,290 +28,290 @@ jobs:
     outputs:
       src: ${{ steps.filter.outputs.src }}
     steps:
-    - name: Checkout
-      uses: actions/checkout@v6.0.2
-    - name: Check for file changes
-      uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
-      id: filter
-      with:
-        filters: |
-          src:
-            - InferenceSystem/**
-            - .github/workflows/InferenceSystem.yaml
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - name: Check for file changes
+        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36  # v3.0.2
+        id: filter
+        with:
+          filters: |
+            src:
+              - InferenceSystem/**
+              - .github/workflows/InferenceSystem.yaml
 
   test-windows:
     runs-on: windows-latest
     needs: changes
     if: ${{ needs.changes.outputs.src == 'true' }}
     steps:
-    - name: Check out
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Check out
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
 
-    - name: Download model
-      id: model-path
-      run: |
-        mkdir -Force "InferenceSystem\model"
-        curl -o InferenceSystem/model.zip https://trainedproductionmodels.blob.core.windows.net/dnnmodel/11-15-20.FastAI.R1-12.zip
-        unzip InferenceSystem/model.zip -d InferenceSystem
-        echo "path=InferenceSystem/model" >> $GITHUB_OUTPUT
+      - name: Download model
+        id: model-path
+        run: |
+          mkdir -Force "InferenceSystem\model"
+          curl -o InferenceSystem/model.zip https://trainedproductionmodels.blob.core.windows.net/dnnmodel/11-15-20.FastAI.R1-12.zip
+          unzip InferenceSystem/model.zip -d InferenceSystem
+          echo "path=InferenceSystem/model" >> $GITHUB_OUTPUT
 
-    - name: Cache pip
-      uses: actions/cache@v5
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-v2-${{ hashFiles('**/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-v2-
+      - name: Cache pip
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-v2-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-v2-
 
-    - name: Set up Python
-      uses: actions/setup-python@v6
-      with:
-        python-version: '3.11'
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
 
-    - name: Install FFmpeg
-      run: choco install ffmpeg -y
+      - name: Install FFmpeg
+        run: choco install ffmpeg -y
 
-    - name: Create environment
-      working-directory: InferenceSystem
-      run: |
-        python -m venv inference-venv
+      - name: Create environment
+        working-directory: InferenceSystem
+        run: |
+          python -m venv inference-venv
 
-    - name: Set up environment
-      working-directory: InferenceSystem
-      shell: cmd
-      run: |
-        call .\inference-venv\Scripts\activate.bat && python -m pip install --upgrade pip && pip install -r requirements.txt
+      - name: Set up environment
+        working-directory: InferenceSystem
+        shell: cmd
+        run: |
+          call .\inference-venv\Scripts\activate.bat && python -m pip install --upgrade pip && pip install -r requirements.txt
 
-    - name: Patch fastai_audio for Python 3.11+ compatibility
-      working-directory: InferenceSystem
-      shell: cmd
-      run: |
-        call .\inference-venv\Scripts\activate.bat && patch_fastai_audio.bat
+      - name: Patch fastai_audio for Python 3.11+ compatibility
+        working-directory: InferenceSystem
+        shell: cmd
+        run: |
+          call .\inference-venv\Scripts\activate.bat && patch_fastai_audio.bat
 
-    - name: Test with FastAI LiveHLS config
-      working-directory: InferenceSystem
-      shell: cmd
-      run: |
-        call .\inference-venv\Scripts\activate.bat && python src/LiveInferenceOrchestrator.py --config ./config/Test/FastAI_LiveHLS_OrcasoundLab.yml --max_iterations 2 > output.log 2>&1
-        type output.log
-        findstr /C:"m3u8 file does not exist" output.log
-        if not errorlevel 1 goto :eof
-        powershell -Command "$n = (Select-String -Path 'output.log' -Pattern 'global_prediction').Count; if ($n -ne 2) { Write-Host 'Expected 2 global_prediction lines, got' $n; exit 1 } else { exit 0 }"
+      - name: Test with FastAI LiveHLS config
+        working-directory: InferenceSystem
+        shell: cmd
+        run: |
+          call .\inference-venv\Scripts\activate.bat && python src/LiveInferenceOrchestrator.py --config ./config/Test/FastAI_LiveHLS_OrcasoundLab.yml --max_iterations 2 > output.log 2>&1
+          type output.log
+          findstr /C:"m3u8 file does not exist" output.log
+          if not errorlevel 1 goto :eof
+          powershell -Command "$n = (Select-String -Path 'output.log' -Pattern 'global_prediction').Count; if ($n -ne 2) { Write-Host 'Expected 2 global_prediction lines, got' $n; exit 1 } else { exit 0 }"
 
-    - name: Positive test with OrcasoundLab
-      working-directory: InferenceSystem
-      shell: cmd
-      run: |
-        call .\inference-venv\Scripts\activate.bat && python src/LiveInferenceOrchestrator.py --config ./config/Test/Positive/FastAI_DateRangeHLS_OrcasoundLab.yml --max_iterations 2 > output.log 2>&1
-        type output.log
-        findstr /C:"global_prediction: 1" output.log || (echo "Expected global_prediction: 1 not found" && exit /b 1)
+      - name: Positive test with OrcasoundLab
+        working-directory: InferenceSystem
+        shell: cmd
+        run: |
+          call .\inference-venv\Scripts\activate.bat && python src/LiveInferenceOrchestrator.py --config ./config/Test/Positive/FastAI_DateRangeHLS_OrcasoundLab.yml --max_iterations 2 > output.log 2>&1
+          type output.log
+          findstr /C:"global_prediction: 1" output.log || (echo "Expected global_prediction: 1 not found" && exit /b 1)
 
-    - name: Positive test with AndrewsBay
-      working-directory: InferenceSystem
-      shell: cmd
-      run: |
-        call .\inference-venv\Scripts\activate.bat && python src/LiveInferenceOrchestrator.py --config ./config/Test/Positive/FastAI_DateRangeHLS_AndrewsBay.yml --max_iterations 1 > output.log 2>&1
-        type output.log
-        findstr /C:"global_prediction: 1" output.log || (echo "Expected global_prediction: 1 not found" && exit /b 1)
+      - name: Positive test with AndrewsBay
+        working-directory: InferenceSystem
+        shell: cmd
+        run: |
+          call .\inference-venv\Scripts\activate.bat && python src/LiveInferenceOrchestrator.py --config ./config/Test/Positive/FastAI_DateRangeHLS_AndrewsBay.yml --max_iterations 1 > output.log 2>&1
+          type output.log
+          findstr /C:"global_prediction: 1" output.log || (echo "Expected global_prediction: 1 not found" && exit /b 1)
 
-    - name: Positive test with BushPoint
-      working-directory: InferenceSystem
-      shell: cmd
-      run: |
-        call .\inference-venv\Scripts\activate.bat && python src/LiveInferenceOrchestrator.py --config ./config/Test/Positive/FastAI_DateRangeHLS_BushPoint.yml --max_iterations 1 > output.log 2>&1
-        type output.log
-        findstr /C:"global_prediction: 1" output.log || (echo "Expected global_prediction: 1 not found" && exit /b 1)
+      - name: Positive test with BushPoint
+        working-directory: InferenceSystem
+        shell: cmd
+        run: |
+          call .\inference-venv\Scripts\activate.bat && python src/LiveInferenceOrchestrator.py --config ./config/Test/Positive/FastAI_DateRangeHLS_BushPoint.yml --max_iterations 1 > output.log 2>&1
+          type output.log
+          findstr /C:"global_prediction: 1" output.log || (echo "Expected global_prediction: 1 not found" && exit /b 1)
 
-    - name: Positive test with MastCenter
-      working-directory: InferenceSystem
-      shell: cmd
-      run: |
-        call .\inference-venv\Scripts\activate.bat && python src/LiveInferenceOrchestrator.py --config ./config/Test/Positive/FastAI_DateRangeHLS_MastCenter.yml --max_iterations 1 > output.log 2>&1
-        type output.log
-        findstr /C:"global_prediction: 1" output.log || (echo "Expected global_prediction: 1 not found" && exit /b 1)
+      - name: Positive test with MastCenter
+        working-directory: InferenceSystem
+        shell: cmd
+        run: |
+          call .\inference-venv\Scripts\activate.bat && python src/LiveInferenceOrchestrator.py --config ./config/Test/Positive/FastAI_DateRangeHLS_MastCenter.yml --max_iterations 1 > output.log 2>&1
+          type output.log
+          findstr /C:"global_prediction: 1" output.log || (echo "Expected global_prediction: 1 not found" && exit /b 1)
 
-    - name: Positive test with NorthSJC
-      working-directory: InferenceSystem
-      shell: cmd
-      run: |
-        call .\inference-venv\Scripts\activate.bat && python src/LiveInferenceOrchestrator.py --config ./config/Test/Positive/FastAI_DateRangeHLS_NorthSJC.yml --max_iterations 1 > output.log 2>&1
-        type output.log
-        findstr /C:"global_prediction: 1" output.log || (echo "Expected global_prediction: 1 not found" && exit /b 1)
+      - name: Positive test with NorthSJC
+        working-directory: InferenceSystem
+        shell: cmd
+        run: |
+          call .\inference-venv\Scripts\activate.bat && python src/LiveInferenceOrchestrator.py --config ./config/Test/Positive/FastAI_DateRangeHLS_NorthSJC.yml --max_iterations 1 > output.log 2>&1
+          type output.log
+          findstr /C:"global_prediction: 1" output.log || (echo "Expected global_prediction: 1 not found" && exit /b 1)
 
-    - name: Positive test with PortTownsend
-      working-directory: InferenceSystem
-      shell: cmd
-      run: |
-        call .\inference-venv\Scripts\activate.bat && python src/LiveInferenceOrchestrator.py --config ./config/Test/Positive/FastAI_DateRangeHLS_PortTownsend.yml --max_iterations 1 > output.log 2>&1
-        type output.log
-        findstr /C:"global_prediction: 1" output.log || (echo "Expected global_prediction: 1 not found" && exit /b 1)
+      - name: Positive test with PortTownsend
+        working-directory: InferenceSystem
+        shell: cmd
+        run: |
+          call .\inference-venv\Scripts\activate.bat && python src/LiveInferenceOrchestrator.py --config ./config/Test/Positive/FastAI_DateRangeHLS_PortTownsend.yml --max_iterations 1 > output.log 2>&1
+          type output.log
+          findstr /C:"global_prediction: 1" output.log || (echo "Expected global_prediction: 1 not found" && exit /b 1)
 
-    - name: Positive test with SunsetBay
-      working-directory: InferenceSystem
-      shell: cmd
-      run: |
-        call .\inference-venv\Scripts\activate.bat && python src/LiveInferenceOrchestrator.py --config ./config/Test/Positive/FastAI_DateRangeHLS_SunsetBay.yml --max_iterations 1 > output.log 2>&1
-        type output.log
-        findstr /C:"global_prediction: 1" output.log || (echo "Expected global_prediction: 1 not found" && exit /b 1)
+      - name: Positive test with SunsetBay
+        working-directory: InferenceSystem
+        shell: cmd
+        run: |
+          call .\inference-venv\Scripts\activate.bat && python src/LiveInferenceOrchestrator.py --config ./config/Test/Positive/FastAI_DateRangeHLS_SunsetBay.yml --max_iterations 1 > output.log 2>&1
+          type output.log
+          findstr /C:"global_prediction: 1" output.log || (echo "Expected global_prediction: 1 not found" && exit /b 1)
 
-    # Use negative test cases for other hydrophones where the model has never correctly predicted positive event.
-    - name: Negative test with PointRobinson
-      working-directory: InferenceSystem
-      shell: cmd
-      run: |
-        call .\inference-venv\Scripts\activate.bat && python src/LiveInferenceOrchestrator.py --config ./config/Test/Negative/FastAI_DateRangeHLS_PointRobinson.yml --max_iterations 1 > output.log 2>&1
-        type output.log
-        findstr /C:"global_prediction: 0" output.log || (echo "Expected global_prediction: 0 not found" && exit /b 1)
+      # Use negative test cases for other hydrophones where the model has never correctly predicted positive event.
+      - name: Negative test with PointRobinson
+        working-directory: InferenceSystem
+        shell: cmd
+        run: |
+          call .\inference-venv\Scripts\activate.bat && python src/LiveInferenceOrchestrator.py --config ./config/Test/Negative/FastAI_DateRangeHLS_PointRobinson.yml --max_iterations 1 > output.log 2>&1
+          type output.log
+          findstr /C:"global_prediction: 0" output.log || (echo "Expected global_prediction: 0 not found" && exit /b 1)
 
-    - name: Test handling NoAudio failures
-      working-directory: InferenceSystem
-      shell: cmd
-      run: |
-        call .\inference-venv\Scripts\activate.bat && python src/LiveInferenceOrchestrator.py --config ./config/Test/Fail/FastAI_DateRangeHLS_NoAudio.yml --max_iterations 1
-        call .\inference-venv\Scripts\activate.bat && python src/LiveInferenceOrchestrator.py --config ./config/Test/Fail/FastAI_DateRangeHLS_NoAudio2.yml --max_iterations 1
+      - name: Test handling NoAudio failures
+        working-directory: InferenceSystem
+        shell: cmd
+        run: |
+          call .\inference-venv\Scripts\activate.bat && python src/LiveInferenceOrchestrator.py --config ./config/Test/Fail/FastAI_DateRangeHLS_NoAudio.yml --max_iterations 1
+          call .\inference-venv\Scripts\activate.bat && python src/LiveInferenceOrchestrator.py --config ./config/Test/Fail/FastAI_DateRangeHLS_NoAudio2.yml --max_iterations 1
 
-    - name: Test handling IncompleteMinute failures
-      working-directory: InferenceSystem
-      shell: cmd
-      run: |
-        call .\inference-venv\Scripts\activate.bat && python src/LiveInferenceOrchestrator.py --config ./config/Test/Fail/FastAI_DateRangeHLS_IncompleteMinute.yml --max_iterations 1
+      - name: Test handling IncompleteMinute failures
+        working-directory: InferenceSystem
+        shell: cmd
+        run: |
+          call .\inference-venv\Scripts\activate.bat && python src/LiveInferenceOrchestrator.py --config ./config/Test/Fail/FastAI_DateRangeHLS_IncompleteMinute.yml --max_iterations 1
 
   test-ubuntu:
     runs-on: ubuntu-latest
     needs: changes
     if: ${{ needs.changes.outputs.src == 'true' }}
     steps:
-    - name: Check out
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Check out
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
 
-    - name: Download model
-      id: model-path
-      run: |
-        mkdir -p InferenceSystem/model
-        curl -o InferenceSystem/model.zip https://trainedproductionmodels.blob.core.windows.net/dnnmodel/11-15-20.FastAI.R1-12.zip
-        unzip InferenceSystem/model.zip -d InferenceSystem
-        echo "path=InferenceSystem/model" >> $GITHUB_OUTPUT
+      - name: Download model
+        id: model-path
+        run: |
+          mkdir -p InferenceSystem/model
+          curl -o InferenceSystem/model.zip https://trainedproductionmodels.blob.core.windows.net/dnnmodel/11-15-20.FastAI.R1-12.zip
+          unzip InferenceSystem/model.zip -d InferenceSystem
+          echo "path=InferenceSystem/model" >> $GITHUB_OUTPUT
 
-    - name: Cache pip
-      uses: actions/cache@v5
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-v2-${{ hashFiles('**/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-v2-
+      - name: Cache pip
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-v2-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-v2-
 
-    - name: Set up Python
-      uses: actions/setup-python@v6
-      with:
-        python-version: '3.11'
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
 
-    - name: Install FFmpeg
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y ffmpeg
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
 
-    - name: Free up disk space
-      run: |
-        echo "Disk space before cleanup:"
-        df -h
-        # Remove unnecessary packages to free up space for pip install
-        sudo rm -rf /usr/share/dotnet
-        sudo rm -rf /opt/ghc
-        sudo rm -rf /usr/local/share/boost
-        sudo rm -rf /usr/local/lib/android
-        sudo apt-get clean
-        sudo apt-get autoremove -y
-        echo "Disk space after cleanup:"
-        df -h
+      - name: Free up disk space
+        run: |
+          echo "Disk space before cleanup:"
+          df -h
+          # Remove unnecessary packages to free up space for pip install
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf /usr/local/lib/android
+          sudo apt-get clean
+          sudo apt-get autoremove -y
+          echo "Disk space after cleanup:"
+          df -h
 
-    - name: Create environment
-      working-directory: InferenceSystem
-      run: |
-        python -m venv inference-venv
+      - name: Create environment
+        working-directory: InferenceSystem
+        run: |
+          python -m venv inference-venv
 
-    - name: Set up environment
-      working-directory: InferenceSystem
-      run: |
-        source ./inference-venv/bin/activate && python -m pip install --upgrade pip && pip install -r requirements.txt
+      - name: Set up environment
+        working-directory: InferenceSystem
+        run: |
+          source ./inference-venv/bin/activate && python -m pip install --upgrade pip && pip install -r requirements.txt
 
-    - name: Patch fastai_audio for Python 3.11+ compatibility
-      working-directory: InferenceSystem
-      run: |
-        source ./inference-venv/bin/activate && bash patch_fastai_audio.sh
+      - name: Patch fastai_audio for Python 3.11+ compatibility
+        working-directory: InferenceSystem
+        run: |
+          source ./inference-venv/bin/activate && bash patch_fastai_audio.sh
 
-    - name: Test with FastAI LiveHLS config
-      working-directory: InferenceSystem
-      run: |
-        source ./inference-venv/bin/activate && python src/LiveInferenceOrchestrator.py --config ./config/Test/FastAI_LiveHLS_OrcasoundLab.yml --max_iterations 2 > output.log 2>&1
-        cat output.log
-        grep -q "m3u8 file does not exist" output.log || test "$(grep -c "global_prediction" output.log)" -eq 2
+      - name: Test with FastAI LiveHLS config
+        working-directory: InferenceSystem
+        run: |
+          source ./inference-venv/bin/activate && python src/LiveInferenceOrchestrator.py --config ./config/Test/FastAI_LiveHLS_OrcasoundLab.yml --max_iterations 2 > output.log 2>&1
+          cat output.log
+          grep -q "m3u8 file does not exist" output.log || test "$(grep -c "global_prediction" output.log)" -eq 2
 
-    - name: Positive test with OrcasoundLab
-      working-directory: InferenceSystem
-      run: |
-        source ./inference-venv/bin/activate && python src/LiveInferenceOrchestrator.py --config ./config/Test/Positive/FastAI_DateRangeHLS_OrcasoundLab.yml --max_iterations 2 > output.log 2>&1
-        cat output.log
-        grep -q "global_prediction: 1" output.log || (echo "Expected global_prediction: 1 not found" && exit 1)
+      - name: Positive test with OrcasoundLab
+        working-directory: InferenceSystem
+        run: |
+          source ./inference-venv/bin/activate && python src/LiveInferenceOrchestrator.py --config ./config/Test/Positive/FastAI_DateRangeHLS_OrcasoundLab.yml --max_iterations 2 > output.log 2>&1
+          cat output.log
+          grep -q "global_prediction: 1" output.log || (echo "Expected global_prediction: 1 not found" && exit 1)
 
-    - name: Positive test with AndrewsBay
-      working-directory: InferenceSystem
-      run: |
-        source ./inference-venv/bin/activate && python src/LiveInferenceOrchestrator.py --config ./config/Test/Positive/FastAI_DateRangeHLS_AndrewsBay.yml --max_iterations 1 > output.log 2>&1
-        cat output.log
-        grep -q "global_prediction: 1" output.log || (echo "Expected global_prediction: 1 not found" && exit 1)
+      - name: Positive test with AndrewsBay
+        working-directory: InferenceSystem
+        run: |
+          source ./inference-venv/bin/activate && python src/LiveInferenceOrchestrator.py --config ./config/Test/Positive/FastAI_DateRangeHLS_AndrewsBay.yml --max_iterations 1 > output.log 2>&1
+          cat output.log
+          grep -q "global_prediction: 1" output.log || (echo "Expected global_prediction: 1 not found" && exit 1)
 
-    - name: Positive test with BushPoint
-      working-directory: InferenceSystem
-      run: |
-        source ./inference-venv/bin/activate && python src/LiveInferenceOrchestrator.py --config ./config/Test/Positive/FastAI_DateRangeHLS_BushPoint.yml --max_iterations 1 > output.log 2>&1
-        cat output.log
-        grep -q "global_prediction: 1" output.log || (echo "Expected global_prediction: 1 not found" && exit 1)
+      - name: Positive test with BushPoint
+        working-directory: InferenceSystem
+        run: |
+          source ./inference-venv/bin/activate && python src/LiveInferenceOrchestrator.py --config ./config/Test/Positive/FastAI_DateRangeHLS_BushPoint.yml --max_iterations 1 > output.log 2>&1
+          cat output.log
+          grep -q "global_prediction: 1" output.log || (echo "Expected global_prediction: 1 not found" && exit 1)
 
-    - name: Positive test with MastCenter
-      working-directory: InferenceSystem
-      run: |
-        source ./inference-venv/bin/activate && python src/LiveInferenceOrchestrator.py --config ./config/Test/Positive/FastAI_DateRangeHLS_MastCenter.yml --max_iterations 1 > output.log 2>&1
-        cat output.log
-        grep -q "global_prediction: 1" output.log || (echo "Expected global_prediction: 1 not found" && exit 1)
+      - name: Positive test with MastCenter
+        working-directory: InferenceSystem
+        run: |
+          source ./inference-venv/bin/activate && python src/LiveInferenceOrchestrator.py --config ./config/Test/Positive/FastAI_DateRangeHLS_MastCenter.yml --max_iterations 1 > output.log 2>&1
+          cat output.log
+          grep -q "global_prediction: 1" output.log || (echo "Expected global_prediction: 1 not found" && exit 1)
 
-    - name: Positive test with NorthSJC
-      working-directory: InferenceSystem
-      run: |
-        source ./inference-venv/bin/activate && python src/LiveInferenceOrchestrator.py --config ./config/Test/Positive/FastAI_DateRangeHLS_NorthSJC.yml --max_iterations 1 > output.log 2>&1
-        cat output.log
-        grep -q "global_prediction: 1" output.log || (echo "Expected global_prediction: 1 not found" && exit 1)
+      - name: Positive test with NorthSJC
+        working-directory: InferenceSystem
+        run: |
+          source ./inference-venv/bin/activate && python src/LiveInferenceOrchestrator.py --config ./config/Test/Positive/FastAI_DateRangeHLS_NorthSJC.yml --max_iterations 1 > output.log 2>&1
+          cat output.log
+          grep -q "global_prediction: 1" output.log || (echo "Expected global_prediction: 1 not found" && exit 1)
 
-    - name: Positive test with PortTownsend
-      working-directory: InferenceSystem
-      run: |
-        source ./inference-venv/bin/activate && python src/LiveInferenceOrchestrator.py --config ./config/Test/Positive/FastAI_DateRangeHLS_PortTownsend.yml --max_iterations 1 > output.log 2>&1
-        cat output.log
-        grep -q "global_prediction: 1" output.log || (echo "Expected global_prediction: 1 not found" && exit 1)
+      - name: Positive test with PortTownsend
+        working-directory: InferenceSystem
+        run: |
+          source ./inference-venv/bin/activate && python src/LiveInferenceOrchestrator.py --config ./config/Test/Positive/FastAI_DateRangeHLS_PortTownsend.yml --max_iterations 1 > output.log 2>&1
+          cat output.log
+          grep -q "global_prediction: 1" output.log || (echo "Expected global_prediction: 1 not found" && exit 1)
 
-    - name: Positive test with SunsetBay
-      working-directory: InferenceSystem
-      run: |
-        source ./inference-venv/bin/activate && python src/LiveInferenceOrchestrator.py --config ./config/Test/Positive/FastAI_DateRangeHLS_SunsetBay.yml --max_iterations 1 > output.log 2>&1
-        cat output.log
-        grep -q "global_prediction: 1" output.log || (echo "Expected global_prediction: 1 not found" && exit 1)
+      - name: Positive test with SunsetBay
+        working-directory: InferenceSystem
+        run: |
+          source ./inference-venv/bin/activate && python src/LiveInferenceOrchestrator.py --config ./config/Test/Positive/FastAI_DateRangeHLS_SunsetBay.yml --max_iterations 1 > output.log 2>&1
+          cat output.log
+          grep -q "global_prediction: 1" output.log || (echo "Expected global_prediction: 1 not found" && exit 1)
 
-    - name: Negative test with PointRobinson
-      working-directory: InferenceSystem
-      run: |
-        source ./inference-venv/bin/activate && python src/LiveInferenceOrchestrator.py --config ./config/Test/Negative/FastAI_DateRangeHLS_PointRobinson.yml --max_iterations 1 > output.log 2>&1
-        cat output.log
-        grep -q "global_prediction: 0" output.log || (echo "Expected global_prediction: 0 not found" && exit 1)
+      - name: Negative test with PointRobinson
+        working-directory: InferenceSystem
+        run: |
+          source ./inference-venv/bin/activate && python src/LiveInferenceOrchestrator.py --config ./config/Test/Negative/FastAI_DateRangeHLS_PointRobinson.yml --max_iterations 1 > output.log 2>&1
+          cat output.log
+          grep -q "global_prediction: 0" output.log || (echo "Expected global_prediction: 0 not found" && exit 1)
 
-    - name: Test with FastAI DateRangeHLS NoAudio config
-      working-directory: InferenceSystem
-      run: |
-        source ./inference-venv/bin/activate && python src/LiveInferenceOrchestrator.py --config ./config/Test/Fail/FastAI_DateRangeHLS_NoAudio.yml --max_iterations 1
-        source ./inference-venv/bin/activate && python src/LiveInferenceOrchestrator.py --config ./config/Test/Fail/FastAI_DateRangeHLS_NoAudio2.yml --max_iterations 1
+      - name: Test with FastAI DateRangeHLS NoAudio config
+        working-directory: InferenceSystem
+        run: |
+          source ./inference-venv/bin/activate && python src/LiveInferenceOrchestrator.py --config ./config/Test/Fail/FastAI_DateRangeHLS_NoAudio.yml --max_iterations 1
+          source ./inference-venv/bin/activate && python src/LiveInferenceOrchestrator.py --config ./config/Test/Fail/FastAI_DateRangeHLS_NoAudio2.yml --max_iterations 1
 
-    - name: Test with FastAI DateRangeHLS IncompleteMinute config
-      working-directory: InferenceSystem
-      run: |
-        source ./inference-venv/bin/activate && python src/LiveInferenceOrchestrator.py --config ./config/Test/Fail/FastAI_DateRangeHLS_IncompleteMinute.yml --max_iterations 1
+      - name: Test with FastAI DateRangeHLS IncompleteMinute config
+        working-directory: InferenceSystem
+        run: |
+          source ./inference-venv/bin/activate && python src/LiveInferenceOrchestrator.py --config ./config/Test/Fail/FastAI_DateRangeHLS_IncompleteMinute.yml --max_iterations 1
 
   test-docker:
     runs-on: ubuntu-latest
@@ -321,56 +322,56 @@ jobs:
       contents: read
 
     steps:
-    - uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b # v2.15.0
-      with:
-        egress-policy: audit
+      - uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b  # v2.15.0
+        with:
+          egress-policy: audit
 
-    - name: Checkout
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
 
-    - name: Free up disk space
-      run: |
-        echo "Disk space before cleanup:"
-        df -h
-        # Remove unnecessary packages and cached files
-        sudo apt-get clean
-        sudo apt-get autoremove -y
-        sudo rm -rf /usr/share/dotnet
-        sudo rm -rf /opt/ghc
-        sudo rm -rf /usr/local/share/boost
-        sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-        sudo rm -rf /usr/local/lib/android
-        sudo rm -rf /opt/hostedtoolcache/CodeQL
-        sudo rm -rf /usr/local/.ghcup
-        sudo rm -rf /usr/share/swift
-        # Clean up Docker
-        docker system prune -af
-        echo "Disk space after cleanup:"
-        df -h
+      - name: Free up disk space
+        run: |
+          echo "Disk space before cleanup:"
+          df -h
+          # Remove unnecessary packages and cached files
+          sudo apt-get clean
+          sudo apt-get autoremove -y
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo rm -rf /usr/local/.ghcup
+          sudo rm -rf /usr/share/swift
+          # Clean up Docker
+          docker system prune -af
+          echo "Disk space after cleanup:"
+          df -h
 
-    - name: Download model
-      working-directory: InferenceSystem
-      run: |
-        curl -o model.zip https://trainedproductionmodels.blob.core.windows.net/dnnmodel/11-15-20.FastAI.R1-12.zip
+      - name: Download model
+        working-directory: InferenceSystem
+        run: |
+          curl -o model.zip https://trainedproductionmodels.blob.core.windows.net/dnnmodel/11-15-20.FastAI.R1-12.zip
 
-    - name: Create environment variable file
-      working-directory: InferenceSystem
-      run: |
-        touch .env
+      - name: Create environment variable file
+        working-directory: InferenceSystem
+        run: |
+          touch .env
 
-    - name: Build docker container
-      working-directory: InferenceSystem
-      run: |
-        docker build . -t live-inference-system -f ./Dockerfile
+      - name: Build docker container
+        working-directory: InferenceSystem
+        run: |
+          docker build . -t live-inference-system -f ./Dockerfile
 
-    - name: Test docker container
-      working-directory: InferenceSystem
-      run: |
-        docker run --rm \
-          --env-file .env \
-          -v $PWD/config:/config \
-          live-inference-system \
-          python3 -u ./src/LiveInferenceOrchestrator.py \
-          --config /config/Test/FastAI_LiveHLS_OrcasoundLab.yml \
-          --max_iterations 2 | tee output.log
-        grep -q "m3u8 file does not exist" output.log || test "$(grep -c "global_prediction" output.log)" -eq 2
+      - name: Test docker container
+        working-directory: InferenceSystem
+        run: |
+          docker run --rm \
+            --env-file .env \
+            -v $PWD/config:/config \
+            live-inference-system \
+            python3 -u ./src/LiveInferenceOrchestrator.py \
+            --config /config/Test/FastAI_LiveHLS_OrcasoundLab.yml \
+            --max_iterations 2 | tee output.log
+          grep -q "m3u8 file does not exist" output.log || test "$(grep -c "global_prediction" output.log)" -eq 2

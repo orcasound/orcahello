@@ -1,3 +1,4 @@
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -13,5 +14,5 @@ data:
     hls_stream_type: "LiveHLS"
     hls_polling_interval: 60
     hls_hydrophone_id: "rpi_sunset_bay"
-    upload_to_azure: True
-    delete_local_wavs: True
+    upload_to_azure: true
+    delete_local_wavs: true
