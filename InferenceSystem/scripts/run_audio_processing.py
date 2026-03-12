@@ -46,7 +46,7 @@ from librosa import get_duration
 # Add src directory to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-from model_v1.audio_frontend import audio_segment_generator, prepare_waveform
+from model.audio_frontend import audio_segment_generator, prepare_waveform
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_DIR = os.path.join(SCRIPT_DIR, '..')

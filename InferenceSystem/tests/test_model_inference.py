@@ -1,10 +1,9 @@
 """
-Model Inference Tests - Verify OrcaHelloSRKWDetectorV1 matches fastai
+Model Inference Tests
 
 Test structure:
 - TestOrcaHelloSRKWDetectorUnit: Unit tests for model class
-- TestReferenceGeneration: Generate FastAI reference outputs (run in inference-venv)
-- TestParityChecks: Compare model_v1 against FastAI references (run in model-v1-venv)
+- TestParityChecks: Compare model outputs against pre-committed FastAI references
 """
 
 import sys
@@ -15,7 +14,7 @@ import pytest
 import torch
 import torch.nn.functional as F
 
-from model_v1.inference import OrcaHelloSRKWDetectorV1
+from model.inference import OrcaHelloSRKWDetectorV1
 
 # Add src to path (for when tests are run directly)
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
@@ -103,160 +102,6 @@ class TestOrcaHelloSRKWDetectorUnit:
         with torch.no_grad():
             output = model(x)
         assert output.shape == (1, 2)
-
-
-class TestReferenceGeneration:
-    """
-    Generate FastAI reference outputs for parity testing.
-
-    Run these tests in inference-venv (which has fastai) to create reference files.
-    These references are then used by TestParityChecks (run in model-v1-venv).
-    """
-
-    def test_generate_segment_predictions_reference(
-        self, model_dir, reference_dir, sample_1min_wav, fastai_available
-    ):
-        """
-        Generate fastai reference predictions for per-segment inference.
-
-        Uses audio preprocessing reference outputs (mel spectrograms) as input.
-
-        The reference file contains:
-        - segment_predictions: dict mapping segment_N to fastai confidence score
-        - source_wav: name of WAV file used for audio reference
-        """
-        if not fastai_available:
-            pytest.skip("fastai not available - run in inference-venv to generate references")
-
-        # Late import for fastai-specific test
-        import json
-        from model.fastai_inference import FastAIModel
-        from audio.data import AudioItem
-
-        # Load audio preprocessing reference
-        wav_name = Path(sample_1min_wav).stem
-        audio_ref_file = reference_dir / f"{wav_name}_audio_reference.pt"
-        if not audio_ref_file.exists():
-            pytest.skip(
-                f"Audio reference not found: {audio_ref_file}. "
-                "Run test_generate_reference_outputs in test_audio_preprocessing.py first."
-            )
-
-        audio_ref = torch.load(audio_ref_file, weights_only=False)
-
-        # Load fastai model
-        fastai_model = FastAIModel(
-            model_path=str(model_dir),
-            model_name="model.pkl"
-        )
-
-        references = {
-            "segment_predictions": {},
-            "source_wav": wav_name,
-        }
-
-        print("\nGenerating fastai segment predictions:")
-        print(f"Source: {wav_name}")
-        print(f"Segments: {len(audio_ref)}")
-        print()
-
-        for seg_key in sorted(audio_ref.keys()):
-            # Get standardized mel spectrogram (1, 256, 312)
-            mel_spectro = audio_ref[seg_key]["mel_standardized"]
-
-            # Create AudioItem for fastai prediction
-            # AudioItem wraps the spectrogram tensor
-            audio_item = AudioItem(mel_spectro, None)
-
-            # Get fastai prediction
-            # fastai_model.model.predict() returns (category, tensor_index, probabilities)
-            # We want probabilities[1] which is the "positive" class
-            pred_result = fastai_model.model.predict(audio_item)
-            call_prob = pred_result[2][1].item()
-
-            references["segment_predictions"][seg_key] = call_prob
-            print(f"  {seg_key}: {call_prob:.6f}")
-
-        # Store class order for verification
-        if hasattr(fastai_model.model.data, 'classes'):
-            references["classes"] = list(fastai_model.model.data.classes)
-            print(f"\nFastAI classes: {fastai_model.model.data.classes}")
-
-        # Save as JSON
-        reference_file = reference_dir / f"{wav_name}_segment_preds_reference.json"
-        with open(reference_file, 'w') as f:
-            json.dump(references, f, indent=2)
-        print(f"\nSaved reference to: {reference_file}")
-
-    def test_generate_file_predictions_reference(
-        self, model_dir, reference_dir, sample_1min_wav, fastai_available
-    ):
-        """
-        Generate fastai reference predictions for full-file inference.
-
-        Saves as JSON-serialized DetectionResult for easy comparison.
-        """
-        if not fastai_available:
-            pytest.skip("fastai not available - run in inference-venv to generate references")
-
-        # Late import for fastai-specific test
-        import json
-        from dataclasses import asdict
-        from model.fastai_inference import FastAIModel
-        from model_v1.types import DetectionResult, DetectionMetadata, SegmentPrediction
-
-        # Run fastai inference on the WAV file (no smoothing for parity testing)
-        model = FastAIModel(
-            model_path=str(model_dir),
-            model_name="model.pkl",
-            threshold=0.5,
-            min_num_positive_calls_threshold=3,
-            smooth_predictions=False
-        )
-
-        result = model.predict(sample_1min_wav)
-
-        wav_name = Path(sample_1min_wav).stem
-
-        # Build segment predictions from submission DataFrame
-        segment_predictions = []
-        submission = result["submission"]
-        for _, row in submission.iterrows():
-            segment_predictions.append(
-                SegmentPrediction(
-                    start_time_s=float(row["start_time_s"]),
-                    duration_s=float(row["duration_s"]),
-                    confidence=float(row["confidence"])
-                )
-            )
-
-        # Create DetectionResult with dummy metadata
-        detection_result = DetectionResult(
-            local_predictions=result["local_predictions"],
-            local_confidences=result["local_confidences"],
-            segment_predictions=segment_predictions,
-            global_prediction=result["global_prediction"],
-            global_confidence=result["global_confidence"] / 100.0,  # FastAI returns percentage
-            metadata=DetectionMetadata(
-                wav_file_path=wav_name,
-                file_duration_s=0.0,  # Dummy value
-                processing_time_s=0.0  # Dummy value
-            )
-        )
-
-        print("\nGenerating fastai file prediction reference:")
-        print(f"Source: {wav_name}")
-        print(f"Segments: {len(detection_result.local_predictions)}")
-        print(f"Global prediction: {detection_result.global_prediction}")
-        print(f"Global confidence: {detection_result.global_confidence:.4f}")
-
-        # Save as JSON using asdict
-        reference_file = reference_dir / f"{wav_name}_file_preds_reference.json"
-
-        with open(reference_file, 'w') as f:
-            json.dump(asdict(detection_result), f, indent=2)
-
-        print(f"\nSaved reference to: {reference_file}")
 
 
 class TestParityChecks:

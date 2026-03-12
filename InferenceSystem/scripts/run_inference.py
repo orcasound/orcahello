@@ -28,8 +28,8 @@ import yaml
 # Add src directory to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-from model_v1.inference import OrcaHelloSRKWDetectorV1, aggregate_predictions
-from model_v1.types import SegmentPrediction, GlobalPredictionConfig
+from model.inference import OrcaHelloSRKWDetectorV1, aggregate_predictions
+from model.types import SegmentPrediction, GlobalPredictionConfig
 
 TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), '..', 'tests', 'test_data')
 DEFAULT_AUDIO_PATH = os.path.join(TEST_DATA_DIR, "rpi_sunset_bay_2025_09_18_01_12_06_PDT--f6b3fcd7-2036-433a-8a18-76a6b3b4f0c9.wav")

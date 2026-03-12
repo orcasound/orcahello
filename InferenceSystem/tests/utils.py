@@ -1,7 +1,7 @@
 import json
 import matplotlib
 import torch
-from model_v1.types import DetectionResult
+from model.types import DetectionResult
 
 matplotlib.use("Agg")
 from dataclasses import dataclass, field
@@ -309,7 +309,7 @@ def diff_detection_results(result_v1: DetectionResult, result_ref: Dict, abs_tol
     Compare two DetectionResult objects and compute difference metrics.
 
     Args:
-        result_v1: DetectionResult from model_v1 (dataclass or dict)
+        result_v1: DetectionResult from model (dataclass or dict)
         result_ref: DetectionResult reference (dataclass or dict)
         abs_tolerance: Tolerance for identifying confidence mismatches
 

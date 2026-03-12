@@ -241,8 +241,8 @@ def extract_weights(
     print("\n=== Verifying Load ===")
     # Import using direct path since we're in scripts/
     sys.path.insert(0, str(ROOT_DIR / "src"))
-    from model_v1.inference import OrcaHelloSRKWDetectorV1
-    from model_v1.types import DetectorInferenceConfig
+    from model.inference import OrcaHelloSRKWDetectorV1
+    from model.types import DetectorInferenceConfig
 
     config = DetectorInferenceConfig().as_dict()
     test_model = OrcaHelloSRKWDetectorV1(config)

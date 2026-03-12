@@ -13,7 +13,7 @@ SCRIPT_DIR = Path(__file__).parent
 ROOT_DIR = SCRIPT_DIR.parent
 sys.path.insert(0, str(ROOT_DIR / "src"))
 
-from model_v1 import OrcaHelloSRKWDetectorV1
+from model import OrcaHelloSRKWDetectorV1
 from huggingface_hub import HfApi, upload_file
 
 DEFAULT_REPO_ID = "orcasound/orcahello-srkw-detector-v1"
@@ -110,7 +110,7 @@ def main():
     if args.license_file and args.license_file.exists():
         print(f"  - LICENSE (RAIL license)")
     print(f"\nTo load the model:")
-    print(f"  from src.model_v1.inference import OrcaHelloSRKWDetectorV1")
+    print(f"  from src.model.inference import OrcaHelloSRKWDetectorV1")
     print(f"  model = OrcaHelloSRKWDetectorV1.from_pretrained('{args.repo_id}')")
 
 if __name__ == "__main__":

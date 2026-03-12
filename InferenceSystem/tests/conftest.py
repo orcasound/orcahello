@@ -171,7 +171,7 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     """Pytest configuration hook"""
-    config.addinivalue_line("markers", "parity: marks tests that compare fastai vs model_v1")
+    config.addinivalue_line("markers", "parity: marks tests that compare fastai vs model")
     config.addinivalue_line("markers", "slow: marks tests that take a long time")
 
 
@@ -207,7 +207,7 @@ def numerical_tolerance():
 @pytest.fixture
 def model_v1(v1_config):
     """Create OrcaHelloSRKWDetectorV1 model instance with default config"""
-    from model_v1.inference import OrcaHelloSRKWDetectorV1
+    from model.inference import OrcaHelloSRKWDetectorV1
 
     model = OrcaHelloSRKWDetectorV1.from_pretrained("orcasound/orcahello-srkw-detector-v1", config=v1_config)
     model.eval()

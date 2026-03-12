@@ -1,16 +1,12 @@
 """
-Audio Preprocessing Tests - Verify model_v1 audio preprocessing matches fastai_audio
-
-These tests are modular:
-- Can generate reference outputs from fastai_audio (in inference-venv)
-- Can compare model_v1 outputs against saved references (in model-v1-venv)
+Audio Preprocessing Tests
 """
 
 from pathlib import Path
 
 import pytest
 import torch
-from model_v1.audio_frontend import (
+from model.audio_frontend import (
     audio_segment_generator,
     featurize_waveform,
     load_processed_waveform,
@@ -32,7 +28,7 @@ def _make_segments(sample_1min_wav, v1_config, max_segments, segments_start_s):
 
 
 class TestAudioPreprocessingUnit:
-    """Unit tests for model_v1 audio preprocessing components"""
+    """Unit tests for audio preprocessing components"""
 
     def test_load_audio(self, sample_1min_wav, v1_config):
         """Test that audio loads correctly with config"""
@@ -96,73 +92,8 @@ class TestAudioPreprocessingUnit:
 
 class TestAudioPreprocessingParity:
     """
-    Parity tests comparing model_v1 with fastai_audio.
-
-    These tests verify that model_v1 produces identical outputs to fastai_audio.
+    Parity tests comparing model audio preprocessing against pre-committed FastAI references.
     """
-
-    def test_generate_reference_outputs(
-        self, sample_1min_wav, reference_dir, fastai_available, v1_config, max_segments, segments_start_s
-    ):
-        """
-        Generate reference outputs from fastai_audio for later comparison.
-
-        Run this in the fastai environment to create reference files.
-        Saves mel_raw (pure mel, no padding) and mel_standardized (full pipeline) outputs.
-        """
-        if not fastai_available:
-            pytest.skip(
-                "fastai_audio not available - run in fastai environment to generate references"
-            )
-
-        import random
-
-        random.seed(42)  # Fix random seed for reproducible padding
-
-        from legacy.fastai_frontend import prepare_audio as fastai_prepare_audio
-        from legacy.fastai_frontend import prepare_audio_mel_raw
-
-        wav_name = Path(sample_1min_wav).stem
-        references = {}
-        for window_idx, (segment_path, _, _) in enumerate(
-            _make_segments(sample_1min_wav, v1_config, max_segments, segments_start_s)
-        ):
-            # mel_raw: Pure mel spectrogram (no padding/standardization)
-            mel_raw_spec = prepare_audio_mel_raw(segment_path, v1_config)
-
-            # mel_standardized: Full pipeline with standardization
-            mel_standardized_spec = fastai_prepare_audio(segment_path, v1_config)
-
-            references[f"segment_{window_idx}"] = {
-                "mel_raw": mel_raw_spec,
-                "mel_standardized": mel_standardized_spec,
-            }
-
-        # Save reference spectrograms
-        reference_file = reference_dir / f"{wav_name}_audio_reference.pt"
-        torch.save(references, reference_file)
-        print(f"Saved reference outputs to {reference_file}")
-
-        # Print shape info for debugging
-        for seg_name, specs in references.items():
-            print(
-                f"  {seg_name}: mel_raw={specs['mel_raw'].shape}, mel_standardized={specs['mel_standardized'].shape}"
-            )
-
-        # Save spectrogram comparison images (mel_raw vs mel_standardized for each segment)
-        images_dir = reference_dir / f"{wav_name}_spectrograms"
-        images_dir.mkdir(exist_ok=True)
-
-        for seg_name, specs in references.items():
-            img_path = images_dir / f"{seg_name}_comparison.png"
-            plot_spec_comparison(
-                specs["mel_raw"],
-                specs["mel_standardized"],
-                img_path,
-                f"{wav_name} {seg_name}",
-            )
-
-        print(f"Saved spectrogram images to {images_dir}")
 
     def test_mel_raw_parity(self, sample_1min_wav, audio_references, v1_config, max_segments, segments_start_s):
         """
