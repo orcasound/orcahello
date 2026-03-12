@@ -31,6 +31,12 @@ updates:
       - dependency-name: "*"
         update-types:
           - "version-update:semver-major"
+  # ModelTraining is deprecated (see issue #239), so disable all pip update PRs for it
+  - package-ecosystem: "pip"
+    directory: "/ModelTraining"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 0
   - package-ecosystem: "pip"
     directory: "/InferenceSystem"
     schedule:
