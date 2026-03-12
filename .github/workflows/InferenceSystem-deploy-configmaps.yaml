@@ -31,7 +31,7 @@ jobs:
         fetch-depth: 2
 
     - name: Set up kubectl
-      uses: azure/setup-kubectl@3e0aec4d80787158d308d7b364cb1381784a5cf4 # v4.0.1
+      uses: azure/setup-kubectl@776406bce94f63e41d621b960d78ee25c8b76ede  # v4.0.1
 
     - name: Set Kubernetes context
       uses: azure/k8s-set-context@2f6bfda1e23e1a8cdfcfabbc0eded32c9d4a7390 # v4.0.1
