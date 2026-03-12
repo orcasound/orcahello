@@ -1,5 +1,5 @@
 """
-Type definitions for model_v1 inference pipeline.
+Type definitions for model inference pipeline.
 
 Contains all dataclasses used by the detector and audio frontend.
 """

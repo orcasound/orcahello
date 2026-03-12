@@ -1,5 +1,5 @@
 """
-Audio Frontend for model_v1 - Replaces fastai_audio for audio preprocessing
+Audio Frontend - Replaces fastai_audio for audio preprocessing
 
 This module provides audio loading and mel spectrogram generation that matches
 the fastai_audio implementation exactly for inference parity.

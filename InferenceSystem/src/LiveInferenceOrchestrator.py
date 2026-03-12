@@ -1,6 +1,4 @@
-# Live inference orchestrator V1
-# Uses OrcaHelloSRKWDetectorV1 (model_v1) instead of FastAIModel.
-# Additive: LiveInferenceOrchestrator.py (FastAI path) is untouched.
+# Live inference orchestrator
 
 # stdlib
 import argparse
@@ -18,8 +16,8 @@ import yaml
 from azure.cosmos import CosmosClient
 from azure.storage.blob import BlobServiceClient
 from dotenv import load_dotenv
-from model_v1.inference import OrcaHelloSRKWDetectorV1
-from model_v1.types import DetectorInferenceConfig
+from model.inference import OrcaHelloSRKWDetectorV1
+from model.types import DetectorInferenceConfig
 from opencensus.ext.azure.log_exporter import AzureEventHandler, AzureLogHandler
 from orca_hls_utils.DateRangeHLSStream import DateRangeHLSStream
 from orca_hls_utils.HLSStream import HLSStream

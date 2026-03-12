@@ -1,13 +1,13 @@
 """
-Integration tests for LiveInferenceOrchestratorV1 running the
-orchestrator as a subprocess against Test_V1 orchestrator config files.
+Integration tests for LiveInferenceOrchestrator running the
+orchestrator as a subprocess against orchestrator config files.
 
 Usage:
-    pytest tests/test_orchestrator_v1.py -v
-    pytest tests/test_orchestrator_v1.py -v -k fail           # fail/edge-case tests
-    pytest tests/test_orchestrator_v1.py -v -k negative       # known negative detections
-    pytest tests/test_orchestrator_v1.py -v -k positive       # known positive detections
-    pytest tests/test_orchestrator_v1.py -v -k livehls        # smoke test
+    pytest tests/test_orchestrator.py -v
+    pytest tests/test_orchestrator.py -v -k fail           # fail/edge-case tests
+    pytest tests/test_orchestrator.py -v -k negative       # known negative detections
+    pytest tests/test_orchestrator.py -v -k positive       # known positive detections
+    pytest tests/test_orchestrator.py -v -k livehls        # smoke test
 """
 
 import subprocess
@@ -17,7 +17,7 @@ from pathlib import Path
 import pytest
 
 INFERENCE_DIR = Path(__file__).parent.parent
-ORCHESTRATOR = INFERENCE_DIR / "src" / "LiveInferenceOrchestratorV1.py"
+ORCHESTRATOR = INFERENCE_DIR / "src" / "LiveInferenceOrchestrator.py"
 ORCH_CONFIGS_DIR = INFERENCE_DIR / "tests" / "orch_configs"
 
 

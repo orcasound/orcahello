@@ -1,10 +1,10 @@
 ---
-name: InferenceSystemV1-deploy
+name: InferenceSystem-deploy
 
 on:
   push:
     tags:
-      - 'InferenceSystemV1.v[0-9]+.[0-9]+.[0-9]+'
+      - 'InferenceSystem.v[0-9]+.[0-9]+.[0-9]+'
   workflow_dispatch:
     inputs:
       ref:
@@ -18,7 +18,7 @@ on:
 concurrency:
   # Cancel any CI/CD workflow currently in progress for the same PR.
   # Allow running concurrently with any other commits.
-  group: InferenceSystemV1-deploy-${{ github.event.pull_request.number || github.sha }}
+  group: InferenceSystem-deploy-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
 
 permissions:  # added using https://github.com/step-security/secure-repo
@@ -28,7 +28,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
-      IMAGE_NAME: live-inference-system-v1
+      IMAGE_NAME: live-inference-system
       ACR_REGISTRY: orcaconservancycr.azurecr.io
     steps:
       - uses: step-security/harden-runner@58077d3c7e43986b6b15fba718e8ea69e387dfcc  # v2.15.1
@@ -43,7 +43,7 @@ jobs:
       - name: Resolve release tag suffix
         run: |
           if [ "${{ github.event_name }}" = "push" ]; then
-            echo "RELEASE_TAG=${GITHUB_REF_NAME#InferenceSystemV1.}" >> $GITHUB_ENV
+            echo "RELEASE_TAG=${GITHUB_REF_NAME#InferenceSystem.}" >> $GITHUB_ENV
           else
             echo "RELEASE_TAG=${{ github.event.inputs.release_tag }}" >> $GITHUB_ENV
           fi
@@ -77,10 +77,10 @@ jobs:
           echo "Disk space after cleanup:"
           df -h
 
-      - name: Build DockerfileV1 image
+      - name: Build Dockerfile image
         working-directory: InferenceSystem
         run: |
-          docker build -f DockerfileV1 -t $IMAGE_NAME .
+          docker build -f Dockerfile -t $IMAGE_NAME .
 
       - name: List Docker images
         run: docker images
