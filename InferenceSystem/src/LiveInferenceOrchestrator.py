@@ -436,7 +436,7 @@ def run_loop(
                 f"[iter {iteration_count}] Processing clip: {os.path.basename(clip_path)}, "
                 f"start_timestamp={start_timestamp}"
             )
-            spectrogram_path = spectrogram_visualizer.write_spectrogram(clip_path, model_config)
+            spectrogram_path = spectrogram_visualizer.write_spectrogram(clip_path)
             logger.debug(f"Generated spectrogram: {spectrogram_path}")
             result = model.detect_srkw_from_file(clip_path, model_config)
             result.print_summary(verbose=False)

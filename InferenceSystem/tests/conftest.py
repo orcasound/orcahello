@@ -173,6 +173,7 @@ def pytest_configure(config):
     """Pytest configuration hook"""
     config.addinivalue_line("markers", "parity: marks tests that compare fastai vs model")
     config.addinivalue_line("markers", "slow: marks tests that take a long time")
+    config.addinivalue_line("markers", "optional: marks tests meant for local debugging")
 
 
 @pytest.fixture
