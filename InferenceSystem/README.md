@@ -164,7 +164,7 @@ docker build . -t live-inference-system -f ./Dockerfile
 From the `InferenceSystem` directory, mount an orchestrator config at `/config/config.yml`:
 
 Linux:
-```
+```bash
 docker run --rm -it --env-file .env \
   -v $PWD/tests/orch_configs/LiveHLS/LiveHLS_OrcasoundLab.yml:/config/config.yml \
   live-inference-system \
@@ -172,7 +172,7 @@ docker run --rm -it --env-file .env \
 ```
 
 Windows:
-```
+```cmd
 docker run --rm -it --env-file .env ^
   -v %cd%/tests/orch_configs/LiveHLS/LiveHLS_OrcasoundLab.yml:/config/config.yml ^
   live-inference-system ^
