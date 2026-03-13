@@ -18,6 +18,7 @@ from model.types import DetectorInferenceConfig
 _VIZ_IMAGE_HEIGHT = 480
 _VIZ_IMAGE_WIDTH = 1280
 _FREQ_LABEL_FONT_SIZE = 8
+_COLORMAP = 'Blues'
 
 
 def _build_viz_config(native_sr):
@@ -87,7 +88,7 @@ def _render_spectrogram(spectrogram_np, times_np, freqs_np, output_path,
     bin_indices = np.arange(len(freqs_np))  # freqs log-spaced, each bin given equal height
     ax.pcolormesh(
         times_np, bin_indices, spectrogram_np,
-        shading='auto', cmap='magma',
+        shading='auto', cmap=_COLORMAP,
     )
 
     f_min, f_max = float(freqs_np[0]), float(freqs_np[-1])
