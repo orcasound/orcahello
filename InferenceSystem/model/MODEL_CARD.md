@@ -104,11 +104,18 @@ inference:
   strict_segments: true       # if false, allow partial final segment
 
 global_prediction:
-  aggregation_strategy: mean_top_k  # aggregation method for global file-level prediction
+  aggregation_strategy: mean_top_k  # used to convert segment confidences into a file-level `global_confidence` score
   mean_top_k: 2               # top segments to average for global_confidence
-  pred_local_threshold: 0.5   # threshold for local binary per-segments predictions
   pred_global_threshold: 0.6  # applied to global_confidence for file-level prediction
+  pred_local_threshold: 0.5   # threshold for local binary per-segments predictions
 ```
+
+| Parameter | Description |
+|-----------|-------------|
+| `aggregation_strategy` | How segment confidences are combined into a file-level `global_confidence` score. `"mean_top_k"` averages the top K most confident segments; `"mean_thresholded"` averages only segments exceeding `pred_local_threshold`. |
+| `mean_top_k` | Number of top segments to average when using `mean_top_k` strategy. |
+| `pred_global_threshold` | Threshold (0–1) applied to the aggregated global confidence to produce the final binary file-level prediction. |
+| `pred_local_threshold` | Confidence threshold (0–1) for per-segment binary predictions (used to diplay in moderator UI). Also selects which segments contribute to global confidence under `mean_thresholded`. |
 
 
 Refer to repository above for complete setup and configuration details.

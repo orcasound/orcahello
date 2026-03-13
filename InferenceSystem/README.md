@@ -97,75 +97,28 @@ INFERENCESYSTEM_APPINSIGHTS_CONNECTION_STRING=<string>
 Use [DateRangeHLS_SunsetBay_AzureUploadTest.yml](tests/orch_configs/LocalDebug/DateRangeHLS_SunsetBay_AzureUploadTest.yml) as a reference.
 > Note: Only if you know what you are doing :) Both `upload_to_azure` and `cleanup_azure_uploads` should be set to avoid permanent changes to the backend. 
 
-> TODO: Make below credentials section more compact with a bullet point specific to each credential type. Factor out the shared stuff.
-## Get connection string for interface with Azure Storage
+### Azure Credentials
 
-To be able to upload detections to Azure, you will need a connection string.
+All credentials are found in the [Azure portal](https://portal.azure.com/) under the `"LiveSRKWNotificationSystem"` resource group:
 
-Go to [Azure portal](https://portal.azure.com/) and find the `"LiveSRKWNotificationSystem"` resource group. Within that go to the `"livemlaudiospecstorage"` storage account. Refer to [this page](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-python#copy-your-credentials-from-the-azure-portal) to see how to get the connection string.
+- **`AZURE_STORAGE_CONNECTION_STRING`** — Go to the `"livemlaudiospecstorage"` storage account. See [these instructions](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-python#copy-your-credentials-from-the-azure-portal) for getting the connection string.
+- **`AZURE_COSMOSDB_PRIMARY_KEY`** — Go to the `"aifororcasmetadatastore"` CosmosDB account → "Keys" → copy the primary key.
+- **`INFERENCESYSTEM_APPINSIGHTS_CONNECTION_STRING`** — Go to the `"InferenceSystemInsights"` App Insights service → copy the connection string from "Essentials".
 
-### Windows
+Set them as environment variables or add them to your `.env` file:
 
--------
-
-```
-setx AZURE_STORAGE_CONNECTION_STRING "<yourconnectionstring>"
-```
-
-### Mac or Linux
-
--------
-
-```
-export AZURE_STORAGE_CONNECTION_STRING="<copied-connection-string>"
+```bash
+# Mac/Linux
+export AZURE_STORAGE_CONNECTION_STRING="<value>"
+export AZURE_COSMOSDB_PRIMARY_KEY="<value>"
+export INFERENCESYSTEM_APPINSIGHTS_CONNECTION_STRING="<value>"
 ```
 
-## Get primary key for interface with CosmosDB
-
-Go to the [Azure portal](https://portal.azure.com/)
-
-Go to the `"LiveSRKWNotificationSystem"` resource group and within that go to the `"aifororcasmetadatastore"` CosmosDB account.
-
-Go to "Keys" and look up the primary key
-
-### Windows
-
--------
-
-```
-setx AZURE_COSMOSDB_PRIMARY_KEY "<yourprimarykey>"
-```
-
-### Mac or Linux
-
--------
-
-```
-export AZURE_COSMOSDB_PRIMARY_KEY="<yourprimarykey>"
-```
-
-## Get connection string for interface with App Insights
-
-Go to the [Azure portal](https://portal.azure.com/)
-
-Go to the `"LiveSRKWNotificationSystem"` resource group and within that go to the `"InferenceSystemInsights"` App Insights service
-
-Look up the connection key from 'Essentials'
-
-### Windows
-
--------
-
-```
-setx INFERENCESYSTEM_APPINSIGHTS_CONNECTION_STRING "<yourconnectionstring>"
-```
-
-### Mac or Linux
-
--------
-
-```
-export INFERENCESYSTEM_APPINSIGHTS_CONNECTION_STRING="<yourconnectionstring>"
+```cmd
+:: Windows
+setx AZURE_STORAGE_CONNECTION_STRING "<value>"
+setx AZURE_COSMOSDB_PRIMARY_KEY "<value>"
+setx INFERENCESYSTEM_APPINSIGHTS_CONNECTION_STRING "<value>"
 ```
 
 
@@ -192,9 +145,7 @@ export INFERENCESYSTEM_APPINSIGHTS_CONNECTION_STRING="<yourconnectionstring>"
    - Create the secret
    - Apply the deployment
 
-> TODO: combine these two remove redundancy
-**Important:** The container image is now common across all hydrophones. Configuration files are stored in a Kubernetes ConfigMap and mounted into the container at `/config/`. The container reads the namespace and loads the corresponding config file (e.g., namespace `bush-point` loads `/config/config.yml`).
-**Important:** The Docker container is now common across all hydrophones and does not include configuration files. The container automatically detects which hydrophone it's serving by reading the Kubernetes namespace and loading the configuration from a ConfigMap mounted at `/config/`. You no longer need to edit the Dockerfile or build separate images for each hydrophone location.
+**Important:** The Docker container image is common across all hydrophones and does not include configuration files. Each hydrophone's configuration is stored in a namespace-scoped Kubernetes ConfigMap and mounted at `/config/`. The container detects which hydrophone it's serving by reading its Kubernetes namespace and loading the corresponding config. You no longer need to edit the Dockerfile or build separate images for each hydrophone location.
 
 ## Building the docker container for production
 
@@ -205,6 +156,8 @@ should take a much shorter time in future builds.
 ```
 docker build . -t live-inference-system -f ./Dockerfile
 ```
+
+> NOTE: If building locally on an M-series Mac, prefix with `docker buildx build --platform linux/amd64` so the container works on cloud VMs.
 
 ## Running the docker container
 

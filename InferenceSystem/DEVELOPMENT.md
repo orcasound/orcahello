@@ -133,11 +133,16 @@ inference:
 global_prediction:
   aggregation_strategy: "mean_top_k"  # or "mean_thresholded"
   mean_top_k: 2
-  pred_local_threshold: 0.5
   pred_global_threshold: 0.6
+  pred_local_threshold: 0.5
 ```
 
-> TODO: Add a brief description of the `global_prediction` parameters based on `src/model/inference.py`, `src/model/types.py`, `model/config.yaml`.
+| Parameter | Description |
+|-----------|-------------|
+| `aggregation_strategy` | How segment confidences are combined into a file-level `global_confidence` score. `"mean_top_k"` averages the top K most confident segments; `"mean_thresholded"` averages only segments exceeding `pred_local_threshold`. |
+| `mean_top_k` | Number of top segments to average when using `mean_top_k` strategy. |
+| `pred_global_threshold` | Threshold (0–1) applied to the aggregated global confidence to produce the final binary file-level prediction. |
+| `pred_local_threshold` | Confidence threshold (0–1) for per-segment binary predictions (used to diplay in moderator UI). Also selects which segments contribute to global confidence under `mean_thresholded`. |
 
 ## CI/CD
 
