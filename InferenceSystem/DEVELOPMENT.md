@@ -52,7 +52,7 @@ HF_TOKEN=<your_huggingface_token> python scripts/upload_to_hf_hub.py --checkpoin
 Convert FastAI model.pkl to standalone PyTorch weights (shouldn't need to do this anymore): 
 
 ```bash
-# Requires inference-venv with fastai installed
+# Requires inference-venv with fastai installed (see branch: https://github.com/orcasound/orcahello/tree/2026-03-12/inference-snapshot)
 source inference-venv/bin/activate
 python scripts/extract_fastai_weights.py model/model.pkl model/model_v1.pt
 ```
