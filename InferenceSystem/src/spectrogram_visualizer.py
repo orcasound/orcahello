@@ -6,6 +6,7 @@ import warnings
 import cv2
 import matplotlib
 matplotlib.use('Agg')
+import matplotlib.patheffects
 import matplotlib.pyplot as plt
 import numpy as np
 import soundfile as sf
@@ -14,8 +15,9 @@ from model.audio_frontend import load_processed_waveform, featurize_waveform
 from model.types import DetectorInferenceConfig
 
 # Fixed image height matching mel_n_filters for 1:1 pixel-per-bin rendering.
-_VIZ_IMAGE_HEIGHT = 960
+_VIZ_IMAGE_HEIGHT = 480
 _VIZ_IMAGE_WIDTH = 1280
+_FREQ_LABEL_FONT_SIZE = 8
 
 
 def _build_viz_config(native_sr):
@@ -32,8 +34,8 @@ def _build_viz_config(native_sr):
         },
         "spectrogram": {
             "sample_rate": native_sr,
-            "n_fft": 8192,
-            "hop_length": 2048,
+            "n_fft": 4092,
+            "hop_length": 1024,
             "mel_n_filters": _VIZ_IMAGE_HEIGHT,
             "mel_f_min": 20.0,
             "mel_f_max": native_sr // 2,
@@ -42,6 +44,27 @@ def _build_viz_config(native_sr):
             "top_db": 100,
         },
     })
+
+
+def _freq_label(hz):
+    """Format a frequency value as a compact human-readable string."""
+    if hz >= 1000:
+        khz = hz / 1000
+        return f"{khz:.0f}k" if khz == int(khz) else f"{khz:.1f}k"
+    return f"{hz:.0f}"
+
+
+def _pick_freq_ticks(f_min, f_max):
+    """Choose ~5-8 log-spaced tick positions between f_min and f_max."""
+    candidates = [
+        40, 250, 500, 750,
+        1000, 1500, 2000, 3000, 5000, 7500,
+        10000, 15000, 20000, 30000, 48000,
+    ]
+    ticks = [f for f in candidates if f_min <= f <= f_max]
+    if not ticks:
+        ticks = np.geomspace(max(f_min, 1), f_max, num=6).tolist()
+    return ticks
 
 
 def _render_spectrogram(spectrogram_np, times_np, freqs_np, output_path,
@@ -61,10 +84,27 @@ def _render_spectrogram(spectrogram_np, times_np, freqs_np, output_path,
     ax.axis('off')
     ax.set_position([0., 0., 1., 1.])
 
+    bin_indices = np.arange(len(freqs_np))  # freqs log-spaced, each bin given equal height
     ax.pcolormesh(
-        times_np, freqs_np, spectrogram_np,
+        times_np, bin_indices, spectrogram_np,
         shading='auto', cmap='magma',
     )
+
+    f_min, f_max = float(freqs_np[0]), float(freqs_np[-1])
+    ticks = _pick_freq_ticks(f_min, f_max)
+    x_pos = times_np[0] + (times_np[-1] - times_np[0]) * 0.005
+
+    for freq in ticks:
+        bin_idx = float(np.searchsorted(freqs_np, freq))
+        ax.text(
+            x_pos, bin_idx, _freq_label(freq),
+            color='white', fontsize=_FREQ_LABEL_FONT_SIZE, fontweight='bold',
+            va='center', ha='left',
+            path_effects=[
+                matplotlib.patheffects.Stroke(linewidth=2, foreground='black'),
+                matplotlib.patheffects.Normal(),
+            ],
+        )
 
     fig.savefig(output_path, bbox_inches=None, pad_inches=0)
     plt.close(fig)

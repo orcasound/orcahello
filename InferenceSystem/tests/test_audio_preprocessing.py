@@ -208,7 +208,7 @@ class TestSpectrogramVisualizer:
         import cv2
         img = cv2.imread(spec_path)
         assert img is not None, "Spectrogram image could not be read"
-        assert img.shape[0] == 960, f"Expected height 960, got {img.shape[0]}"
+        assert img.shape[0] == 480, f"Expected height 480, got {img.shape[0]}"
         assert img.shape[1] == 1280, f"Expected width 1280, got {img.shape[1]}"
 
         if debug_dir is not None:
