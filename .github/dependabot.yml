@@ -38,21 +38,5 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 0
-  - package-ecosystem: "pip"
-    directory: "/InferenceSystem"
-    schedule:
-      interval: "weekly"
-      day: "saturday"
-    versioning-strategy: increase
-    allow:
-      - dependency-type: "direct"
-    groups:
-      pip-dependencies:
-        patterns:
-          - "*"
-    labels:
-      - "inference system"
-    ignore:
-      - dependency-name: "*"
-        update-types:
-          - "version-update:semver-major"
+# InferenceSystem uses uv (pyproject.toml + uv.lock); dependabot does not support uv.
+# Python dependency updates for InferenceSystem are handled by Renovate (see .github/renovate.json).
