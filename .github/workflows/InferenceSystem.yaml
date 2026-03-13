@@ -37,7 +37,7 @@ jobs:
               - InferenceSystem/**
               - .github/workflows/InferenceSystem.yaml
 
-  test-windows:
+  inference-test-windows:
     runs-on: windows-latest
     needs: changes
     if: ${{ needs.changes.outputs.src == 'true' }}
@@ -87,7 +87,7 @@ jobs:
         working-directory: InferenceSystem
         run: uv run pytest tests/test_orchestrator.py -v -k "livehls"
 
-  test-ubuntu:
+  inference-test-ubuntu:
     runs-on: ubuntu-latest
     needs: changes
     if: ${{ needs.changes.outputs.src == 'true' }}
