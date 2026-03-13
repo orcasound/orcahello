@@ -1,6 +1,6 @@
 # Development Guide
 
-Development setup, local scripts, and testing for the InferenceSystem.
+Development setup, local scripts, and testing for model inference.
 
 ## Setup
 
@@ -41,20 +41,20 @@ python scripts/run_audio_processing.py path/to/audio.wav --segment-duration 30
 python scripts/run_audio_processing.py path/to/audio.flac --output-dir /tmp/segments
 ```
 
+### Upload to HuggingFace Hub
+
+```bash
+HF_TOKEN=<your_huggingface_token> python scripts/upload_to_hf_hub.py --checkpoint model/model_v1.pt -m "Update model checkpoint"
+```
+
 ### Extract FastAI Weights
 
-Convert FastAI model.pkl to standalone PyTorch weights:
+Convert FastAI model.pkl to standalone PyTorch weights (shouldn't need to do this anymore): 
 
 ```bash
 # Requires inference-venv with fastai installed
 source inference-venv/bin/activate
 python scripts/extract_fastai_weights.py model/model.pkl model/model_v1.pt
-```
-
-### Upload to HuggingFace Hub
-
-```bash
-HF_TOKEN=<your_huggingface_token> python scripts/upload_to_hf_hub.py --checkpoint model/model_v1.pt -m "Update model checkpoint"
 ```
 
 ## Testing
@@ -136,6 +136,8 @@ global_prediction:
   pred_local_threshold: 0.5
   pred_global_threshold: 0.6
 ```
+
+> TODO: Add a brief description of the `global_prediction` parameters based on `src/model/inference.py`, `src/model/types.py`, `model/config.yaml`.
 
 ## CI/CD
 

@@ -6,6 +6,10 @@ Southern Resident Killer Whale call detection model and inference system.
 
 ## Quick Start
 
+Prerequisites:
+- python 3.11 with [uv installed](https://docs.astral.sh/uv/getting-started/installation/#installation-methods)
+- appropriate `uv venv` [environment created](https://docs.astral.sh/uv/pip/environments/) and activated
+
 ```bash
 cd InferenceSystem
 uv sync
@@ -31,7 +35,7 @@ For local scripts, testing, and contributing: [DEVELOPMENT.md](DEVELOPMENT.md)
 
 # Working with the InferenceSystem
 
-The InferenceSystem is an umbrella term for all the code used to stream audio from Orcasound's S3 buckets, perform inference on audio segments using the deep learning model and upload positive detections to Azure. The entrypoint for the InferenceSystem is [src/LiveInferenceOrchestrator.py](src/LiveInferenceOrchestrator.py).
+The InferenceSystem is an umbrella term for all the code used to stream audio from Orcasound's S3 buckets, run AI inference on audio segments and upload positive detections to Azure. The entrypoint for the InferenceSystem is [src/LiveInferenceOrchestrator.py](src/LiveInferenceOrchestrator.py).
 
 # How to run the InferenceSystem locally
 ## Setup
@@ -43,7 +47,59 @@ uv sync --group prod
 
 The model is downloaded automatically from HuggingFace Hub on first use.
 
+
+## Run inference orchestrator locally
+
+```
+cd InferenceSystem
+uv run python src/LiveInferenceOrchestrator.py --orch_config tests/orch_configs/LiveHLS/LiveHLS_OrcasoundLab.yml --max_iterations 2
+```
+
+You should see the following logs in your terminal. Since this is a test `orch_config`, `upload_to_azure` is set to `false` and no updates are made to the backend (Azure blob Storage, CosmosDB). See [tests/orch_configs](tests/orch_configs) for more config examples.
+
+```
+2026-03-10 02:53:03,521 INFO [iter 6] Processing clip: rpi_orcasound_lab_2026_03_09_19_51_52_PDT.wav, start_timestamp=2026-03-10T02:51:52Z
+2026-03-10 02:53:05,843 DEBUG Generated spectrogram: wav_dir/rpi_orcasound_lab_2026_03_09_19_51_52_PDT.png
+/usr/src/venv/lib/python3.11/site-packages/torchaudio/functional/functional.py:582: UserWarning: At least one mel filterbank has all zero values. The value for `n_mels` (256) may be set too high. Or, the value for `n_freqs` (1281) may be set too low.
+  warnings.warn(
+
+=== Performance ===
+File duration:   59.00s
+Processing time: 4.90s
+Realtime factor: 12.03x
+
+=== Summary ===
+0/29 segments predicted positive
+global_confidence: 0.163
+global_prediction: 0
+2026-03-10 02:53:10,747 INFO [iter 6] Inference: prediction=0, confidence=0.163, positive_segments=0/29
+2026-03-10 02:53:10,752 DEBUG Deleted local files: wav_dir/rpi_orcasound_lab_2026_03_09_19_51_52_PDT.wav, wav_dir/rpi_orcasound_lab_2026_03_09_19_51_52_PDT.png
+2026-03-10 02:53:10,752 DEBUG [iter 6] Cursor advanced to 2026-03-10T02:53:52
+2026-03-10 02:53:10,752 INFO 
+
+-------------------- iter 7 --------------------
+2026-03-10 02:53:10,752 INFO [iter 7] Fetching next clip: cursor=2026-03-10T02:53:52
+```
+
+
+### Test Azure upload locally
+
+You will need to create an `InferenceSystem/.env` file with the appropriate Azure credentials. This can be completed in two ways.
+1.  Ask an existing contributor for their .env file.
+2.  Create one of your own.  This .env file should be created in the format below.
+
+```
+AZURE_COSMOSDB_PRIMARY_KEY=<key>
+AZURE_STORAGE_CONNECTION_STRING=<string>
+INFERENCESYSTEM_APPINSIGHTS_CONNECTION_STRING=<string>
+```
+
+Use [DateRangeHLS_SunsetBay_AzureUploadTest.yml](tests/orch_configs/LocalDebug/DateRangeHLS_SunsetBay_AzureUploadTest.yml) as a reference.
+> Note: Only if you know what you are doing :) Both `upload_to_azure` and `cleanup_azure_uploads` should be set to avoid permanent changes to the backend. 
+
+> TODO: Make below credentials section more compact with a bullet point specific to each credential type. Factor out the shared stuff.
 ## Get connection string for interface with Azure Storage
+
 To be able to upload detections to Azure, you will need a connection string.
 
 Go to [Azure portal](https://portal.azure.com/) and find the `"LiveSRKWNotificationSystem"` resource group. Within that go to the `"livemlaudiospecstorage"` storage account. Refer to [this page](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-python#copy-your-credentials-from-the-azure-portal) to see how to get the connection string.
@@ -112,12 +168,7 @@ setx INFERENCESYSTEM_APPINSIGHTS_CONNECTION_STRING "<yourconnectionstring>"
 export INFERENCESYSTEM_APPINSIGHTS_CONNECTION_STRING="<yourconnectionstring>"
 ```
 
-## Run live inference locally
 
-```
-cd InferenceSystem
-uv run python src/LiveInferenceOrchestrator.py --orch_config tests/orch_configs/LiveHLS/LiveHLS_OrcasoundLab.yml --max_iterations 2
-```
 
 # Running inference system in a local docker container
 
@@ -125,18 +176,7 @@ uv run python src/LiveInferenceOrchestrator.py --orch_config tests/orch_configs/
 
 - **Docker**: installation instructions on [macOS](https://docs.docker.com/docker-for-mac/), [Windows](https://docs.docker.com/docker-for-windows/), and [Linux](https://docs.docker.com/engine/installation/#supported-platforms).
 
-- **Environment Variable File**: Create/get an environment variable file `inference-system/.env`.
-This can be completed in two ways.
-    1.  Ask an existing contributor for their .env file.
-    2.  Create one of your own.  This .env file should be created in the format below.
 
-        `<key>` and `<string>` should be filled in with the Azure Storage Connection String and the Azure CosmosDB Primary Key above.
-
-        ```
-        AZURE_COSMOSDB_PRIMARY_KEY=<key>
-        AZURE_STORAGE_CONNECTION_STRING=<string>
-        INFERENCESYSTEM_APPINSIGHTS_CONNECTION_STRING=<string>
-        ```
 
 ## Adding a new hydrophone
 
@@ -152,7 +192,9 @@ This can be completed in two ways.
    - Create the secret
    - Apply the deployment
 
+> TODO: combine these two remove redundancy
 **Important:** The container image is now common across all hydrophones. Configuration files are stored in a Kubernetes ConfigMap and mounted into the container at `/config/`. The container reads the namespace and loads the corresponding config file (e.g., namespace `bush-point` loads `/config/config.yml`).
+**Important:** The Docker container is now common across all hydrophones and does not include configuration files. The container automatically detects which hydrophone it's serving by reading the Kubernetes namespace and loading the configuration from a ConfigMap mounted at `/config/`. You no longer need to edit the Dockerfile or build separate images for each hydrophone location.
 
 ## Building the docker container for production
 
@@ -163,9 +205,6 @@ should take a much shorter time in future builds.
 ```
 docker build . -t live-inference-system -f ./Dockerfile
 ```
-
-**Important:** The Docker container is now common across all hydrophones and does not include configuration files. The container automatically detects which hydrophone it's serving by reading the Kubernetes namespace and loading the configuration from a ConfigMap mounted at `/config/`. You no longer need to edit the Dockerfile or build separate images for each hydrophone location.
-
 
 ## Running the docker container
 
@@ -194,7 +233,7 @@ docker run --rm -it --env-file .env ^
 The GitHub repository contains a workflow (`.github/workflows/InferenceSystem-deploy.yaml`) that pushes the latest image build to ACR when the main branch is tagged with a tag of the form `InferenceSystem.v#.#.#`. For example:
 
 ```
-git tag InferenceSystem.v1.0.0
+git tag InferenceSystem.v2.0.0
 git push --tags
 ```
 
