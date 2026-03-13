@@ -15,7 +15,7 @@ from model.types import DetectorInferenceConfig
 
 # Fixed image height matching mel_n_filters for 1:1 pixel-per-bin rendering.
 _VIZ_IMAGE_HEIGHT = 960
-_VIZ_IMAGE_WIDTH = 1920
+_VIZ_IMAGE_WIDTH = 1280
 
 
 def _build_viz_config(native_sr):
