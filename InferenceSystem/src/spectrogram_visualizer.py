@@ -155,7 +155,7 @@ def _compute_mel_for_clip(wav_file_path, config):
     waveform, sr = load_processed_waveform(wav_file_path, config_dict["audio"])
     with warnings.catch_warnings():
         # High mel_n_filters relative to n_fft is intentional for 1:1 pixel rendering;
-        # empty top-end mel bins simply render as black (no energy).
+        # empty top-end mel bins simply render as a low-intensity color (no energy).
         warnings.filterwarnings("ignore", message="At least one mel filterbank")
         features, times, freqs = featurize_waveform(
             waveform, sr, config_dict["spectrogram"]
