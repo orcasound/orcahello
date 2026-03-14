@@ -25,7 +25,7 @@ def _build_viz_config(native_sr):
     """Build a visualization-optimized spectrogram config for the given native sample rate.
 
     Uses the full audible bandwidth at native resolution (no resampling),
-    with 960 mel bins matching the fixed image height for 1:1 pixel rendering.
+    with mel bins matching the fixed image height for 1:1 pixel rendering.
     """
     return DetectorInferenceConfig.from_dict({
         "audio": {
@@ -35,7 +35,7 @@ def _build_viz_config(native_sr):
         },
         "spectrogram": {
             "sample_rate": native_sr,
-            "n_fft": 4092,
+            "n_fft": 4096,
             "hop_length": 1024,
             "mel_n_filters": _VIZ_IMAGE_HEIGHT,
             "mel_f_min": 20.0,
@@ -140,7 +140,7 @@ def write_spectrogram(wav_file_path):
     """Generate a spectrogram PNG from a WAV file.
 
     Uses the native sample rate and visualization-optimized mel parameters
-    (960 mel bins, 20 Hz–Nyquist, n_fft=4096) for clear human-readable output.
+    for clear human-readable spectrogram output.
 
     Args:
         wav_file_path: path to WAV file
