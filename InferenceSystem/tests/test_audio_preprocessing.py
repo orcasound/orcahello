@@ -197,23 +197,20 @@ class TestSpectrogramVisualizer:
         from spectrogram_visualizer import write_spectrogram
 
         # Work in a temp dir so the PNG lands there
-        tmpdir = tempfile.mkdtemp()
-        tmp_wav = Path(tmpdir) / "clip.wav"
-        shutil.copy(sample_1min_wav, tmp_wav)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_wav = Path(tmpdir) / "clip.wav"
+            shutil.copy(sample_1min_wav, tmp_wav)
+            spec_path = write_spectrogram(str(tmp_wav))
 
-        spec_path = write_spectrogram(str(tmp_wav))
+            assert Path(spec_path).exists(), "Spectrogram file was not created"
 
-        assert Path(spec_path).exists(), "Spectrogram file was not created"
+            import cv2
+            img = cv2.imread(spec_path)
+            assert img is not None, "Spectrogram image could not be read"
+            assert img.shape[0] == 480, f"Expected height 480, got {img.shape[0]}"
+            assert img.shape[1] == 1280, f"Expected width 1280, got {img.shape[1]}"
 
-        import cv2
-        img = cv2.imread(spec_path)
-        assert img is not None, "Spectrogram image could not be read"
-        assert img.shape[0] == 480, f"Expected height 480, got {img.shape[0]}"
-        assert img.shape[1] == 1280, f"Expected width 1280, got {img.shape[1]}"
-
-        if debug_dir is not None:
-            out = debug_dir / "spectrogram_viz.png"
-            shutil.copy(spec_path, out)
-            print(f"\nSpectrogram saved to: {out}")
-
-        shutil.rmtree(tmpdir)
+            if debug_dir is not None:
+                out = debug_dir / "spectrogram_viz.png"
+                shutil.copy(spec_path, out)
+                print(f"\nSpectrogram saved to: {out}")
