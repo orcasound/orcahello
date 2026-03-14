@@ -195,7 +195,7 @@ class TestSpectrogramVisualizer:
 
         from spectrogram_visualizer import write_spectrogram
 
-        # Work in a temp dir so the PNG lands there
+        # Work in a temp dir so the PNG lands there.
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp_wav = Path(tmpdir) / "clip.wav"
             shutil.copy(sample_1min_wav, tmp_wav)
