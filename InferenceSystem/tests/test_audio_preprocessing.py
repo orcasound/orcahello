@@ -185,7 +185,6 @@ class TestSpectrogramVisualizer:
     Run with: pytest tests/test_audio_preprocessing.py -k "spectrogram_viz" --save-debug
     """
 
-    @pytest.mark.optional
     def test_spectrogram_viz(self, sample_1min_wav, debug_dir):
         """Generate a visualization spectrogram from the test WAV file.
 
