@@ -19,8 +19,7 @@ from dotenv import load_dotenv
 from model.inference import OrcaHelloSRKWDetectorV1
 from model.types import DetectorInferenceConfig
 from opencensus.ext.azure.log_exporter import AzureEventHandler, AzureLogHandler
-from orca_hls_utils.DateRangeHLSStream import DateRangeHLSStream
-from orca_hls_utils.HLSStream import HLSStream
+from orcasound_hls import DateRangeHLSStream, LiveHLSStream
 from pytz import timezone
 
 AZURE_STORAGE_ACCOUNT_NAME = "livemlaudiospecstorage"
@@ -261,7 +260,7 @@ def build_hls_stream(orch_config, local_dir, logger):
 
     hls_stream_type = orch_config["hls_stream_type"]
     if hls_stream_type == "LiveHLS":
-        return HLSStream(hydrophone_stream_url, hls_polling_interval, local_dir)
+        return LiveHLSStream(hydrophone_stream_url, hls_polling_interval, local_dir)
 
     if hls_stream_type == "DateRangeHLS":
         hls_start_time_pst = orch_config["hls_start_time_pst"]

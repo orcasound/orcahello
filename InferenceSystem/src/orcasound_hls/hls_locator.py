@@ -1,0 +1,114 @@
+"""Efficient HLS folder lookup on Orcasound S3 buckets.
+
+Uses prefix-filtered S3 listing instead of scanning all folders,
+based on the approach from orca-hls-utils akash/improve-hls-locator branch.
+"""
+
+import bisect
+import logging
+from typing import List, Optional, Tuple
+
+import boto3
+from botocore import UNSIGNED
+from botocore.config import Config
+
+logger = logging.getLogger(__name__)
+
+S3_BASE_URL = "https://s3-us-west-2.amazonaws.com"
+
+
+def _s3_client():
+    return boto3.client("s3", config=Config(signature_version=UNSIGNED))
+
+
+def _list_folders_with_prefix(bucket: str, hls_prefix: str, ts_prefix: str) -> List[int]:
+    """List S3 HLS folder names (unix epochs) matching a timestamp prefix."""
+    s3 = _s3_client()
+    paginator = s3.get_paginator("list_objects_v2")
+    full_prefix = f"{hls_prefix}{ts_prefix}"
+
+    folders: List[int] = []
+    for page in paginator.paginate(Bucket=bucket, Prefix=full_prefix, Delimiter="/"):
+        for cp in page.get("CommonPrefixes", []):
+            name = cp["Prefix"].rstrip("/").rsplit("/", 1)[-1]
+            try:
+                folders.append(int(name))
+            except ValueError:
+                continue
+    return sorted(folders)
+
+
+def find_folder_for_timestamp(
+    bucket: str,
+    hydrophone_id: str,
+    unix_ts: int,
+    prefix_length: int = 4,
+) -> Tuple[Optional[int], Optional[int]]:
+    """Find the HLS folder that contains audio for *unix_ts*.
+
+    Returns (folder_epoch, offset_seconds) or (None, None).
+    """
+    hls_prefix = f"{hydrophone_id}/hls/"
+    ts_prefix = str(unix_ts)[:prefix_length]
+
+    folders = _list_folders_with_prefix(bucket, hls_prefix, ts_prefix)
+
+    # Also check previous prefix to handle boundary cases
+    prev_prefix_int = int(ts_prefix) - 1
+    if prev_prefix_int > 0:
+        prev_folders = _list_folders_with_prefix(bucket, hls_prefix, str(prev_prefix_int))
+        folders = sorted(set(folders + prev_folders))
+
+    if not folders:
+        logger.warning("No HLS folders found near timestamp %d for %s", unix_ts, hydrophone_id)
+        return None, None
+
+    idx = bisect.bisect_right(folders, unix_ts)
+    if idx == 0:
+        logger.warning("Timestamp %d is before first available folder %d", unix_ts, folders[0])
+        return None, None
+
+    folder_epoch = folders[idx - 1]
+    offset = unix_ts - folder_epoch
+    return folder_epoch, offset
+
+
+def list_folders_in_range(
+    bucket: str,
+    hydrophone_id: str,
+    start_unix: int,
+    end_unix: int,
+    prefix_length: int = 4,
+) -> List[int]:
+    """List all HLS folders that may contain audio in [start_unix, end_unix].
+
+    Uses prefix-filtered listing to avoid scanning all folders.
+    """
+    hls_prefix = f"{hydrophone_id}/hls/"
+    start_prefix = int(str(start_unix)[:prefix_length])
+    end_prefix = int(str(end_unix)[:prefix_length])
+
+    all_folders: List[int] = []
+    # Include prefix before start to catch folders that started just before our range
+    for p in range(start_prefix - 1, end_prefix + 1):
+        if p > 0:
+            all_folders.extend(_list_folders_with_prefix(bucket, hls_prefix, str(p)))
+
+    all_folders = sorted(set(all_folders))
+
+    # Keep folders that started before end_unix and could still contain audio
+    # at start_unix. A folder can contain audio well after its epoch, so we
+    # include anything from (start_unix - 24h) to end_unix.
+    earliest = start_unix - 86400
+    return [f for f in all_folders if earliest <= f <= end_unix]
+
+
+def m3u8_url(bucket: str, hydrophone_id: str, folder_epoch: int) -> str:
+    return f"{S3_BASE_URL}/{bucket}/{hydrophone_id}/hls/{folder_epoch}/live.m3u8"
+
+
+def m3u8_exists(bucket: str, hydrophone_id: str, folder_epoch: int) -> bool:
+    s3 = _s3_client()
+    prefix = f"{hydrophone_id}/hls/{folder_epoch}/live.m3u8"
+    resp = s3.list_objects_v2(Bucket=bucket, Prefix=prefix, MaxKeys=1, Delimiter="/")
+    return resp.get("KeyCount", 0) > 0
