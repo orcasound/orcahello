@@ -40,4 +40,5 @@ COPY ./model/config.yaml ./model/config.yaml
 # Source code
 COPY ./src/ ./src/
 
-CMD ["/usr/src/venv/bin/python3", "-u", "./src/LiveInferenceOrchestratorV1.py"]
+ENTRYPOINT ["/usr/src/venv/bin/python3", "-u", "./src/LiveInferenceOrchestrator.py"]
+CMD []
