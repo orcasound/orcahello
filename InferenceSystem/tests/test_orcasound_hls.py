@@ -27,8 +27,8 @@ from orcasound_hls.utils import (
     m3u8_exists,
 )
 
-
 # --- Helpers ---
+
 
 def pst_to_unix(pst_str: str) -> int:
     dt = datetime.strptime(pst_str, "%Y-%m-%d %H:%M")
@@ -46,6 +46,7 @@ KNOWN_FOLDER_EPOCH = 1598988619
 
 
 # --- HLS Locator Tests ---
+
 
 class TestHLSLocator:
     def test_find_folder_for_known_timestamp(self):
@@ -76,6 +77,7 @@ class TestHLSLocator:
 
 
 # --- OrcasoundHLSSegment Dataclass Tests ---
+
 
 class TestHLSSegment:
     @pytest.fixture(autouse=True)
@@ -142,6 +144,7 @@ class TestHLSSegment:
 
 # --- Client Tests ---
 
+
 class TestClient:
     def test_returns_multiple_segments(self):
         client = OrcasoundHLSClient(BUCKET, HYDRO)
@@ -189,6 +192,7 @@ class TestClient:
 
 
 # --- Cross-hydrophone ---
+
 
 class TestBushPoint:
     @pytest.fixture(autouse=True)

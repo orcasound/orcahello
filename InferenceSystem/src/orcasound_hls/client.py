@@ -8,8 +8,8 @@ from typing import List
 
 from .types import OrcasoundHLSSegment
 from .utils import (
-    S3_BASE_URL,
     DEFAULT_AUDIO_OFFSET,
+    S3_BASE_URL,
     build_segment,
     fetch_latest_folder_epoch,
     list_folders_in_range,
@@ -64,7 +64,9 @@ class OrcasoundHLSClient:
         if not folders:
             logger.warning(
                 "No HLS folders for %s in [%d, %d]",
-                self.hydrophone_id, int(start_unix), int(end_unix),
+                self.hydrophone_id,
+                int(start_unix),
+                int(end_unix),
             )
             return []
 
@@ -77,9 +79,13 @@ class OrcasoundHLSClient:
                 break
 
             try:
-                segments, cum = load_playlist(self.bucket, self.hydrophone_id, folder_epoch)
+                segments, cum = load_playlist(
+                    self.bucket, self.hydrophone_id, folder_epoch
+                )
             except Exception as exc:
-                logger.warning("Failed to load M3U8 for folder %d: %s", folder_epoch, exc)
+                logger.warning(
+                    "Failed to load M3U8 for folder %d: %s", folder_epoch, exc
+                )
                 continue
 
             if not segments:
@@ -99,8 +105,14 @@ class OrcasoundHLSClient:
                     break
 
                 seg = build_segment(
-                    self.bucket, self.hydrophone_id, folder_epoch,
-                    segments, cum, start_idx, end_idx, audio_offset,
+                    self.bucket,
+                    self.hydrophone_id,
+                    folder_epoch,
+                    segments,
+                    cum,
+                    start_idx,
+                    end_idx,
+                    audio_offset,
                 )
                 cursor = int(seg.end_unix)
                 result.append(seg)

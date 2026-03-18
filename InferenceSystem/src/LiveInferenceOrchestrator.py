@@ -360,9 +360,7 @@ def _process_segment(
     try:
         clip_path = segment.download_as_wav(local_dir)
     except Exception as e:
-        logger.warning(
-            f"[iter {iteration_count}] Failed to download segment: {e}"
-        )
+        logger.warning(f"[iter {iteration_count}] Failed to download segment: {e}")
         return
 
     start_timestamp = segment.start_iso
@@ -463,8 +461,16 @@ def run_loop(
             if max_iterations is not None and iteration_count > max_iterations:
                 break
             _process_segment(
-                segment, iteration_count, model, model_config, orch_config,
-                blob_service_client, cosmos_client, logger, model_id, local_dir,
+                segment,
+                iteration_count,
+                model,
+                model_config,
+                orch_config,
+                blob_service_client,
+                cosmos_client,
+                logger,
+                model_id,
+                local_dir,
             )
 
     elif hls_stream_type == "LiveHLS":
@@ -483,8 +489,16 @@ def run_loop(
                 if max_iterations is not None and iteration_count > max_iterations:
                     break
                 _process_segment(
-                    segment, iteration_count, model, model_config, orch_config,
-                    blob_service_client, cosmos_client, logger, model_id, local_dir,
+                    segment,
+                    iteration_count,
+                    model,
+                    model_config,
+                    orch_config,
+                    blob_service_client,
+                    cosmos_client,
+                    logger,
+                    model_id,
+                    local_dir,
                 )
 
             if max_iterations is not None and iteration_count >= max_iterations:

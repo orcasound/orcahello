@@ -26,11 +26,14 @@ DEFAULT_AUDIO_OFFSET = 2.0
 
 # --- S3 helpers ---
 
+
 def _s3_client():
     return boto3.client("s3", config=Config(signature_version=UNSIGNED))
 
 
-def _list_folders_with_prefix(bucket: str, hls_prefix: str, ts_prefix: str) -> List[int]:
+def _list_folders_with_prefix(
+    bucket: str, hls_prefix: str, ts_prefix: str
+) -> List[int]:
     """List S3 HLS folder names (unix epochs) matching a timestamp prefix."""
     s3 = _s3_client()
     paginator = s3.get_paginator("list_objects_v2")
@@ -65,16 +68,22 @@ def find_folder_for_timestamp(
     # Also check previous prefix to handle boundary cases
     prev_prefix_int = int(ts_prefix) - 1
     if prev_prefix_int > 0:
-        prev_folders = _list_folders_with_prefix(bucket, hls_prefix, str(prev_prefix_int))
+        prev_folders = _list_folders_with_prefix(
+            bucket, hls_prefix, str(prev_prefix_int)
+        )
         folders = sorted(set(folders + prev_folders))
 
     if not folders:
-        logger.warning("No HLS folders found near timestamp %d for %s", unix_ts, hydrophone_id)
+        logger.warning(
+            "No HLS folders found near timestamp %d for %s", unix_ts, hydrophone_id
+        )
         return None, None
 
     idx = bisect.bisect_right(folders, unix_ts)
     if idx == 0:
-        logger.warning("Timestamp %d is before first available folder %d", unix_ts, folders[0])
+        logger.warning(
+            "Timestamp %d is before first available folder %d", unix_ts, folders[0]
+        )
         return None, None
 
     folder_epoch = folders[idx - 1]
@@ -125,6 +134,7 @@ def m3u8_exists(bucket: str, hydrophone_id: str, folder_epoch: int) -> bool:
 
 # --- Playlist helpers ---
 
+
 def load_playlist(bucket: str, hydrophone_id: str, folder_epoch: int):
     """Load an M3U8 playlist and return (segments, cumulative_durations)."""
     url = m3u8_url(bucket, hydrophone_id, folder_epoch)
@@ -172,4 +182,6 @@ def fetch_latest_folder_epoch(stream_base_url: str) -> float:
         with urllib.request.urlopen(latest_url) as resp:
             return int(resp.read().decode("utf-8").strip())
     except (urllib.error.URLError, ValueError) as exc:
-        raise RuntimeError(f"Failed to fetch latest.txt from {latest_url}: {exc}") from exc
+        raise RuntimeError(
+            f"Failed to fetch latest.txt from {latest_url}: {exc}"
+        ) from exc
