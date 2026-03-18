@@ -451,11 +451,16 @@ def run_loop(
             f"start_pst={hls_start_time_pst}, end_pst={hls_end_time_pst}"
         )
 
+        logger.info(
+            f"Fetching DateRange segments: start_unix={start_unix}, "
+            f"end_unix={end_unix}, segment_size={segment_size}"
+        )
         segments = orcasound_client.get_segments(
             start_unix=start_unix,
             end_unix=end_unix,
             segment_size=segment_size,
         )
+        logger.info(f"Got {len(segments)} segments from date range")
         for segment in segments:
             iteration_count += 1
             if max_iterations is not None and iteration_count > max_iterations:
@@ -479,15 +484,21 @@ def run_loop(
         while True:
             now = datetime.now(timezone.utc).timestamp()
             time_cursor = now - safety_buffer
+            logger.info(
+                f"[iter {iteration_count}] LiveHLS poll: fetching segments in "
+                f"[{time_cursor - segment_size:.0f}, {time_cursor:.0f}] "
+                f"(now={now:.0f}, buffer={safety_buffer}s)"
+            )
             segments = orcasound_client.get_segments(
                 start_unix=time_cursor - segment_size,
                 end_unix=time_cursor,
                 segment_size=segment_size,
             )
+            logger.info(
+                f"[iter {iteration_count}] LiveHLS poll: got {len(segments)} segments"
+            )
+            iteration_count += 1
             for segment in segments:
-                iteration_count += 1
-                if max_iterations is not None and iteration_count > max_iterations:
-                    break
                 _process_segment(
                     segment,
                     iteration_count,

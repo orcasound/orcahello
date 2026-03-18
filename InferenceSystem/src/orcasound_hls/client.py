@@ -63,7 +63,7 @@ class OrcasoundHLSClient:
         )
         if not folders:
             logger.warning(
-                "No HLS folders for %s in [%d, %d]",
+                "No HLS folders for %s in unix timestamp range [%d, %d]",
                 self.hydrophone_id,
                 int(start_unix),
                 int(end_unix),

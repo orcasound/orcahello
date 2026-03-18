@@ -24,7 +24,14 @@ ORCH_CONFIGS_DIR = INFERENCE_DIR / "tests" / "orch_configs"
 def run_orchestrator(config_path: Path, max_iterations: int = 1) -> tuple[str, int]:
     """Run the orchestrator and return (combined stdout+stderr output, return code)."""
     result = subprocess.run(
-        [sys.executable, str(ORCHESTRATOR), "--orch_config", str(config_path), "--max_iterations", str(max_iterations)],
+        [
+            sys.executable,
+            str(ORCHESTRATOR),
+            "--orch_config",
+            str(config_path),
+            "--max_iterations",
+            str(max_iterations),
+        ],
         capture_output=True,
         text=True,
         cwd=str(INFERENCE_DIR),
@@ -37,10 +44,14 @@ def run_orchestrator(config_path: Path, max_iterations: int = 1) -> tuple[str, i
 # Fail / edge-case tests — expect clean exit (no crash)
 # -----------------------------------------------------------------------------
 
-@pytest.mark.parametrize("config_file", [
-    "DateRangeHLS_NoAudio.yml",
-    "DateRangeHLS_NoAudio2.yml",
-])
+
+@pytest.mark.parametrize(
+    "config_file",
+    [
+        "DateRangeHLS_NoAudio.yml",
+        "DateRangeHLS_NoAudio2.yml",
+    ],
+)
 def test_fail_no_audio(config_file):
     """No-audio configs: orchestrator must exit cleanly (exit 0) without crashing."""
     config = ORCH_CONFIGS_DIR / "Fail" / config_file
@@ -60,6 +71,7 @@ def test_fail_incomplete_minute():
 # -----------------------------------------------------------------------------
 # Negative test — expect global_prediction=0
 # -----------------------------------------------------------------------------
+
 
 def test_negative_detection_point_robinson():
     """Known negative clip: orchestrator must report global_prediction=0."""
@@ -103,15 +115,19 @@ def test_positive_detection(config_file):
 # LiveHLS smoke test
 # -----------------------------------------------------------------------------
 
+
 def test_livehls_smoke():
     """Smoke test: orchestrator runs 2 iterations against live stream without crashing."""
     config = ORCH_CONFIGS_DIR / "LiveHLS" / "LiveHLS_OrcasoundLab.yml"
     output, returncode = run_orchestrator(config, max_iterations=2)
     print(output)
     assert returncode == 0, f"Orchestrator exited with code {returncode}"
-    # Either the stream was unavailable (m3u8 missing) or we got 2 inference results
-    m3u8_missing = "m3u8 file does not exist" in output
-    two_predictions = output.count("global_prediction") >= 2
-    assert m3u8_missing or two_predictions, (
-        "Expected either 'm3u8 file does not exist' or 2 global_prediction lines in output"
+    assert "[iter 1]" in output, "Expected at least two iterations"
+    expected_strings = [
+        "WARNING No HLS folders",
+        "WARNING Failed to load M3U8",
+        "global_prediction",
+    ]
+    assert any(s in output for s in expected_strings), (
+        f"Expected at least one of the expected strings in output: {expected_strings}"
     )
