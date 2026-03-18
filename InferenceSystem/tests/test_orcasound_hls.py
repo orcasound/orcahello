@@ -1,7 +1,7 @@
 """
 Tests for the orcasound_hls module (replacement for orca-hls-utils).
 
-Validates S3 folder lookup, HLSSegment metadata, iteration, and audio
+Validates S3 folder lookup, OrcasoundHLSSegment metadata, client API, and audio
 download against real Orcasound S3 data.
 
 Usage:
@@ -20,8 +20,8 @@ from pytz import timezone as pytz_tz
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from orcasound_hls import HLSSegment, date_range_segments
-from orcasound_hls.hls_locator import (
+from orcasound_hls import OrcasoundHLSClient, OrcasoundHLSSegment
+from orcasound_hls.utils import (
     find_folder_for_timestamp,
     list_folders_in_range,
     m3u8_exists,
@@ -75,7 +75,7 @@ class TestHLSLocator:
         assert offset is None
 
 
-# --- HLSSegment Dataclass Tests ---
+# --- OrcasoundHLSSegment Dataclass Tests ---
 
 class TestHLSSegment:
     @pytest.fixture(autouse=True)
@@ -86,13 +86,13 @@ class TestHLSSegment:
 
     def _first_segment(self):
         """Get the first segment from the known date range."""
-        for seg in date_range_segments(
-            BUCKET, HYDRO,
+        client = OrcasoundHLSClient(BUCKET, HYDRO)
+        segments = client.get_segments(
             pst_to_unix(KNOWN_START_PST),
             pst_to_unix(KNOWN_END_PST),
-        ):
-            return seg
-        pytest.fail("No segments yielded")
+        )
+        assert len(segments) > 0, "No segments returned"
+        return segments[0]
 
     def test_segment_metadata(self):
         seg = self._first_segment()
@@ -134,61 +134,58 @@ class TestHLSSegment:
             duration = w.getnframes() / w.getframerate()
         assert 55 < duration < 65
 
-    def test_clipname_format(self):
+    def test_name_format(self):
         seg = self._first_segment()
-        assert seg.clipname.startswith("rpi-orcasound-lab_")
-        assert "PDT" in seg.clipname or "PST" in seg.clipname
+        assert seg.name.startswith("rpi-orcasound-lab_")
+        assert "PDT" in seg.name or "PST" in seg.name
 
 
-# --- Iterator Tests ---
+# --- Client Tests ---
 
-class TestDateRangeIterator:
-    @pytest.fixture(autouse=True)
-    def setup_wav_dir(self):
-        os.makedirs(WAV_DIR, exist_ok=True)
-        yield
-        shutil.rmtree(WAV_DIR, ignore_errors=True)
-
-    def test_yields_multiple_segments(self):
-        segments = list(date_range_segments(
-            BUCKET, HYDRO,
+class TestClient:
+    def test_returns_multiple_segments(self):
+        client = OrcasoundHLSClient(BUCKET, HYDRO)
+        segments = client.get_segments(
             pst_to_unix(KNOWN_START_PST),
             pst_to_unix(KNOWN_END_PST),
-            clip_duration_s=60,
-        ))
+            segment_size=60,
+        )
         # 15:13 to 16:45 is 92 minutes, so we expect ~92 segments
         assert len(segments) >= 10
 
     def test_segments_are_monotonically_increasing(self):
-        segments = []
-        for seg in date_range_segments(
-            BUCKET, HYDRO,
+        client = OrcasoundHLSClient(BUCKET, HYDRO)
+        segments = client.get_segments(
             pst_to_unix(KNOWN_START_PST),
             pst_to_unix(KNOWN_END_PST),
-        ):
-            segments.append(seg)
-            if len(segments) >= 5:
-                break
-
-        for i in range(1, len(segments)):
+        )
+        for i in range(1, min(len(segments), 5)):
             assert segments[i].start_unix > segments[i - 1].start_unix
 
-    def test_empty_range_yields_nothing(self):
-        segments = list(date_range_segments(
-            BUCKET, HYDRO,
+    def test_get_segments_empty_range(self):
+        client = OrcasoundHLSClient(BUCKET, HYDRO)
+        segments = client.get_segments(
             pst_to_unix("2000-01-01 00:00"),
             pst_to_unix("2000-01-01 01:00"),
-        ))
+        )
         assert segments == []
 
-    def test_all_segments_are_hlssegment(self):
-        for seg in date_range_segments(
-            BUCKET, HYDRO,
+    def test_all_segments_are_orcasound_hls_segment(self):
+        client = OrcasoundHLSClient(BUCKET, HYDRO)
+        segments = client.get_segments(
             pst_to_unix(KNOWN_START_PST),
             pst_to_unix(KNOWN_END_PST),
-        ):
-            assert isinstance(seg, HLSSegment)
-            break
+        )
+        assert len(segments) > 0
+        for seg in segments[:3]:
+            assert isinstance(seg, OrcasoundHLSSegment)
+
+    def test_latest_stream_start(self):
+        client = OrcasoundHLSClient(BUCKET, HYDRO)
+        epoch = client.latest_stream_start()
+        assert isinstance(epoch, (int, float))
+        # Should be a reasonable unix timestamp (after 2020)
+        assert epoch > 1577836800
 
 
 # --- Cross-hydrophone ---
@@ -201,15 +198,14 @@ class TestBushPoint:
         shutil.rmtree(WAV_DIR, ignore_errors=True)
 
     def test_bush_point_segment(self):
-        for seg in date_range_segments(
-            BUCKET, "rpi_bush_point",
+        client = OrcasoundHLSClient(BUCKET, "rpi_bush_point")
+        segments = client.get_segments(
             pst_to_unix("2024-11-02 09:52"),
             pst_to_unix("2024-11-02 09:53"),
-        ):
-            assert seg.hydrophone_id == "rpi_bush_point"
-            wav_path = seg.download_as_wav(WAV_DIR)
-            assert os.path.exists(wav_path)
-            os.remove(wav_path)
-            break
-        else:
-            pytest.fail("No segments yielded for Bush Point")
+        )
+        assert len(segments) > 0, "No segments returned for Bush Point"
+        seg = segments[0]
+        assert seg.hydrophone_id == "rpi_bush_point"
+        wav_path = seg.download_as_wav(WAV_DIR)
+        assert os.path.exists(wav_path)
+        os.remove(wav_path)

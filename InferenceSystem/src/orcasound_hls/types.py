@@ -1,4 +1,4 @@
-"""HLSSegment — an immutable description of a contiguous audio clip within an HLS stream.
+"""OrcasoundHLSSegment — an immutable description of a contiguous audio clip within an HLS stream.
 
 All fields are derived deterministically from S3 folder epoch + M3U8 playlist
 metadata.  No I/O happens at construction time; call ``download_as_wav`` /
@@ -21,7 +21,7 @@ from pytz import timezone as pytz_tz
 
 
 @dataclass(frozen=True)
-class HLSSegment:
+class OrcasoundHLSSegment:
     """Immutable metadata for a contiguous range of HLS .ts segments."""
 
     # --- location in S3 ---
@@ -65,8 +65,8 @@ class HLSSegment:
         return self.start_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
 
     @property
-    def clipname(self) -> str:
-        """Human-readable clip name in Pacific time (matches legacy naming)."""
+    def name(self) -> str:
+        """Human-readable segment name in Pacific time (matches legacy naming)."""
         pst = self.start_utc.astimezone(pytz_tz("US/Pacific"))
         slug = self.hydrophone_id.replace("_", "-")
         return slug + "_" + pst.strftime("%Y_%m_%d_%H_%M_%S_%Z")
@@ -88,7 +88,7 @@ class HLSSegment:
         self, ts_dir: str, filenames: List[str], out_path: str
     ) -> str:
         """Concatenate .ts files then convert with ffmpeg to *out_path*."""
-        concat_path = os.path.join(ts_dir, self.clipname + ".ts")
+        concat_path = os.path.join(ts_dir, self.name + ".ts")
         with open(concat_path, "wb") as out:
             for fname in filenames:
                 with open(os.path.join(ts_dir, fname), "rb") as inp:
@@ -102,7 +102,7 @@ class HLSSegment:
     def download_as_wav(self, dest_dir: str) -> str:
         """Download segments, convert to WAV, return the output path."""
         Path(dest_dir).mkdir(parents=True, exist_ok=True)
-        wav_path = os.path.join(dest_dir, self.clipname + ".wav")
+        wav_path = os.path.join(dest_dir, self.name + ".wav")
         with TemporaryDirectory() as tmp:
             filenames = self._download_ts(tmp)
             self._concat_and_convert(tmp, filenames, wav_path)
@@ -111,7 +111,7 @@ class HLSSegment:
     def download_as_flac(self, dest_dir: str) -> str:
         """Download segments, convert to FLAC, return the output path."""
         Path(dest_dir).mkdir(parents=True, exist_ok=True)
-        flac_path = os.path.join(dest_dir, self.clipname + ".flac")
+        flac_path = os.path.join(dest_dir, self.name + ".flac")
         with TemporaryDirectory() as tmp:
             filenames = self._download_ts(tmp)
             self._concat_and_convert(tmp, filenames, flac_path)

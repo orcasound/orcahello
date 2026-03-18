@@ -5,8 +5,9 @@ import argparse
 import logging
 import os
 import sys
+import time
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 # local
 import spectrogram_visualizer
@@ -19,8 +20,8 @@ from dotenv import load_dotenv
 from model.inference import OrcaHelloSRKWDetectorV1
 from model.types import DetectorInferenceConfig
 from opencensus.ext.azure.log_exporter import AzureEventHandler, AzureLogHandler
-from orcasound_hls import date_range_segments, live_segments, HLSSegment
-from pytz import timezone
+from orcasound_hls import OrcasoundHLSClient, OrcasoundHLSSegment
+from pytz import timezone as pytz_tz
 
 AZURE_STORAGE_ACCOUNT_NAME = "livemlaudiospecstorage"
 AZURE_STORAGE_AUDIO_CONTAINER_NAME = "audiowavs"
@@ -29,6 +30,9 @@ AZURE_STORAGE_SPECTROGRAM_CONTAINER_NAME = "spectrogramspng"
 COSMOSDB_ACCOUNT_NAME = "aifororcasmetadatastore"
 COSMOSDB_DATABASE_NAME = "predictions"
 COSMOSDB_CONTAINER_NAME = "metadata"
+
+ORCASOUND_S3_BUCKET = "audio-orcasound-net"
+
 
 # TODO: get this data from https://live.orcasound.net/api/json/feeds
 source_guid_to_location = {
@@ -250,51 +254,12 @@ def setup_azure_clients(orch_config):
     return blob_service_client, cosmos_client
 
 
-S3_BUCKET = "audio-orcasound-net"
-
-
-def build_hls_iterator(orch_config, logger):
-    """Return an iterator of ``HLSSegment`` from orch_config."""
-    hls_hydrophone_id = orch_config["hls_hydrophone_id"]
-    hls_polling_interval = orch_config["hls_polling_interval"]
-
-    hls_stream_type = orch_config["hls_stream_type"]
-    if hls_stream_type == "LiveHLS":
-        stream_base_url = (
-            "https://s3-us-west-2.amazonaws.com/" + S3_BUCKET + "/" + hls_hydrophone_id
-        )
-        return live_segments(
-            bucket=S3_BUCKET,
-            hydrophone_id=hls_hydrophone_id,
-            stream_base_url=stream_base_url,
-            clip_duration_s=hls_polling_interval,
-        )
-
-    if hls_stream_type == "DateRangeHLS":
-        hls_start_time_pst = orch_config["hls_start_time_pst"]
-        hls_end_time_pst = orch_config["hls_end_time_pst"]
-
-        start_dt = datetime.strptime(hls_start_time_pst, "%Y-%m-%d %H:%M")
-        hls_start_time_unix = int(timezone("US/Pacific").localize(start_dt).timestamp())
-
-        end_dt = datetime.strptime(hls_end_time_pst, "%Y-%m-%d %H:%M")
-        hls_end_time_unix = int(timezone("US/Pacific").localize(end_dt).timestamp())
-
-        logger.debug(
-            f"DateRange init: hydrophone={hls_hydrophone_id}, "
-            f"start_unix={hls_start_time_unix}, end_unix={hls_end_time_unix}, "
-            f"start_pst={hls_start_time_pst}, end_pst={hls_end_time_pst}"
-        )
-
-        return date_range_segments(
-            bucket=S3_BUCKET,
-            hydrophone_id=hls_hydrophone_id,
-            start_unix=hls_start_time_unix,
-            end_unix=hls_end_time_unix,
-            clip_duration_s=hls_polling_interval,
-        )
-
-    raise ValueError("hls_stream_type should be one of LiveHLS or DateRangeHLS")
+def build_orcasound_client(orch_config) -> OrcasoundHLSClient:
+    """Return an ``OrcasoundHLSClient`` from orch_config."""
+    return OrcasoundHLSClient(
+        bucket=ORCASOUND_S3_BUCKET,
+        hydrophone_id=orch_config["hls_hydrophone_id"],
+    )
 
 
 def upload_detection_to_azure(
@@ -369,8 +334,92 @@ def cleanup_azure_uploads(
         logger.debug(f"Deleted CosmosDB doc: id={cosmos_id}")
 
 
+def _process_segment(
+    segment,
+    iteration_count,
+    model,
+    model_config,
+    orch_config,
+    blob_service_client,
+    cosmos_client,
+    logger,
+    model_id,
+    local_dir,
+):
+    """Process a single HLS segment: download, inference, upload."""
+    hls_hydrophone_id = orch_config["hls_hydrophone_id"]
+
+    logger.info("\n\n" + "-" * 20 + f" iter {iteration_count} " + "-" * 20)
+    logger.info(
+        f"[iter {iteration_count}] Segment: folder={segment.folder_epoch}, "
+        f"indices=[{segment.start_index}:{segment.end_index}], "
+        f"start={segment.start_iso}, duration={segment.duration_s:.1f}s"
+    )
+
+    # --- Download and convert to WAV ---
+    try:
+        clip_path = segment.download_as_wav(local_dir)
+    except Exception as e:
+        logger.warning(
+            f"[iter {iteration_count}] Failed to download segment: {e}"
+        )
+        return
+
+    start_timestamp = segment.start_iso
+    logger.info(
+        f"[iter {iteration_count}] Processing clip: {os.path.basename(clip_path)}, "
+        f"start_timestamp={start_timestamp}"
+    )
+
+    # --- Run inference ---
+    spectrogram_path = spectrogram_visualizer.write_spectrogram(clip_path)
+    logger.debug(f"Generated spectrogram: {spectrogram_path}")
+    result = model.detect_srkw_from_file(clip_path, model_config)
+    result.print_summary(verbose=False)
+
+    logger.info(
+        f"[iter {iteration_count}] Inference: prediction={result.global_prediction}, "
+        f"confidence={result.global_confidence:.3f}, "
+        f"positive_segments={sum(result.local_predictions)}/{len(result.local_predictions)}",
+        extra={"custom_dimensions": {"Hydrophone ID": hls_hydrophone_id}},
+    )
+
+    if result.global_prediction == 1:
+        logger.info(
+            f"[iter {iteration_count}] Orca detected (confidence={result.global_confidence:.3f})",
+            extra={"custom_dimensions": {"Hydrophone ID": hls_hydrophone_id}},
+        )
+        if orch_config["upload_to_azure"]:
+            uploaded = upload_detection_to_azure(
+                clip_path,
+                spectrogram_path,
+                result,
+                start_timestamp,
+                hls_hydrophone_id,
+                model_id,
+                blob_service_client,
+                cosmos_client,
+                logger,
+            )
+            if orch_config.get(
+                "cleanup_azure_uploads", False
+            ):  # Used for local testing only
+                cleanup_azure_uploads(
+                    [uploaded],
+                    blob_service_client,
+                    cosmos_client,
+                    hls_hydrophone_id,
+                    logger,
+                )
+
+    if orch_config["delete_local_wavs"]:
+        os.remove(clip_path)
+        os.remove(spectrogram_path)
+        logger.debug(f"Deleted local files: {clip_path}, {spectrogram_path}")
+
+
 def run_loop(
-    hls_segments,
+    orcasound_client,
     model,
     model_config,
     orch_config,
@@ -380,82 +429,70 @@ def run_loop(
     model_id,
     max_iterations,
 ):
-    """Main inference loop: iterate over HLS segments, run model, upload detections."""
-    hls_hydrophone_id = orch_config["hls_hydrophone_id"]
+    """Main inference loop: fetch HLS segments via orcasound_client, run model, upload detections."""
     local_dir = "wav_dir"
     os.makedirs(local_dir, exist_ok=True)
 
-    for iteration_count, segment in enumerate(hls_segments, 1):
-        if max_iterations is not None and iteration_count > max_iterations:
-            break
+    hls_stream_type = orch_config["hls_stream_type"]
+    segment_size = orch_config["hls_polling_interval"]
+    iteration_count = 0
 
-        logger.info("\n\n" + "-" * 20 + f" iter {iteration_count} " + "-" * 20)
-        logger.info(
-            f"[iter {iteration_count}] Segment: folder={segment.folder_epoch}, "
-            f"indices=[{segment.start_index}:{segment.end_index}], "
-            f"start={segment.start_iso}, duration={segment.duration_s:.1f}s"
+    if hls_stream_type == "DateRangeHLS":
+        hls_start_time_pst = orch_config["hls_start_time_pst"]
+        hls_end_time_pst = orch_config["hls_end_time_pst"]
+
+        start_dt = datetime.strptime(hls_start_time_pst, "%Y-%m-%d %H:%M")
+        start_unix = int(pytz_tz("US/Pacific").localize(start_dt).timestamp())
+
+        end_dt = datetime.strptime(hls_end_time_pst, "%Y-%m-%d %H:%M")
+        end_unix = int(pytz_tz("US/Pacific").localize(end_dt).timestamp())
+
+        logger.debug(
+            f"DateRange: hydrophone={orcasound_client.hydrophone_id}, "
+            f"start_unix={start_unix}, end_unix={end_unix}, "
+            f"start_pst={hls_start_time_pst}, end_pst={hls_end_time_pst}"
         )
 
-        # --- Download and convert to WAV ---
-        try:
-            clip_path = segment.download_as_wav(local_dir)
-        except Exception as e:
-            logger.warning(
-                f"[iter {iteration_count}] Failed to download segment: {e}"
+        segments = orcasound_client.get_segments(
+            start_unix=start_unix,
+            end_unix=end_unix,
+            segment_size=segment_size,
+        )
+        for segment in segments:
+            iteration_count += 1
+            if max_iterations is not None and iteration_count > max_iterations:
+                break
+            _process_segment(
+                segment, iteration_count, model, model_config, orch_config,
+                blob_service_client, cosmos_client, logger, model_id, local_dir,
             )
-            continue
 
-        start_timestamp = segment.start_iso
-        logger.info(
-            f"[iter {iteration_count}] Processing clip: {os.path.basename(clip_path)}, "
-            f"start_timestamp={start_timestamp}"
-        )
+    elif hls_stream_type == "LiveHLS":
+        safety_buffer = 300.0  # 5 minutes
 
-        # --- Run inference ---
-        spectrogram_path = spectrogram_visualizer.write_spectrogram(clip_path)
-        logger.debug(f"Generated spectrogram: {spectrogram_path}")
-        result = model.detect_srkw_from_file(clip_path, model_config)
-        result.print_summary(verbose=False)
-
-        logger.info(
-            f"[iter {iteration_count}] Inference: prediction={result.global_prediction}, "
-            f"confidence={result.global_confidence:.3f}, "
-            f"positive_segments={sum(result.local_predictions)}/{len(result.local_predictions)}",
-            extra={"custom_dimensions": {"Hydrophone ID": hls_hydrophone_id}},
-        )
-
-        if result.global_prediction == 1:
-            logger.info(
-                f"[iter {iteration_count}] Orca detected (confidence={result.global_confidence:.3f})",
-                extra={"custom_dimensions": {"Hydrophone ID": hls_hydrophone_id}},
+        while True:
+            now = datetime.now(timezone.utc).timestamp()
+            time_cursor = now - safety_buffer
+            segments = orcasound_client.get_segments(
+                start_unix=time_cursor - segment_size,
+                end_unix=time_cursor,
+                segment_size=segment_size,
             )
-            if orch_config["upload_to_azure"]:
-                uploaded = upload_detection_to_azure(
-                    clip_path,
-                    spectrogram_path,
-                    result,
-                    start_timestamp,
-                    hls_hydrophone_id,
-                    model_id,
-                    blob_service_client,
-                    cosmos_client,
-                    logger,
+            for segment in segments:
+                iteration_count += 1
+                if max_iterations is not None and iteration_count > max_iterations:
+                    break
+                _process_segment(
+                    segment, iteration_count, model, model_config, orch_config,
+                    blob_service_client, cosmos_client, logger, model_id, local_dir,
                 )
-                if orch_config.get(
-                    "cleanup_azure_uploads", False
-                ):  # Used for local testing only
-                    cleanup_azure_uploads(
-                        [uploaded],
-                        blob_service_client,
-                        cosmos_client,
-                        hls_hydrophone_id,
-                        logger,
-                    )
 
-        if orch_config["delete_local_wavs"]:
-            os.remove(clip_path)
-            os.remove(spectrogram_path)
-            logger.debug(f"Deleted local files: {clip_path}, {spectrogram_path}")
+            if max_iterations is not None and iteration_count >= max_iterations:
+                break
+            time.sleep(segment_size)
+
+    else:
+        raise ValueError("hls_stream_type should be one of LiveHLS or DateRangeHLS")
 
 
 if __name__ == "__main__":
@@ -483,14 +520,14 @@ if __name__ == "__main__":
     blob_service_client, cosmos_client = setup_azure_clients(orch_config)
     logger.info(f"Azure upload: {orch_config['upload_to_azure']}")
 
-    hls_segments = build_hls_iterator(orch_config, logger)
+    orcasound_client = build_orcasound_client(orch_config)
     logger.info(
         f"Starting inference loop: hydrophone={orch_config['hls_hydrophone_id']}, "
         f"stream_type={orch_config['hls_stream_type']}"
     )
 
     run_loop(
-        hls_segments,
+        orcasound_client,
         model,
         model_config,
         orch_config,

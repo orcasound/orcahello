@@ -5,15 +5,15 @@ from S3 folder epochs and M3U8 segment metadata rather than system time.
 
 Example usage::
 
-    from orcasound_hls import date_range_segments, HLSSegment
+    from orcasound_hls import OrcasoundHLSClient, OrcasoundHLSSegment
 
-    for segment in date_range_segments("audio-orcasound-net", "rpi_orcasound_lab",
-                                        start_unix=1598998380, end_unix=1599003900):
+    client = OrcasoundHLSClient("audio-orcasound-net", "rpi_orcasound_lab")
+    for segment in client.get_segments(start_unix=1598998380, end_unix=1599003900):
         wav_path = segment.download_as_wav("output_dir/")
         print(segment.start_utc, wav_path)
 """
 
-from .segment import HLSSegment
-from .iterators import date_range_segments, live_segments
+from .client import OrcasoundHLSClient
+from .types import OrcasoundHLSSegment
 
-__all__ = ["HLSSegment", "date_range_segments", "live_segments"]
+__all__ = ["OrcasoundHLSClient", "OrcasoundHLSSegment"]
