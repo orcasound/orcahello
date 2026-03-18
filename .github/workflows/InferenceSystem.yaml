@@ -174,6 +174,5 @@ jobs:
           docker run --rm \
             -v $PWD/tests/orch_configs/LiveHLS/LiveHLS_OrcasoundLab.yml:/config/config.yml \
             inference:ci \
-            /usr/src/venv/bin/python3 -u ./src/LiveInferenceOrchestrator.py \
             --max_iterations 2 | tee output.log
           grep -q "m3u8 file does not exist" output.log || test "$(grep -c "global_prediction" output.log)" -eq 2

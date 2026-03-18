@@ -168,7 +168,7 @@ Linux:
 docker run --rm -it --env-file .env \
   -v $PWD/tests/orch_configs/LiveHLS/LiveHLS_OrcasoundLab.yml:/config/config.yml \
   live-inference-system \
-  /usr/src/venv/bin/python3 -u ./src/LiveInferenceOrchestrator.py --max_iterations 2
+  --max_iterations 2
 ```
 
 Windows:
@@ -176,7 +176,7 @@ Windows:
 docker run --rm -it --env-file .env ^
   -v %cd%/tests/orch_configs/LiveHLS/LiveHLS_OrcasoundLab.yml:/config/config.yml ^
   live-inference-system ^
-  /usr/src/venv/bin/python3 -u ./src/LiveInferenceOrchestrator.py --max_iterations 2
+  --max_iterations 2
 ```
 
 **Note:** When deployed to Kubernetes, the container automatically detects its namespace and loads the configuration from the ConfigMap.
