@@ -1,0 +1,14 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "enabledManagers": ["uv"],
+  "packageRules": [
+    {
+      "matchManagers": ["uv"],
+      "schedule": ["before 5am on Saturday"],
+      "groupName": "InferenceSystem python dependencies",
+      "labels": ["inference system", "dependencies"],
+      "matchUpdateTypes": ["minor", "patch"]
+    }
+  ]
+}
