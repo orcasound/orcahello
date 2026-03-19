@@ -1,6 +1,4 @@
 """S3/M3U8 helpers for Orcasound HLS streams.
-
-Consolidates folder lookup (from hls_locator) and playlist helpers (from iterators).
 """
 
 from __future__ import annotations
