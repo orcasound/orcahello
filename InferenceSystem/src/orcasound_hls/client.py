@@ -5,9 +5,8 @@ from __future__ import annotations
 import logging
 from typing import List
 
-from .types import OrcasoundHLSSegment
+from .types import FOLDER_TO_AUDIO_OFFSET, OrcasoundHLSSegment
 from .utils import (
-    DEFAULT_AUDIO_OFFSET,
     S3_BASE_URL,
     fetch_latest_folder_epoch,
     list_folders_in_range,
@@ -38,7 +37,6 @@ class OrcasoundHLSClient:
         start_unix: float,
         end_unix: float,
         segment_size: float = 60.0,
-        audio_offset: float = DEFAULT_AUDIO_OFFSET,
     ) -> List[OrcasoundHLSSegment]:
         """Return segments covering [start_unix, end_unix). Synchronous, no sleeping.
 
@@ -48,8 +46,6 @@ class OrcasoundHLSClient:
             Unix-timestamp boundaries.
         segment_size : float
             Target clip length in seconds (default 60).
-        audio_offset : float
-            Seconds after folder epoch before audio starts (default 2).
 
         Returns
         -------
@@ -89,6 +85,8 @@ class OrcasoundHLSClient:
             for ts_seg in ts_segments:
                 cum_dur.append(cum_dur[-1] + ts_seg.duration)
 
+            audio_offset = FOLDER_TO_AUDIO_OFFSET
+
             # Find the range of ts_segment indices whose audio falls within [cursor, end_unix)
             first = 0
             while (
@@ -127,8 +125,8 @@ class OrcasoundHLSClient:
                         segment_urls=urls,
                         start_index=chunk_start,
                         end_index=i + 1,
-                        start_offset_s=cum_dur[chunk_start] + audio_offset,
-                        end_offset_s=cum_dur[i + 1] + audio_offset,
+                        start_cum_dur_s=cum_dur[chunk_start],
+                        end_cum_dur_s=cum_dur[i + 1],
                     )
                     result.append(seg)
                     cursor = seg.end_unix

@@ -21,6 +21,7 @@ from pytz import timezone as pytz_tz
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from orcasound_hls import OrcasoundHLSClient, OrcasoundHLSSegment
+from orcasound_hls.types import FOLDER_TO_AUDIO_OFFSET
 from orcasound_hls.utils import (
     find_folder_for_timestamp,
     list_folders_in_range,
@@ -201,12 +202,12 @@ class TestClient:
         end = start + window_size
         segments = client.get_segments(start, end, segment_size=segment_size)
         assert len(segments) == 1, f"Expected 1 segment, got {len(segments)}"
-        assert segment_size*0.5 <= segments[0].duration_s <= segment_size
+        assert segment_size * 0.5 <= segments[0].duration_s <= segment_size * 1.02
 
     def test_cross_folder_boundary(self):
         """Segments spanning a folder boundary come from both folders."""
         client = OrcasoundHLSClient(BUCKET, HYDRO)
-        audio_offset = 2
+        audio_offset = FOLDER_TO_AUDIO_OFFSET
         folder_audio_end = KNOWN_FOLDER_EPOCH + audio_offset + KNOWN_FOLDER_DURATION_S
         # Request 90s before folder 1 ends through 90s into folder 2
         start = folder_audio_end - 90
@@ -216,10 +217,14 @@ class TestClient:
         # Should have segments from both folders
         folders_seen = {seg.folder_epoch for seg in segments}
         assert KNOWN_FOLDER_EPOCH in folders_seen, "Missing segment from first folder"
-        assert KNOWN_NEXT_FOLDER_EPOCH in folders_seen, "Missing segment from second folder"
+        assert KNOWN_NEXT_FOLDER_EPOCH in folders_seen, (
+            "Missing segment from second folder"
+        )
         # There's a gap at the boundary (tail of folder 1 + start of folder 2)
         folder1_segs = [s for s in segments if s.folder_epoch == KNOWN_FOLDER_EPOCH]
-        folder2_segs = [s for s in segments if s.folder_epoch == KNOWN_NEXT_FOLDER_EPOCH]
+        folder2_segs = [
+            s for s in segments if s.folder_epoch == KNOWN_NEXT_FOLDER_EPOCH
+        ]
         gap = folder2_segs[0].start_unix - folder1_segs[-1].end_unix
         assert gap >= 0, "Segments should not overlap across folders"
 

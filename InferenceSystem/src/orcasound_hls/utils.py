@@ -19,7 +19,6 @@ from botocore.config import Config
 logger = logging.getLogger(__name__)
 
 S3_BASE_URL = "https://s3-us-west-2.amazonaws.com"
-DEFAULT_AUDIO_OFFSET = 2.0
 
 
 # --- S3 helpers ---

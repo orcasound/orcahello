@@ -19,6 +19,8 @@ from typing import List
 import ffmpeg
 from pytz import timezone as pytz_tz
 
+FOLDER_TO_AUDIO_OFFSET = 2.0
+
 
 @dataclass(frozen=True)
 class OrcasoundHLSSegment:
@@ -34,22 +36,26 @@ class OrcasoundHLSSegment:
     start_index: int
     end_index: int  # exclusive
 
-    # --- deterministic timing (seconds relative to folder epoch) ---
-    start_offset_s: float
-    end_offset_s: float
+    # --- cumulative durations from M3U8 playlist (relative to folder epoch) ---
+    start_cum_dur_s: float
+    end_cum_dur_s: float
+
+    # --- audio offset (seconds after folder epoch before audio in M3U8 playlist actually starts) ---
+    # approximate calibration constant that may vary between hydrophones or stream conditions
+    folder_to_audio_offset_s: float = FOLDER_TO_AUDIO_OFFSET
 
     # --- convenience ---
     @property
     def duration_s(self) -> float:
-        return self.end_offset_s - self.start_offset_s
+        return self.end_cum_dur_s - self.start_cum_dur_s
 
     @property
     def start_unix(self) -> float:
-        return self.folder_epoch + self.start_offset_s
+        return self.folder_epoch + self.start_cum_dur_s + self.folder_to_audio_offset_s
 
     @property
     def end_unix(self) -> float:
-        return self.folder_epoch + self.end_offset_s
+        return self.folder_epoch + self.end_cum_dur_s + self.folder_to_audio_offset_s
 
     @property
     def start_utc(self) -> datetime:
