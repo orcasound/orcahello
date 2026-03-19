@@ -89,8 +89,9 @@ class TestHLSSegment:
         yield
         shutil.rmtree(WAV_DIR, ignore_errors=True)
 
-    def _first_segment(self):
-        """Get the first segment from the known date range."""
+    @pytest.fixture()
+    def first_segment(self):
+        """Get the first segment from the known date range (cached per test class)."""
         client = OrcasoundHLSClient(BUCKET, HYDRO)
         segments = client.get_segments(
             pst_to_unix(KNOWN_START_PST),
@@ -99,8 +100,8 @@ class TestHLSSegment:
         assert len(segments) > 0, "No segments returned"
         return segments[0]
 
-    def test_segment_metadata(self):
-        seg = self._first_segment()
+    def test_segment_metadata(self, first_segment):
+        seg = first_segment
         assert seg.bucket == BUCKET
         assert seg.hydrophone_id == HYDRO
         assert seg.folder_epoch == KNOWN_FOLDER_EPOCH
@@ -108,49 +109,50 @@ class TestHLSSegment:
         assert seg.duration_s > 0
         assert len(seg.segment_urls) == seg.end_index - seg.start_index
 
-    def test_segment_timestamps_are_deterministic(self):
-        seg1 = self._first_segment()
-        seg2 = self._first_segment()
+    def test_segment_timestamps_are_deterministic(self, first_segment):
+        seg1 = first_segment
+        # Fetch again to compare
+        client = OrcasoundHLSClient(BUCKET, HYDRO)
+        seg2 = client.get_segments(
+            pst_to_unix(KNOWN_START_PST), pst_to_unix(KNOWN_END_PST)
+        )[0]
         assert seg1.start_iso == seg2.start_iso
         assert seg1.start_unix == seg2.start_unix
 
-    def test_segment_start_near_requested_time(self):
-        seg = self._first_segment()
+    def test_segment_start_near_requested_time(self, first_segment):
         start_unix = pst_to_unix(KNOWN_START_PST)
-        assert abs(seg.start_unix - start_unix) < 15
+        assert abs(first_segment.start_unix - start_unix) < 15
 
-    def test_segment_iso_format(self):
-        seg = self._first_segment()
-        assert seg.start_iso.endswith("Z")
-        # Should parse cleanly
-        datetime.strptime(seg.start_iso, "%Y-%m-%dT%H:%M:%SZ")
+    def test_segment_iso_format(self, first_segment):
+        assert first_segment.start_iso.endswith("Z")
+        datetime.strptime(first_segment.start_iso, "%Y-%m-%dT%H:%M:%SZ")
 
-    def test_segment_utc_properties(self):
-        seg = self._first_segment()
-        assert seg.start_utc.tzinfo == timezone.utc
-        assert seg.end_utc > seg.start_utc
+    def test_segment_utc_properties(self, first_segment):
+        assert first_segment.start_utc.tzinfo == timezone.utc
+        assert first_segment.end_utc > first_segment.start_utc
 
-    def test_download_as_wav(self):
-        seg = self._first_segment()
-        wav_path = seg.download_as_wav(WAV_DIR)
+    def test_download_as_wav(self, first_segment):
+        wav_path = first_segment.download_as_wav(WAV_DIR)
         assert os.path.exists(wav_path)
         assert wav_path.endswith(".wav")
         with wave.open(wav_path) as w:
             duration = w.getnframes() / w.getframerate()
         assert 45 < duration < 65
 
-    def test_name_format(self):
-        seg = self._first_segment()
-        assert seg.name.startswith("rpi-orcasound-lab_")
-        assert "PDT" in seg.name or "PST" in seg.name
+    def test_name_format(self, first_segment):
+        assert first_segment.name.startswith("rpi-orcasound-lab_")
+        assert "PDT" in first_segment.name or "PST" in first_segment.name
 
 
 # --- Client Tests ---
 
 
 class TestClient:
-    def test_returns_multiple_segments(self):
-        client = OrcasoundHLSClient(BUCKET, HYDRO)
+    @pytest.fixture()
+    def client(self):
+        return OrcasoundHLSClient(BUCKET, HYDRO)
+
+    def test_returns_multiple_segments(self, client):
         segments = client.get_segments(
             pst_to_unix(KNOWN_START_PST),
             pst_to_unix(KNOWN_END_PST),
@@ -159,8 +161,7 @@ class TestClient:
         # 15:13 to 16:45 is 92 minutes, so we expect ~92 segments
         assert len(segments) >= 10
 
-    def test_segments_are_monotonically_increasing(self):
-        client = OrcasoundHLSClient(BUCKET, HYDRO)
+    def test_segments_are_monotonically_increasing(self, client):
         segments = client.get_segments(
             pst_to_unix(KNOWN_START_PST),
             pst_to_unix(KNOWN_END_PST),
@@ -168,16 +169,14 @@ class TestClient:
         for i in range(1, min(len(segments), 5)):
             assert segments[i].start_unix > segments[i - 1].start_unix
 
-    def test_get_segments_empty_range(self):
-        client = OrcasoundHLSClient(BUCKET, HYDRO)
+    def test_get_segments_empty_range(self, client):
         segments = client.get_segments(
             pst_to_unix("2000-01-01 00:00"),
             pst_to_unix("2000-01-01 01:00"),
         )
         assert segments == []
 
-    def test_all_segments_are_orcasound_hls_segment(self):
-        client = OrcasoundHLSClient(BUCKET, HYDRO)
+    def test_all_segments_are_orcasound_hls_segment(self, client):
         segments = client.get_segments(
             pst_to_unix(KNOWN_START_PST),
             pst_to_unix(KNOWN_END_PST),
@@ -186,16 +185,14 @@ class TestClient:
         for seg in segments[:3]:
             assert isinstance(seg, OrcasoundHLSSegment)
 
-    def test_latest_stream_start(self):
-        client = OrcasoundHLSClient(BUCKET, HYDRO)
+    def test_latest_stream_start(self, client):
         epoch = client.latest_stream_start()
         assert isinstance(epoch, (int, float))
         # Should be a reasonable unix timestamp (after 2020)
         assert epoch > 1577836800
 
-    def test_tail_audio_dropped(self):
+    def test_tail_audio_dropped(self, client):
         """Larger window with segment_size=60 should yield 1 segment; tail is dropped."""
-        client = OrcasoundHLSClient(BUCKET, HYDRO)
         segment_size = 60
         window_size = 65
         start = KNOWN_FOLDER_EPOCH + 502  # safely inside folder
@@ -204,9 +201,8 @@ class TestClient:
         assert len(segments) == 1, f"Expected 1 segment, got {len(segments)}"
         assert segment_size * 0.5 <= segments[0].duration_s <= segment_size * 1.02
 
-    def test_cross_folder_boundary(self):
+    def test_cross_folder_boundary(self, client):
         """Segments spanning a folder boundary come from both folders."""
-        client = OrcasoundHLSClient(BUCKET, HYDRO)
         audio_offset = FOLDER_TO_AUDIO_OFFSET
         folder_audio_end = KNOWN_FOLDER_EPOCH + audio_offset + KNOWN_FOLDER_DURATION_S
         # Request 90s before folder 1 ends through 90s into folder 2
