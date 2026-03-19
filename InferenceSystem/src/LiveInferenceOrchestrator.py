@@ -432,7 +432,8 @@ def run_loop(
     os.makedirs(local_dir, exist_ok=True)
 
     hls_stream_type = orch_config["hls_stream_type"]
-    segment_size = orch_config["hls_polling_interval"]
+    segment_size = orch_config.get("hls_segment_size", 60.0)
+    live_delay_buffer = orch_config.get("hls_delay_buffer", 300.0)
     iteration_count = 0
 
     if hls_stream_type == "DateRangeHLS":
@@ -479,15 +480,13 @@ def run_loop(
             )
 
     elif hls_stream_type == "LiveHLS":
-        safety_buffer = 300.0  # 5 minutes
-
         while True:
             now = datetime.now(timezone.utc).timestamp()
-            time_cursor = now - safety_buffer
+            time_cursor = now - live_delay_buffer
             logger.info(
                 f"[iter {iteration_count}] LiveHLS poll: fetching segments in "
                 f"[{time_cursor - segment_size:.0f}, {time_cursor:.0f}] "
-                f"(now={now:.0f}, buffer={safety_buffer}s)"
+                f"(now={now:.0f}, buffer={live_delay_buffer}s)"
             )
             segments = orcasound_client.get_segments(
                 start_unix=time_cursor - segment_size,
