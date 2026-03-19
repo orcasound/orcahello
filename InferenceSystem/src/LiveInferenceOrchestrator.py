@@ -433,7 +433,7 @@ def run_loop(
 
     hls_stream_type = orch_config["hls_stream_type"]
     segment_size = orch_config.get("inference_segment_size", 60.0)
-    live_delay_buffer = orch_config.get("hls_delay_buffer", 300.0)
+    live_delay_buffer = orch_config.get("hls_live_delay_buffer", 300.0)
     iteration_count = 0
 
     if hls_stream_type == "DateRangeHLS":
