@@ -28,11 +28,11 @@ class OrcasoundHLSSegment:
     bucket: str
     hydrophone_id: str
     folder_epoch: int
+    segment_urls: List[str] = field(repr=False)
 
     # --- position within the M3U8 playlist ---
     start_index: int
     end_index: int  # exclusive
-    segment_urls: List[str] = field(repr=False)
 
     # --- deterministic timing (seconds relative to folder epoch) ---
     start_offset_s: float

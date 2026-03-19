@@ -43,6 +43,8 @@ HYDRO = "rpi_orcasound_lab"
 KNOWN_START_PST = "2020-09-01 15:13"
 KNOWN_END_PST = "2020-09-01 16:45"
 KNOWN_FOLDER_EPOCH = 1598988619
+KNOWN_FOLDER_DURATION_S = 21590  # has 2159 ts_segments × 10s = ~21590s of audio.
+KNOWN_NEXT_FOLDER_EPOCH = 1599010219
 
 
 # --- HLS Locator Tests ---
@@ -134,7 +136,7 @@ class TestHLSSegment:
         assert wav_path.endswith(".wav")
         with wave.open(wav_path) as w:
             duration = w.getnframes() / w.getframerate()
-        assert 55 < duration < 65
+        assert 45 < duration < 65
 
     def test_name_format(self):
         seg = self._first_segment()
@@ -189,6 +191,37 @@ class TestClient:
         assert isinstance(epoch, (int, float))
         # Should be a reasonable unix timestamp (after 2020)
         assert epoch > 1577836800
+
+    def test_tail_audio_dropped(self):
+        """Larger window with segment_size=60 should yield 1 segment; tail is dropped."""
+        client = OrcasoundHLSClient(BUCKET, HYDRO)
+        segment_size = 60
+        window_size = 65
+        start = KNOWN_FOLDER_EPOCH + 502  # safely inside folder
+        end = start + window_size
+        segments = client.get_segments(start, end, segment_size=segment_size)
+        assert len(segments) == 1, f"Expected 1 segment, got {len(segments)}"
+        assert segment_size*0.5 <= segments[0].duration_s <= segment_size
+
+    def test_cross_folder_boundary(self):
+        """Segments spanning a folder boundary come from both folders."""
+        client = OrcasoundHLSClient(BUCKET, HYDRO)
+        audio_offset = 2
+        folder_audio_end = KNOWN_FOLDER_EPOCH + audio_offset + KNOWN_FOLDER_DURATION_S
+        # Request 90s before folder 1 ends through 90s into folder 2
+        start = folder_audio_end - 90
+        end = KNOWN_NEXT_FOLDER_EPOCH + audio_offset + 90
+        segments = client.get_segments(start, end, segment_size=60)
+        assert len(segments) >= 2, f"Expected >= 2 segments, got {len(segments)}"
+        # Should have segments from both folders
+        folders_seen = {seg.folder_epoch for seg in segments}
+        assert KNOWN_FOLDER_EPOCH in folders_seen, "Missing segment from first folder"
+        assert KNOWN_NEXT_FOLDER_EPOCH in folders_seen, "Missing segment from second folder"
+        # There's a gap at the boundary (tail of folder 1 + start of folder 2)
+        folder1_segs = [s for s in segments if s.folder_epoch == KNOWN_FOLDER_EPOCH]
+        folder2_segs = [s for s in segments if s.folder_epoch == KNOWN_NEXT_FOLDER_EPOCH]
+        gap = folder2_segs[0].start_unix - folder1_segs[-1].end_unix
+        assert gap >= 0, "Segments should not overlap across folders"
 
 
 # --- Cross-hydrophone ---

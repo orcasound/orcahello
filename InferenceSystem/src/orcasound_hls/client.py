@@ -3,17 +3,15 @@
 from __future__ import annotations
 
 import logging
-import math
 from typing import List
 
 from .types import OrcasoundHLSSegment
 from .utils import (
     DEFAULT_AUDIO_OFFSET,
     S3_BASE_URL,
-    build_segment,
     fetch_latest_folder_epoch,
     list_folders_in_range,
-    load_playlist,
+    load_hls_playlist,
 )
 
 logger = logging.getLogger(__name__)
@@ -63,14 +61,11 @@ class OrcasoundHLSClient:
         )
         if not folders:
             logger.warning(
-                "No HLS folders for %s in unix timestamp range [%d, %d]",
-                self.hydrophone_id,
-                int(start_unix),
-                int(end_unix),
+                f"No HLS folders for {self.hydrophone_id} in unix timestamp range [{int(start_unix)}, {int(end_unix)}]"
             )
             return []
 
-        logger.info("Found %d folders in date range", len(folders))
+        logger.info(f"Found {len(folders)} folders in date range")
         result: List[OrcasoundHLSSegment] = []
         cursor = start_unix
 
@@ -79,42 +74,72 @@ class OrcasoundHLSClient:
                 break
 
             try:
-                segments, cum = load_playlist(
+                ts_segments = load_hls_playlist(
                     self.bucket, self.hydrophone_id, folder_epoch
                 )
             except Exception as exc:
+                logger.warning(f"Failed to load M3U8 for folder {folder_epoch}: {exc}")
+                continue
+
+            if not ts_segments:
+                continue
+
+            # Build cumulative durations: cum_dur[i] = total duration of ts_segments[0:i]
+            cum_dur = [0.0]
+            for ts_seg in ts_segments:
+                cum_dur.append(cum_dur[-1] + ts_seg.duration)
+
+            # Find the range of ts_segment indices whose audio falls within [cursor, end_unix)
+            first = 0
+            while (
+                first < len(ts_segments)
+                and folder_epoch + cum_dur[first + 1] + audio_offset <= cursor
+            ):
+                first += 1
+            last = first
+            while (
+                last < len(ts_segments)
+                and folder_epoch + cum_dur[last] + audio_offset < end_unix
+            ):
+                last += 1
+
+            # Chunk [first, last) into segments of max ~segment_size each
+            chunk_start = first
+            for i in range(first, last):
+                accumulated = cum_dur[i + 1] - cum_dur[chunk_start]
+                next_dur = ts_segments[i + 1].duration if i + 1 < last else 0
+
+                current_exceeds = (accumulated - segment_size) > 0.0
+                tolerance = (
+                    0.01 * segment_size
+                )  # avoid early trigger e.g. accumulated: 50.1, next_dur: 10.0
+                next_exceeds = (accumulated + next_dur - segment_size) > tolerance
+
+                if current_exceeds or next_exceeds:
+                    urls = [
+                        ts_segments[j].base_uri + ts_segments[j].uri
+                        for j in range(chunk_start, i + 1)
+                    ]
+                    seg = OrcasoundHLSSegment(
+                        bucket=self.bucket,
+                        hydrophone_id=self.hydrophone_id,
+                        folder_epoch=folder_epoch,
+                        segment_urls=urls,
+                        start_index=chunk_start,
+                        end_index=i + 1,
+                        start_offset_s=cum_dur[chunk_start] + audio_offset,
+                        end_offset_s=cum_dur[i + 1] + audio_offset,
+                    )
+                    result.append(seg)
+                    cursor = seg.end_unix
+                    chunk_start = i + 1
+
+            # Log tail audio that didn't fill a full segment
+            tail_dur = cum_dur[last] - cum_dur[chunk_start]
+            if tail_dur > 0:
                 logger.warning(
-                    "Failed to load M3U8 for folder %d: %s", folder_epoch, exc
+                    f"Dropping {tail_dur:.1f}s tail audio from HLS folder {folder_epoch} "
+                    f"({last - chunk_start} ts_segments)"
                 )
-                continue
-
-            if not segments:
-                continue
-
-            n = len(segments)
-            avg_dur = cum[-1] / n
-
-            while cursor < end_unix:
-                offset = cursor - folder_epoch - audio_offset
-                start_idx = math.ceil(max(0.0, offset) / avg_dur) if offset >= 0 else 0
-                num_segs = math.ceil(segment_size / avg_dur)
-                end_idx = start_idx + num_segs
-
-                if end_idx > n:
-                    # This folder is exhausted — advance to next.
-                    break
-
-                seg = build_segment(
-                    self.bucket,
-                    self.hydrophone_id,
-                    folder_epoch,
-                    segments,
-                    cum,
-                    start_idx,
-                    end_idx,
-                    audio_offset,
-                )
-                cursor = int(seg.end_unix)
-                result.append(seg)
 
         return result

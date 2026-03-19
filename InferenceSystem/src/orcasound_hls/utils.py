@@ -16,8 +16,6 @@ import m3u8
 from botocore import UNSIGNED
 from botocore.config import Config
 
-from .types import OrcasoundHLSSegment
-
 logger = logging.getLogger(__name__)
 
 S3_BASE_URL = "https://s3-us-west-2.amazonaws.com"
@@ -135,41 +133,11 @@ def m3u8_exists(bucket: str, hydrophone_id: str, folder_epoch: int) -> bool:
 # --- Playlist helpers ---
 
 
-def load_playlist(bucket: str, hydrophone_id: str, folder_epoch: int):
-    """Load an M3U8 playlist and return (segments, cumulative_durations)."""
+def load_hls_playlist(bucket: str, hydrophone_id: str, folder_epoch: int):
+    """Load an M3U8 playlist and return its segment list."""
     url = m3u8_url(bucket, hydrophone_id, folder_epoch)
     stream_obj = m3u8.load(url)
-    segments = stream_obj.segments
-    if not segments:
-        return segments, []
-    cum = [0.0]
-    for seg in segments:
-        cum.append(cum[-1] + seg.duration)
-    return segments, cum
-
-
-def build_segment(
-    bucket: str,
-    hydrophone_id: str,
-    folder_epoch: int,
-    segments,
-    cum_durations: list,
-    start_idx: int,
-    end_idx: int,
-    audio_offset: float,
-) -> OrcasoundHLSSegment:
-    """Construct an OrcasoundHLSSegment from playlist data and index range."""
-    urls = [segments[i].base_uri + segments[i].uri for i in range(start_idx, end_idx)]
-    return OrcasoundHLSSegment(
-        bucket=bucket,
-        hydrophone_id=hydrophone_id,
-        folder_epoch=folder_epoch,
-        start_index=start_idx,
-        end_index=end_idx,
-        segment_urls=urls,
-        start_offset_s=cum_durations[start_idx] + audio_offset,
-        end_offset_s=cum_durations[end_idx] + audio_offset,
-    )
+    return stream_obj.segments
 
 
 def fetch_latest_folder_epoch(stream_base_url: str) -> float:
