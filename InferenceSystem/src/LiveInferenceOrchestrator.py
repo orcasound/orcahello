@@ -432,7 +432,7 @@ def run_loop(
     os.makedirs(local_dir, exist_ok=True)
 
     hls_stream_type = orch_config["hls_stream_type"]
-    segment_size = orch_config.get("hls_segment_size", 60.0)
+    segment_size = orch_config.get("inference_segment_size", 60.0)
     live_delay_buffer = orch_config.get("hls_delay_buffer", 300.0)
     iteration_count = 0
 
