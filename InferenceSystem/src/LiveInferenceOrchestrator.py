@@ -349,7 +349,6 @@ def _process_segment(
     """Process a single HLS segment: download, inference, upload."""
     hls_hydrophone_id = orch_config["hls_hydrophone_id"]
 
-    logger.info("\n\n" + "-" * 20 + f" iter {iteration_count} " + "-" * 20)
     logger.info(
         f"[iter {iteration_count}] Segment: folder={segment.folder_epoch}, "
         f"indices=[{segment.start_index}:{segment.end_index}], "
@@ -484,9 +483,9 @@ def run_loop(
             now = datetime.now(timezone.utc).timestamp()
             time_cursor = now - live_delay_buffer
             logger.info(
-                f"[iter {iteration_count}] LiveHLS poll: fetching segments in "
+                f"--- [iter {iteration_count}] LiveHLS poll: fetching segments in "
                 f"[{time_cursor - segment_size:.0f}, {time_cursor:.0f}] "
-                f"(now={now:.0f}, buffer={live_delay_buffer}s)"
+                f"(now={now:.0f}, delay={live_delay_buffer}s)"
             )
             segments = orcasound_client.get_segments(
                 start_unix=time_cursor - segment_size,
@@ -496,7 +495,6 @@ def run_loop(
             logger.info(
                 f"[iter {iteration_count}] LiveHLS poll: got {len(segments)} segments"
             )
-            iteration_count += 1
             for segment in segments:
                 _process_segment(
                     segment,
@@ -511,6 +509,7 @@ def run_loop(
                     local_dir,
                 )
 
+            iteration_count += 1
             if max_iterations is not None and iteration_count >= max_iterations:
                 break
             time.sleep(segment_size)
