@@ -81,7 +81,7 @@ requires-dist = [
 dev = [
     { name = "azure-cosmos", specifier = "==4.15.0" },
     { name = "azure-storage-blob", specifier = "==12.28.0" },
-    { name = "boto3", specifier = ">=1.35.0" },
+    { name = "boto3", specifier = "==1.42.70" },
     { name = "ffmpeg-python", specifier = "==0.2.0" },
     { name = "m3u8", specifier = "==6.0.0" },
     { name = "matplotlib", specifier = "==3.10.8" },
@@ -94,7 +94,7 @@ dev = [
 prod = [
     { name = "azure-cosmos", specifier = "==4.15.0" },
     { name = "azure-storage-blob", specifier = "==12.28.0" },
-    { name = "boto3", specifier = ">=1.35.0" },
+    { name = "boto3", specifier = "==1.42.70" },
     { name = "ffmpeg-python", specifier = "==0.2.0" },
     { name = "m3u8", specifier = "==6.0.0" },
     { name = "matplotlib", specifier = "==3.10.8" },

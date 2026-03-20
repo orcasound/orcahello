@@ -102,7 +102,7 @@ class OrcasoundHLSSegment:
 
         stream = ffmpeg.input(concat_path)
         stream = ffmpeg.output(stream, out_path)
-        ffmpeg.run(stream, quiet=True)
+        ffmpeg.run(stream, quiet=True, overwrite_output=True)
         return out_path
 
     def download_as_wav(self, dest_dir: str) -> str:

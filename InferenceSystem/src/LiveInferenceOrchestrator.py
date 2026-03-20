@@ -20,7 +20,7 @@ from dotenv import load_dotenv
 from model.inference import OrcaHelloSRKWDetectorV1
 from model.types import DetectorInferenceConfig
 from opencensus.ext.azure.log_exporter import AzureEventHandler, AzureLogHandler
-from orcasound_hls import OrcasoundHLSClient, OrcasoundHLSSegment
+from orcasound_hls import OrcasoundHLSClient
 from pytz import timezone as pytz_tz
 
 AZURE_STORAGE_ACCOUNT_NAME = "livemlaudiospecstorage"
@@ -351,7 +351,7 @@ def _process_segment(
 
     logger.info(
         f"[iter {iteration_count}] Segment: folder={segment.folder_epoch}, "
-        f"indices=[{segment.start_index}:{segment.end_index}], "
+        f"indices=[{segment.start_index}:{segment.end_index}), "
         f"start={segment.start_iso}, duration={segment.duration_s:.1f}s"
     )
 

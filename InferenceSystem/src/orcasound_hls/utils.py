@@ -60,7 +60,10 @@ def find_folder_for_timestamp(
 
     folders = _list_folders_with_prefix(bucket, hls_prefix, ts_prefix)
 
-    # Also check previous prefix to handle boundary cases
+    # Each 4-digit prefix spans ~100,000s (~27.8 hours), and a single HLS folder
+    # can contain up to ~24 hours of audio. So a folder in prefix "1598" can hold
+    # audio that extends into the "1599" range. Check the previous prefix to find
+    # folders that started in an earlier prefix window but still contain our timestamp.
     prev_prefix_int = int(ts_prefix) - 1
     if prev_prefix_int > 0:
         prev_folders = _list_folders_with_prefix(
@@ -144,7 +147,7 @@ def fetch_latest_folder_epoch(stream_base_url: str) -> float:
     """
     latest_url = f"{stream_base_url}/latest.txt"
     try:
-        with urllib.request.urlopen(latest_url) as resp:
+        with urllib.request.urlopen(latest_url, timeout=10) as resp:
             return int(resp.read().decode("utf-8").strip())
     except (urllib.error.URLError, ValueError) as exc:
         raise RuntimeError(

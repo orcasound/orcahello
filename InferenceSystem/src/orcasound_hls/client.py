@@ -135,8 +135,8 @@ class OrcasoundHLSClient:
             # Log tail audio that didn't fill a full segment
             tail_dur = cum_dur[last] - cum_dur[chunk_start]
             if tail_dur > 0:
-                logger.warning(
-                    f"Dropping {tail_dur:.1f}s tail audio from HLS folder {folder_epoch} "
+                logger.info(
+                    f"Dropping {tail_dur:.1f}s tail audio "
                     f"({last - chunk_start} ts_segments)"
                 )
 
