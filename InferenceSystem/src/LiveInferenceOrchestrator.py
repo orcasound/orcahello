@@ -139,10 +139,16 @@ def parse_args():
         help="Path to orchestrator config YAML (default: /config/config.yml)",
     )
     parser.add_argument(
-        "--max_iterations",
+        "--max_live_iterations",
         type=int,
         default=None,
-        help="Maximum number of clips to process",
+        help="Maximum number of LiveHLS poll cycles (ignored for DateRangeHLS)",
+    )
+    parser.add_argument(
+        "--max_segments",
+        type=int,
+        default=None,
+        help="Maximum number of segments to process (for DateRangeHLS testing)",
     )
     parser.add_argument(
         "--log-level",
@@ -336,7 +342,6 @@ def cleanup_azure_uploads(
 
 def _process_segment(
     segment,
-    iteration_count,
     model,
     model_config,
     orch_config,
@@ -350,7 +355,7 @@ def _process_segment(
     hls_hydrophone_id = orch_config["hls_hydrophone_id"]
 
     logger.info(
-        f"[iter {iteration_count}] Segment: folder={segment.folder_epoch}, "
+        f"Segment: folder={segment.folder_epoch}, "
         f"indices=[{segment.start_index}:{segment.end_index}), "
         f"start={segment.start_iso}, duration={segment.duration_s:.1f}s"
     )
@@ -359,12 +364,12 @@ def _process_segment(
     try:
         clip_path = segment.download_as_wav(local_dir)
     except Exception as e:
-        logger.warning(f"[iter {iteration_count}] Failed to download segment: {e}")
+        logger.warning(f"Failed to download segment: {e}")
         return
 
     start_timestamp = segment.start_iso
     logger.info(
-        f"[iter {iteration_count}] Processing clip: {os.path.basename(clip_path)}, "
+        f"Processing clip: {os.path.basename(clip_path)}, "
         f"start_timestamp={start_timestamp}"
     )
 
@@ -375,7 +380,7 @@ def _process_segment(
     result.print_summary(verbose=False)
 
     logger.info(
-        f"[iter {iteration_count}] Inference: prediction={result.global_prediction}, "
+        f"Inference: prediction={result.global_prediction}, "
         f"confidence={result.global_confidence:.3f}, "
         f"positive_segments={sum(result.local_predictions)}/{len(result.local_predictions)}",
         extra={"custom_dimensions": {"Hydrophone ID": hls_hydrophone_id}},
@@ -383,7 +388,7 @@ def _process_segment(
 
     if result.global_prediction == 1:
         logger.info(
-            f"[iter {iteration_count}] Orca detected (confidence={result.global_confidence:.3f})",
+            f"Orca detected (confidence={result.global_confidence:.3f})",
             extra={"custom_dimensions": {"Hydrophone ID": hls_hydrophone_id}},
         )
         if orch_config["upload_to_azure"]:
@@ -424,7 +429,8 @@ def run_loop(
     cosmos_client,
     logger,
     model_id,
-    max_iterations,
+    max_live_iterations=None,
+    max_segments=None,
 ):
     """Main inference loop: fetch HLS segments via orcasound_client, run model, upload detections."""
     local_dir = "wav_dir"
@@ -433,7 +439,6 @@ def run_loop(
     hls_stream_type = orch_config["hls_stream_type"]
     segment_size = orch_config.get("inference_segment_size", 60.0)
     live_delay_buffer = orch_config.get("hls_live_delay_buffer", 300.0)
-    iteration_count = 0
 
     if hls_stream_type == "DateRangeHLS":
         hls_start_time_pst = orch_config["hls_start_time_pst"]
@@ -460,14 +465,12 @@ def run_loop(
             end_unix=end_unix,
             segment_size=segment_size,
         )
+        if max_segments is not None:
+            segments = segments[:max_segments]
         logger.info(f"Got {len(segments)} segments from date range")
         for segment in segments:
-            iteration_count += 1
-            if max_iterations is not None and iteration_count > max_iterations:
-                break
             _process_segment(
                 segment,
-                iteration_count,
                 model,
                 model_config,
                 orch_config,
@@ -488,13 +491,14 @@ def run_loop(
             """Round down to the nearest `interval` boundary."""
             return (ts // interval) * interval
 
+        live_iteration_count = 0
         while True:
             now = _align(datetime.now(timezone.utc).timestamp(), segment_size)
             end_unix = now - live_delay_buffer
             start_unix = end_unix - segment_size
 
             logger.info(
-                f"--- [iter {iteration_count}] LiveHLS poll: fetching segments in "
+                f"--- [iter {live_iteration_count}] LiveHLS poll: fetching segments in "
                 f"[{start_unix:.0f}, {end_unix:.0f}] "
                 f"(now={now:.0f}, delay={live_delay_buffer}s)"
             )
@@ -504,12 +508,11 @@ def run_loop(
                 segment_size=segment_size,
             )
             logger.info(
-                f"[iter {iteration_count}] LiveHLS poll: got {len(segments)} segments"
+                f"[iter {live_iteration_count}] LiveHLS poll: got {len(segments)} segments"
             )
             for segment in segments:
                 _process_segment(
                     segment,
-                    iteration_count,
                     model,
                     model_config,
                     orch_config,
@@ -520,8 +523,8 @@ def run_loop(
                     local_dir,
                 )
 
-            iteration_count += 1
-            if max_iterations is not None and iteration_count >= max_iterations:
+            live_iteration_count += 1
+            if max_live_iterations is not None and live_iteration_count >= max_live_iterations:
                 break
 
             # Sleep until the next wall-clock-aligned boundary
@@ -576,5 +579,6 @@ if __name__ == "__main__":
         cosmos_client,
         logger,
         model_id,
-        max_iterations=args.max_iterations,
+        max_live_iterations=args.max_live_iterations,
+        max_segments=args.max_segments,
     )

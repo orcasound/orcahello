@@ -21,17 +21,24 @@ ORCHESTRATOR = INFERENCE_DIR / "src" / "LiveInferenceOrchestrator.py"
 ORCH_CONFIGS_DIR = INFERENCE_DIR / "tests" / "orch_configs"
 
 
-def run_orchestrator(config_path: Path, max_iterations: int = 1) -> tuple[str, int]:
+def run_orchestrator(
+    config_path: Path,
+    max_segments: int | None = None,
+    max_live_iterations: int | None = None,
+) -> tuple[str, int]:
     """Run the orchestrator and return (combined stdout+stderr output, return code)."""
+    cmd = [
+        sys.executable,
+        str(ORCHESTRATOR),
+        "--orch_config",
+        str(config_path),
+    ]
+    if max_segments is not None:
+        cmd += ["--max_segments", str(max_segments)]
+    if max_live_iterations is not None:
+        cmd += ["--max_live_iterations", str(max_live_iterations)]
     result = subprocess.run(
-        [
-            sys.executable,
-            str(ORCHESTRATOR),
-            "--orch_config",
-            str(config_path),
-            "--max_iterations",
-            str(max_iterations),
-        ],
+        cmd,
         capture_output=True,
         text=True,
         cwd=str(INFERENCE_DIR),
@@ -55,7 +62,7 @@ def run_orchestrator(config_path: Path, max_iterations: int = 1) -> tuple[str, i
 def test_fail_no_audio(config_file):
     """No-audio configs: orchestrator must exit cleanly (exit 0) without crashing."""
     config = ORCH_CONFIGS_DIR / "Fail" / config_file
-    output, returncode = run_orchestrator(config, max_iterations=1)
+    output, returncode = run_orchestrator(config, max_segments=1)
     print(output)
     assert returncode == 0, f"Orchestrator crashed (exit {returncode}) on {config_file}"
 
@@ -63,7 +70,7 @@ def test_fail_no_audio(config_file):
 def test_fail_incomplete_minute():
     """Incomplete-minute config: orchestrator must exit cleanly without crashing."""
     config = ORCH_CONFIGS_DIR / "Fail" / "DateRangeHLS_IncompleteMinute.yml"
-    output, returncode = run_orchestrator(config, max_iterations=1)
+    output, returncode = run_orchestrator(config, max_segments=1)
     print(output)
     assert returncode == 0, f"Orchestrator crashed (exit {returncode})"
 
@@ -76,7 +83,7 @@ def test_fail_incomplete_minute():
 def test_negative_detection_point_robinson():
     """Known negative clip: orchestrator must report global_prediction=0."""
     config = ORCH_CONFIGS_DIR / "Negative" / "DateRangeHLS_PointRobinson.yml"
-    output, returncode = run_orchestrator(config, max_iterations=1)
+    output, returncode = run_orchestrator(config, max_segments=1)
     print(output)
     assert returncode == 0, f"Orchestrator exited with code {returncode}"
     assert "global_prediction: 0" in output, (
@@ -103,7 +110,7 @@ POSITIVE_CONFIGS = [
 def test_positive_detection(config_file):
     """Known positive clips: orchestrator must report global_prediction=1."""
     config = ORCH_CONFIGS_DIR / "Positive" / config_file
-    output, returncode = run_orchestrator(config, max_iterations=1)
+    output, returncode = run_orchestrator(config, max_segments=1)
     print(output)
     assert returncode == 0, f"Orchestrator exited with code {returncode}"
     assert "global_prediction: 1" in output, (
@@ -119,7 +126,7 @@ def test_positive_detection(config_file):
 def test_livehls_smoke():
     """Smoke test: orchestrator runs 2 iterations against live stream without crashing."""
     config = ORCH_CONFIGS_DIR / "LiveHLS" / "LiveHLS_OrcasoundLab.yml"
-    output, returncode = run_orchestrator(config, max_iterations=2)
+    output, returncode = run_orchestrator(config, max_live_iterations=2)
     print(output)
     assert returncode == 0, f"Orchestrator exited with code {returncode}"
     assert "[iter 1]" in output, "Expected at least two iterations"
