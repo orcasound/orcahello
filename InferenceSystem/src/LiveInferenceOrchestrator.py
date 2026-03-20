@@ -479,17 +479,28 @@ def run_loop(
             )
 
     elif hls_stream_type == "LiveHLS":
+
+        def _next_aligned_time(now: float, interval: float) -> float:
+            """Next wall-clock boundary (e.g. XX:01:00 if now is XX:00:27 with 60s interval)."""
+            return _align(now, interval) + interval
+
+        def _align(ts: float, interval: float) -> float:
+            """Round down to the nearest `interval` boundary."""
+            return (ts // interval) * interval
+
         while True:
-            now = datetime.now(timezone.utc).timestamp()
-            time_cursor = now - live_delay_buffer
+            now = _align(datetime.now(timezone.utc).timestamp(), segment_size)
+            end_unix = now - live_delay_buffer
+            start_unix = end_unix - segment_size
+
             logger.info(
                 f"--- [iter {iteration_count}] LiveHLS poll: fetching segments in "
-                f"[{time_cursor - segment_size:.0f}, {time_cursor:.0f}] "
+                f"[{start_unix:.0f}, {end_unix:.0f}] "
                 f"(now={now:.0f}, delay={live_delay_buffer}s)"
             )
             segments = orcasound_client.get_segments(
-                start_unix=time_cursor - segment_size,
-                end_unix=time_cursor,
+                start_unix=start_unix,
+                end_unix=end_unix,
                 segment_size=segment_size,
             )
             logger.info(
@@ -512,7 +523,14 @@ def run_loop(
             iteration_count += 1
             if max_iterations is not None and iteration_count >= max_iterations:
                 break
-            time.sleep(segment_size)
+
+            # Sleep until the next wall-clock-aligned boundary
+            sleep_time = _next_aligned_time(now, segment_size) - time.time()
+            logger.debug(
+                f"Sleeping for {sleep_time:.1f}s until {_next_aligned_time(now, segment_size):.0f}"
+            )
+            if sleep_time > 0:
+                time.sleep(sleep_time)
 
     else:
         raise ValueError("hls_stream_type should be one of LiveHLS or DateRangeHLS")
