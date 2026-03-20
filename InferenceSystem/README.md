@@ -52,7 +52,7 @@ The model is downloaded automatically from HuggingFace Hub on first use.
 
 ```
 cd InferenceSystem
-uv run python src/LiveInferenceOrchestrator.py --orch_config tests/orch_configs/LiveHLS/LiveHLS_OrcasoundLab.yml --max_iterations 2
+uv run python src/LiveInferenceOrchestrator.py --orch_config tests/orch_configs/LiveHLS/LiveHLS_OrcasoundLab.yml --max_live_iterations 2
 ```
 
 You should see the following logs in your terminal. Since this is a test `orch_config`, `upload_to_azure` is set to `false` and no updates are made to the backend (Azure blob Storage, CosmosDB). See [tests/orch_configs](tests/orch_configs) for more config examples.
@@ -168,7 +168,7 @@ Linux:
 docker run --rm -it --env-file .env \
   -v $PWD/tests/orch_configs/LiveHLS/LiveHLS_OrcasoundLab.yml:/config/config.yml \
   live-inference-system \
-  --max_iterations 2
+  --max_live_iterations 2
 ```
 
 Windows:
@@ -176,7 +176,7 @@ Windows:
 docker run --rm -it --env-file .env ^
   -v %cd%/tests/orch_configs/LiveHLS/LiveHLS_OrcasoundLab.yml:/config/config.yml ^
   live-inference-system ^
-  --max_iterations 2
+  --max_live_iterations 2
 ```
 
 **Note:** When deployed to Kubernetes, the container automatically detects its namespace and loads the configuration from the ConfigMap.
