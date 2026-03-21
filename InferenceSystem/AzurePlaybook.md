@@ -55,7 +55,7 @@ inference-system-859f4f4dc7-85wpf   1/1     Running   0          172m
 2. Get the last (say) 30 lines of the log for that pod using the pod name:
 
 ```bash
-kubectl logs -n $NAMESPACE inference-system-859f4f4dc7-85wpf inference-system-6854ddb4d9-mg7dh --tail=30
+kubectl logs -n $NAMESPACE inference-system-859f4f4dc7-85wpf --tail=30
 ```
 
 ## Pods
@@ -197,7 +197,7 @@ Using (say) `north-sjc` as the namespace:
 
 ```
 kubectl describe configmap hydrophone-configs -n north-sjc
-kubectl apply -f north-sjc-configmap.yaml
+kubectl apply -f deploy/north-sjc-configmap.yaml
 kubectl describe configmap hydrophone-configs -n north-sjc
 kubectl rollout restart deployment inference-system -n north-sjc
 kubectl rollout status deployment inference-system -n north-sjc
@@ -346,7 +346,7 @@ To see why a node is utilized:
 kubectl describe node aks-f4sv2pool-22767839-vmss000000
 ```
 
-To change the limits, edit the andrews-bay.yaml file
+To change the limits, edit the `deploy/andrews-bay.yaml` file
 
 ```cmd
 kubectl scale deployment inference-system -n andrews-bay --replicas=0
