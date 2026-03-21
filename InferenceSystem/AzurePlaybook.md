@@ -186,7 +186,7 @@ Use the following commands, making sure `$NAMESPACE` is replaced with the namesp
 kubectl scale deployment inference-system -n $NAMESPACE --replicas=0
 ```
 
-Or, remove the existing ones (including error'ed ones, etc.) and let a new one load:
+Or, remove the existing ones (including errored ones, etc.) and let a new one load:
 
 ```bash
 kubectl delete pod -n $NAMESPACE -l app=inference-system
@@ -322,7 +322,7 @@ kubectl describe node aks-f4sv2pool-22767839-vmss000000
 To change the limits, edit the andrews-bay.yaml file
 
 ```cmd
-kubectl scale deployment inference-system -n andrews-bay -b --replicas=0
+kubectl scale deployment inference-system -n andrews-bay --replicas=0
 kubectl apply -f deploy\andrews-bay.yaml
 kubectl describe node aks-f4sv2pool-22767839-vmss000001 | findstr memory
 ```
@@ -380,7 +380,7 @@ crictl image prune
 To recycle the node:
 ```bash
 kubectl cordon aks-f4sv2pool-22767839-vmss000000
-kubectl drain aks-f4sv2pool-22767839-vmss000000 --ignore-daemonsets --delete-emptydir-data –force
+kubectl drain aks-f4sv2pool-22767839-vmss000000 --ignore-daemonsets --delete-emptydir-data --force
 az aks nodepool show --resource-group LiveSRKWNotificationSystem --cluster-name inference-system-AKS --name f4sv2pool --query count -o tsv
 ```
 	to get <n>, so if <n> is 2 then:
