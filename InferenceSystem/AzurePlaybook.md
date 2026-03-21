@@ -17,17 +17,18 @@ The simplest method is to use the Orcanode Monitor dashboard:
 
 Alternatively, you can see the log using commands on your own machine:
 
-1. Get the pod name from the namespace.  For example to get the pod for `andrews-bay`:
+1. Get the pod name from the namespace.  For example to get the pod for `NAMESPACE=andrews-bay`:
 
 ```
-> kubectl get pods -n andrews-bay
+> kubectl get pods -n $NAMESPACE
 NAME                                READY   STATUS    RESTARTS   AGE
 inference-system-859f4f4dc7-85wpf   1/1     Running   0          172m
 ```
 
 2. Get the last (say) 30 lines of the log for that pod using the pod name:
-```
-> kubectl logs -n andrews-bay inference-system-6854ddb4d9-mg7dh --tail=30
+
+```bash
+kubectl logs -n $NAMESPACE inference-system-859f4f4dc7-85wpf inference-system-6854ddb4d9-mg7dh --tail=30
 ```
 
 ## Pods
@@ -48,19 +49,19 @@ kubectl get pods --all-namespaces | grep infer
 
 ### Q: How do I deploy a pod configuration update?
 
-Use the following commands, replacing `andrews-bay` with the appropriate namespace.
+Use the following commands, replacing `$NAMESPACE` with the appropriate namespace (e.g., `andrews-bay`).
+
+```bash
+kubectl apply -f deploy/$NAMESPACE.yaml
+kubectl rollout restart deployment inference-system -n $NAMESPACE
+```
+
+### Q: How do I see platform version details under a pod?
+
+1. Get the pod name from the namespace.  For example to get the pod for `NAMESPACE=andrews-bay`:
 
 ```
-kubectl apply -f andrews-bay.yaml
-kubectl rollout restart deployment inference-system -n andrews-bay
-```
-
-### How do I see platform version details under a pod?
-
-1. Get the pod name from the namespace.  For example to get the pod for `andrews-bay`:
-
-```
-> kubectl get pods -n andrews-bay
+> kubectl get pods -n $NAMESPACE
 NAME                                READY   STATUS    RESTARTS   AGE
 inference-system-859f4f4dc7-85wpf   1/1     Running   0          172m
 ```
@@ -68,7 +69,7 @@ inference-system-859f4f4dc7-85wpf   1/1     Running   0          172m
 2. Get an interactive shell in that pod:
 
 ```
-kubectl exec -it inference-system-859f4f4dc7-85wpf -n andrews-bay -- /bin/bash
+kubectl exec -it inference-system-859f4f4dc7-85wpf -n $NAMESPACE -- /bin/bash
 ```
 
 Processor:
@@ -179,22 +180,22 @@ kubectl rollout status deployment inference-system -n north-sjc
 
 ### Q: How do I stop the inference system pods in a namespace?
 
-Using (say) `point-robinson` as the namespace:
+Use the following commands, making sure `$NAMESPACE` is replaced with the namespace:
 
-```
-kubectl scale deployment inference-system -n point-robinson --replicas=0
+```bash
+kubectl scale deployment inference-system -n $NAMESPACE --replicas=0
 ```
 
 Or, remove the existing ones (including error'ed ones, etc.) and let a new one load:
 
-```
-kubectl delete pod -n point-robinson -l app=inference-system
+```bash
+kubectl delete pod -n $NAMESPACE -l app=inference-system
 ```
 
 ### Q: How do I see which pods are running on which nodes?
 
-```
-kubectl get pod -o wide --all-namespaces | findstr inference-system
+```bash
+kubectl get pod -o wide --all-namespaces -l app=inference-system
 ```
 
 ## Agent Pools
@@ -202,7 +203,8 @@ kubectl get pod -o wide --all-namespaces | findstr inference-system
 ### Q: How do I change the max node count?
 
 To change the existing max-count to 4:
-```
+
+```bash
 az aks nodepool update --resource-group LiveSRKWNotificationSystem --cluster-name inference-system-AKS --name $POOLNAME --min-count 1 --max-count 4 --update-cluster-autoscaler
 az aks nodepool show --resource-group LiveSRKWNotificationSystem --cluster-name inference-system-AKS --name $POOLNAME --query "{autoscaler:enableAutoScaling, min:minCount, max:maxCount}"
 ```
@@ -306,17 +308,20 @@ inference-system-589ddb4546-5bbc6                       3G               3G
 ```
 
 To see memory usage per pod:
-```
+
+```bash
 kubectl top pod --all-namespaces
 ```
 
 To see why a node is utilized:
-```
+
+```bash
 kubectl describe node aks-f4sv2pool-22767839-vmss000000
 ```
 
 To change the limits, edit the andrews-bay.yaml file
-```
+
+```cmd
 kubectl scale deployment inference-system -n andrews-bay -b --replicas=0
 kubectl apply -f deploy\andrews-bay.yaml
 kubectl describe node aks-f4sv2pool-22767839-vmss000001 | findstr memory
@@ -350,7 +355,7 @@ total 7552
 /var/log/pods/mast-center_inference-system-5bb97c5889-h22lf_dcb5c816-e25c-47a9-9897-eb4324e3dd36/inference-system
 ```
 
-### How do I deal with Disk Pressure?
+### Q: How do I deal with Disk Pressure?
 
 ```bash
 kubectl debug node/aks-f4sv2pool-22767839-vmss000000 -it --image=ubuntu --profile=general
@@ -364,7 +369,7 @@ This might show lines like this:
 ```
 
 Also check:
-```
+```bash
 du -sh /host/var/lib/kubelet/pods/* | sort -h
 du -sh /host/var/log/* | sort -h
 
@@ -373,14 +378,14 @@ crictl image prune
 ```
 
 To recycle the node:
-```
+```bash
 kubectl cordon aks-f4sv2pool-22767839-vmss000000
 kubectl drain aks-f4sv2pool-22767839-vmss000000 --ignore-daemonsets --delete-emptydir-data –force
 az aks nodepool show --resource-group LiveSRKWNotificationSystem --cluster-name inference-system-AKS --name f4sv2pool --query count -o tsv
 ```
 	to get <n>, so if <n> is 2 then:
 
-```
+```bash
 az aks nodepool scale --resource-group LiveSRKWNotificationSystem --cluster-name inference-system-AKS --name f4sv2pool --node-count 1
 az aks nodepool scale --resource-group LiveSRKWNotificationSystem --cluster-name inference-system-AKS --name f4sv2pool --node-count 2
 ```
