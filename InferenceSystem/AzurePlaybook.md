@@ -6,6 +6,33 @@ The intended audience is a user relatively new to Kubernetes
 who wants a quick reference list of useful commands for various
 purposes.
 
+- [Inference Script Logs](#inference-script-logs)
+  - [Q: How do I watch the log of a pod in AKS?](#q-how-do-i-watch-the-log-of-a-pod-in-aks)
+- [Pods](#pods)
+  - [Q: How do I list all inference pods?](#q-how-do-i-list-all-inference-pods)
+  - [Q: How do I deploy a pod configuration update?](#q-how-do-i-deploy-a-pod-configuration-update)
+  - [Q: How do I see platform version details under a pod?](#q-how-do-i-see-platform-version-details-under-a-pod)
+  - [Q: How do I see CPU loads of all pods?](#q-how-do-i-see-cpu-loads-of-all-pods)
+  - [Q: How do I deploy a new configmap?](#q-how-do-i-deploy-a-new-configmap)
+- [Namespaces](#namespaces)
+  - [Q: How do I stop the inference system pods in a namespace?](#q-how-do-i-stop-the-inference-system-pods-in-a-namespace)
+  - [Q: How do I see which pods are running on which nodes?](#q-how-do-i-see-which-pods-are-running-on-which-nodes)
+- [Agent Pools](#agent-pools)
+  - [Q: How do I change the max node count?](#q-how-do-i-change-the-max-node-count)
+  - [Q: How do I create a new node pool?](#q-how-do-i-create-a-new-node-pool)
+  - [Q: How do I create a debug pod on a given node?](#q-how-do-i-create-a-debug-pod-on-a-given-node)
+- [Cores](#cores)
+  - [Q: How can I see what cores PID 1 is using?](#q-how-can-i-see-what-cores-pid-1-is-using)
+  - [Q: How do I see the CPU % by core in a pod?](#q-how-do-i-see-the-cpu--by-core-in-a-pod)
+- [Memory](#memory)
+  - [Q: How do I tell how much memory pods use and need on an F4 node?](#q-how-do-i-tell-how-much-memory-pods-use-and-need-on-an-f4-node)
+  - [Q: How do I tell if pods are being killed due to OOM?](#q-how-do-i-tell-if-pods-are-being-killed-due-to-oom)
+- [Disk Pressure (Ephemeral storage)](#disk-pressure-ephemeral-storage)
+  - [Q: How do I get the usage on a node?](#q-how-do-i-get-the-usage-on-a-node)
+  - [Q: How do I deal with Disk Pressure?](#q-how-do-i-deal-with-disk-pressure)
+- [Billing](#billing)
+  - [Q: How do I analyze the costs?](#q-how-do-i-analyze-the-costs)
+
 ## Inference Script Logs
 
 ### Q: How do I watch the log of a pod in AKS?
@@ -390,30 +417,9 @@ az aks nodepool scale --resource-group LiveSRKWNotificationSystem --cluster-name
 az aks nodepool scale --resource-group LiveSRKWNotificationSystem --cluster-name inference-system-AKS --name f4sv2pool --node-count 2
 ```
 
-## Quotas
-
-```powershell
->  az aks nodepool scale --resource-group LiveSRKWNotificationSystem --cluster-name inference-system-AKS --name f4sv2pool --node-count 3
-(ErrCode_InsufficientVCPUQuota) Insufficient vcpu quota requested 4, remaining 2 for family standardFSv2Family for region westus2. If you want to increase the quota, please follow this instruction: https://learn.microsoft.com/en-us/azure/quotas/view-quotas. Surge nodes would also consume vcpu quota, please consider use smaller maxSurge or use maxUnavailable to proceed upgrade without surge nodes, details: aka.ms/aks/maxUnavailable.
-Code: ErrCode_InsufficientVCPUQuota
-Message: Insufficient vcpu quota requested 4, remaining 2 for family standardFSv2Family for region westus2. If you want to increase the quota, please follow this instruction: https://learn.microsoft.com/en-us/azure/quotas/view-quotas. Surge nodes would also consume vcpu quota, please consider use smaller maxSurge or use maxUnavailable to proceed upgrade without surge nodes, details: aka.ms/aks/maxUnavailable.
-
-> kubectl get nodes -o json |
-  ConvertFrom-Json |
-  Select-Object -ExpandProperty items |
-  ForEach-Object {
-    $nodeName = $_.metadata.name
-    $diskPressure = $_.status.conditions | Where-Object { $_.type -eq "DiskPressure" }
-    [PSCustomObject]@{
-      Node               = $nodeName
-      Status             = $diskPressure.status
-      LastTransitionTime = $diskPressure.lastTransitionTime
-      Message            = $diskPressure.message
-    }
-  } | Format-Table -AutoSize
-```
- 
 ## Billing
+
+### Q: How do I analyze the costs?
 
 1. Log into [portal.azure.com](https://portal.azure.com/)
 2. Click "Subscriptions" and then "Microsoft Azure Sponsorship 2"
