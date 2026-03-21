@@ -25,7 +25,7 @@ print(f"Orca detected: {result.global_prediction}")
 print(f"Confidence: {result.global_confidence:.2f}")
 ```
 
-For more details see [MODEL_CARD.md](model/MODEL_CARD.md) for usage, and [DEVELOPMENT.md](DEVELOPMENT.md#model-development--config) for development & convenience scripts.
+For more details see [MODEL_CARD.md](model/MODEL_CARD.md) for usage, and [DEVELOPMENT.md](DEVELOPMENT.md#model-inference) for development & convenience scripts.
 
 ## Quick Start: Live Inference Orchestrator
 
@@ -54,7 +54,7 @@ Since this is a test meant to run locally, `upload_to_azure` within `orch_config
 2026-03-20 15:38:00,577 INFO Segment: folder=1773990017, indices=[5614:5620), start=2026-03-20T22:35:59Z, duration=60.0s
 2026-03-20 15:38:02,144 INFO Processing clip: rpi-north-sjc_2026_03_20_15_35_59_PDT.wav, start_timestamp=2026-03-20T22:35:59Z
 2026-03-20 15:38:02,662 DEBUG Generated spectrogram: wav_dir/rpi-north-sjc_2026_03_20_15_35_59_PDT.png
-/Users/Akash/SideProjects/ai4orcas/orcahello/InferenceSystem/.venv/lib/python3.11/site-packages/torchaudio/functional/functional.py:582: UserWarning: At least one mel filterbank has all zero values. The value for `n_mels` (256) may be set too high. Or, the value for `n_freqs` (1281) may be set too low.
+.../.venv/lib/python3.11/site-packages/torchaudio/functional/functional.py:582: UserWarning: At least one mel filterbank has all zero values. The value for `n_mels` (256) may be set too high. Or, the value for `n_freqs` (1281) may be set too low.
   warnings.warn(
 
 === Performance ===
