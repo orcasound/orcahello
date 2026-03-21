@@ -32,8 +32,10 @@ prod = [
     "azure-storage-blob==12.28.0",
     # App Insights logging
     "opencensus-ext-azure==1.1.15",
-    # HLS stream utilities
-    "orca-hls-utils==0.0.4",
+    # HLS segment download and conversion
+    "ffmpeg-python==0.2.0",
+    "m3u8==6.0.0",
+    "boto3==1.42.70",
     # Timezone handling
     "pytz==2025.2",
     # Spectrogram generation

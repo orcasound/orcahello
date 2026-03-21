@@ -8,7 +8,8 @@ model_config_overrides:
   global_prediction:
     pred_global_threshold: 0.6
 hls_stream_type: "LiveHLS"
-hls_polling_interval: 60
 hls_hydrophone_id: "rpi_orcasound_lab"
+hls_live_delay_buffer: 60
+inference_segment_size: 60
 upload_to_azure: false
 delete_local_wavs: true

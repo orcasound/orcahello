@@ -10,7 +10,8 @@ data:
     model_hf_repo_id: "orcasound/orcahello-srkw-detector-v1"
     model_config_path: "./model/config.yaml"
     hls_stream_type: "LiveHLS"
-    hls_polling_interval: 60
+    hls_live_delay_buffer: 60
+    inference_segment_size: 60
     hls_hydrophone_id: "rpi_port_townsend"
     upload_to_azure: true
     delete_local_wavs: true
