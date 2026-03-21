@@ -206,7 +206,7 @@ docker run --rm -it --env-file .env ^
   --max_live_iterations 2
 ```
 
-The GitHub repository contains a workflow [`InferenceSystem-deploy.yaml`](.github/workflows/InferenceSystem-deploy.yaml) that automatically builds and pushes the latest image to ACR when the main branch is tagged with a tag of the form `InferenceSystem.v#.#.#`.
+The GitHub repository contains a workflow [`InferenceSystem-deploy.yaml`](../.github/workflows/InferenceSystem-deploy.yaml) that automatically builds and pushes the latest image to ACR when the main branch is tagged with a tag of the form `InferenceSystem.v#.#.#`.
 
 
 ### Deployment
@@ -355,7 +355,7 @@ Ask an existing maintainer for the file `deploy-aci-with-creds.yaml` or change s
 4. `<image_registry_password>` - Found in the [Azure portal](https://portal.azure.com/#@OrcaConservancy778.onmicrosoft.com/resource/subscriptions/9ffa543e-3596-43aa-b82c-8f41dfbf03cc/resourcegroups/LiveSRKWNotificationSystem/providers/Microsoft.ContainerRegistry/registries/orcaconservancycr/accessKey) under `password`.
 
 ```bash
-az container create -g LiveSRKWNotificationSystem -f .\deploy-aci.yaml
+az container create -g LiveSRKWNotificationSystem -f ./deploy-aci.yaml
 ```
 
 Verify:
