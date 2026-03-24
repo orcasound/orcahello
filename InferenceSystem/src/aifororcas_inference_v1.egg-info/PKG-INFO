@@ -1,0 +1,16 @@
+Metadata-Version: 2.4
+Name: aifororcas-inference-v1
+Version: 1.0.0
+Requires-Python: >=3.11
+Requires-Dist: torch==2.9.1
+Requires-Dist: torchaudio==2.9.1
+Requires-Dist: torchvision==0.24.1
+Requires-Dist: librosa==0.11.0
+Requires-Dist: soundfile==0.13.1
+Requires-Dist: scipy==1.17.0
+Requires-Dist: numpy==2.3.5
+Requires-Dist: pyyaml==6.0.3
+Requires-Dist: pydub==0.25.1
+Requires-Dist: huggingface-hub==1.3.1
+Requires-Dist: safetensors==0.7.0
+Requires-Dist: python-dotenv==1.2.2
