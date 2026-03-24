@@ -1,3 +1,4 @@
+*.egg-info/
 inference-venv
 model-v1-venv
 .env
