@@ -384,8 +384,7 @@ def _process_segment(
         extra={"custom_dimensions": {"Hydrophone ID": hls_hydrophone_id}},
     )
 
-    # Generate spectrogram only when it will be used: positive detection or
-    # when local files are being kept (delete_local_wavs is False).
+    # Generate spectrogram only when it will be used.
     if result.global_prediction == 1 or not orch_config["delete_local_wavs"]:
         spectrogram_path = spectrogram_visualizer.write_spectrogram(clip_path)
         logger.debug(f"Generated spectrogram: {spectrogram_path}")
