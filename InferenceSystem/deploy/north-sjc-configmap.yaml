@@ -19,4 +19,4 @@ data:
       inference:
         max_batch_size: 2
       global_prediction:
-        pred_global_threshold: 0.9  # Raised from 0.6 for north-sjc to reduce persistent false positives from chain jingle
+        pred_global_threshold: 0.95  # Raised from 0.6 for north-sjc to reduce persistent false positives from chain jingle

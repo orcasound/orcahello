@@ -374,8 +374,6 @@ def _process_segment(
     )
 
     # --- Run inference ---
-    spectrogram_path = spectrogram_visualizer.write_spectrogram(clip_path)
-    logger.debug(f"Generated spectrogram: {spectrogram_path}")
     result = model.detect_srkw_from_file(clip_path, model_config)
     result.print_summary(verbose=False)
 
@@ -385,6 +383,13 @@ def _process_segment(
         f"positive_segments={sum(result.local_predictions)}/{len(result.local_predictions)}",
         extra={"custom_dimensions": {"Hydrophone ID": hls_hydrophone_id}},
     )
+
+    # Generate spectrogram only when it will be used.
+    if result.global_prediction == 1 or not orch_config["delete_local_wavs"]:
+        spectrogram_path = spectrogram_visualizer.write_spectrogram(clip_path)
+        logger.debug(f"Generated spectrogram: {spectrogram_path}")
+    else:
+        spectrogram_path = None
 
     if result.global_prediction == 1:
         logger.info(
@@ -416,8 +421,11 @@ def _process_segment(
 
     if orch_config["delete_local_wavs"]:
         os.remove(clip_path)
-        os.remove(spectrogram_path)
-        logger.debug(f"Deleted local files: {clip_path}, {spectrogram_path}")
+        deleted = [clip_path]
+        if spectrogram_path is not None:
+            os.remove(spectrogram_path)
+            deleted.append(spectrogram_path)
+        logger.debug(f"Deleted local files: {', '.join(deleted)}")
 
 
 def run_loop(
