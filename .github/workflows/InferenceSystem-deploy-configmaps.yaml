@@ -22,7 +22,7 @@ jobs:
   deploy-configmaps:
     runs-on: ubuntu-latest
     steps:
-      - uses: step-security/harden-runner@58077d3c7e43986b6b15fba718e8ea69e387dfcc  # v2.15.1
+      - uses: step-security/harden-runner@fe104658747b27e96e4f7e80cd0a94068e53901d  # v2.16.1
         with:
           egress-policy: audit
 
@@ -32,7 +32,7 @@ jobs:
           fetch-depth: 2
 
       - name: Set up kubectl
-        uses: azure/setup-kubectl@776406bce94f63e41d621b960d78ee25c8b76ede  # v4.0.1
+        uses: azure/setup-kubectl@15650b3ad78fff148532a140b8a4c821796b2d7b  # v5.0.0
 
       - name: Set Kubernetes context
         uses: azure/k8s-set-context@2f6bfda1e23e1a8cdfcfabbc0eded32c9d4a7390  # v4.0.1
