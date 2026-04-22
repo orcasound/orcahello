@@ -21,6 +21,10 @@ from pytz import timezone as pytz_tz
 
 FOLDER_TO_AUDIO_OFFSET = 2.0
 
+# urlretrieve() has no timeout kwarg and Python's default socket timeout is
+# None (infinite) — a silent S3 connection drop would hang the loop forever.
+_TS_DOWNLOAD_TIMEOUT_S = 30
+
 
 @dataclass(frozen=True)
 class OrcasoundHLSSegment:
@@ -86,7 +90,8 @@ class OrcasoundHLSSegment:
             fname = os.path.basename(url)
             dest = os.path.join(dest_dir, fname)
             if not os.path.isfile(dest):
-                urllib.request.urlretrieve(url, dest)
+                with urllib.request.urlopen(url, timeout=_TS_DOWNLOAD_TIMEOUT_S) as resp, open(dest, "wb") as out:
+                    shutil.copyfileobj(resp, out)
             filenames.append(fname)
         return filenames
 
