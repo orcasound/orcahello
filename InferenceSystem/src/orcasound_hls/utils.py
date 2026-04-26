@@ -136,8 +136,7 @@ def m3u8_exists(bucket: str, hydrophone_id: str, folder_epoch: int) -> bool:
 def load_hls_playlist(bucket: str, hydrophone_id: str, folder_epoch: int):
     """Load an M3U8 playlist and return its segment list."""
     url = m3u8_url(bucket, hydrophone_id, folder_epoch)
-    # Explicit timeout: m3u8.load defaults to None (infinite) and a silent S3
-    # connection drop would hang the loop forever.
+    # Explicit timeout: m3u8.load defaults to None (infinite)
     stream_obj = m3u8.load(url, timeout=30)
     return stream_obj.segments
 
