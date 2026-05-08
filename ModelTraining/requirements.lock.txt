@@ -55,7 +55,7 @@ MarkupSafe==2.1.5
 matplotlib==3.7.5
 matplotlib-inline==0.1.7
 mdurl==0.1.2
-mistune==3.0.2
+mistune==3.2.1
 msgpack==1.1.0
 murmurhash==1.0.10
 nbclient==0.10.0
