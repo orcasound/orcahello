@@ -277,7 +277,7 @@ kubectl apply -f deploy/$NAMESPACE.yaml
 
 # 3. Verify
 kubectl get pods -n $NAMESPACE
-kubectl logs -n $NAMESPACE <pod-name>
+kubectl logs -n $NAMESPACE -l app=inference-system
 ```
 
 </details>
