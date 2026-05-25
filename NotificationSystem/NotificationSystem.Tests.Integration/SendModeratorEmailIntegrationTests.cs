@@ -12,34 +12,43 @@ namespace NotificationSystem.Tests.Integration
         [Fact]
         public async Task ProcessDocumentsAsync_SendsEmail_ForUnreviewedDetection()
         {
+            string? previousSenderEmail = Environment.GetEnvironmentVariable("SenderEmail");
             Environment.SetEnvironmentVariable("SenderEmail", "sender@example.com");
-            var emailServiceMock = new Mock<IEmailService>();
-            emailServiceMock.Setup(x => x.SendEmailAsync(It.IsAny<SendEmailRequest>()))
-                .Returns(Task.CompletedTask);
 
-            var loggerMock = new Mock<ILogger<SendModeratorEmail>>();
-            var function = new SendModeratorEmail(loggerMock.Object, emailServiceMock.Object);
-
-            var input = new List<JsonElement>
+            try
             {
-                JsonSerializer.SerializeToElement(new
+                var emailServiceMock = new Mock<IEmailService>();
+                emailServiceMock.Setup(x => x.SendEmailAsync(It.IsAny<SendEmailRequest>()))
+                    .Returns(Task.CompletedTask);
+
+                var loggerMock = new Mock<ILogger<SendModeratorEmail>>();
+                var function = new SendModeratorEmail(loggerMock.Object, emailServiceMock.Object);
+
+                var input = new List<JsonElement>
                 {
-                    reviewed = false,
-                    timestamp = DateTime.UtcNow,
-                    location = new { name = "Mast Center" }
-                })
-            };
-            var recipients = new List<ModeratorEmailEntity> { new("moderator@example.com") };
+                    JsonSerializer.SerializeToElement(new
+                    {
+                        reviewed = false,
+                        timestamp = DateTime.UtcNow,
+                        location = new { name = "Mast Center" }
+                    })
+                };
+                var recipients = new List<ModeratorEmailEntity> { new("moderator@example.com") };
 
-            bool ok = await function.ProcessDocumentsAsync(input, recipients);
+                bool ok = await function.ProcessDocumentsAsync(input, recipients);
 
-            Assert.True(ok);
-            emailServiceMock.Verify(
-                x => x.SendEmailAsync(It.Is<SendEmailRequest>(request =>
-                    request.Source == "sender@example.com" &&
-                    request.Destination.ToAddresses.Contains("moderator@example.com") &&
-                    request.Message.Subject.Data.Contains("Mast Center"))),
-                Times.Once);
+                Assert.True(ok);
+                emailServiceMock.Verify(
+                    x => x.SendEmailAsync(It.Is<SendEmailRequest>(request =>
+                        request.Source == "sender@example.com" &&
+                        request.Destination.ToAddresses.Contains("moderator@example.com") &&
+                        request.Message.Subject.Data.Contains("Mast Center"))),
+                    Times.Once);
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("SenderEmail", previousSenderEmail);
+            }
         }
 
         [Fact]
@@ -72,33 +81,42 @@ namespace NotificationSystem.Tests.Integration
         [Fact]
         public async Task ProcessDocumentsAsync_SendsEmail_WhenReviewedFieldMissing()
         {
+            string? previousSenderEmail = Environment.GetEnvironmentVariable("SenderEmail");
             Environment.SetEnvironmentVariable("SenderEmail", "sender@example.com");
-            var emailServiceMock = new Mock<IEmailService>();
-            emailServiceMock.Setup(x => x.SendEmailAsync(It.IsAny<SendEmailRequest>()))
-                .Returns(Task.CompletedTask);
 
-            var loggerMock = new Mock<ILogger<SendModeratorEmail>>();
-            var function = new SendModeratorEmail(loggerMock.Object, emailServiceMock.Object);
-
-            var input = new List<JsonElement>
+            try
             {
-                JsonSerializer.SerializeToElement(new
+                var emailServiceMock = new Mock<IEmailService>();
+                emailServiceMock.Setup(x => x.SendEmailAsync(It.IsAny<SendEmailRequest>()))
+                    .Returns(Task.CompletedTask);
+
+                var loggerMock = new Mock<ILogger<SendModeratorEmail>>();
+                var function = new SendModeratorEmail(loggerMock.Object, emailServiceMock.Object);
+
+                var input = new List<JsonElement>
                 {
-                    timestamp = DateTime.UtcNow,
-                    location = new { name = "Bush Point" }
-                })
-            };
-            var recipients = new List<ModeratorEmailEntity> { new("moderator@example.com") };
+                    JsonSerializer.SerializeToElement(new
+                    {
+                        timestamp = DateTime.UtcNow,
+                        location = new { name = "Bush Point" }
+                    })
+                };
+                var recipients = new List<ModeratorEmailEntity> { new("moderator@example.com") };
 
-            bool ok = await function.ProcessDocumentsAsync(input, recipients);
+                bool ok = await function.ProcessDocumentsAsync(input, recipients);
 
-            Assert.True(ok);
-            emailServiceMock.Verify(
-                x => x.SendEmailAsync(It.Is<SendEmailRequest>(request =>
-                    request.Source == "sender@example.com" &&
-                    request.Destination.ToAddresses.Contains("moderator@example.com") &&
-                    request.Message.Subject.Data.Contains("Bush Point"))),
-                Times.Once);
+                Assert.True(ok);
+                emailServiceMock.Verify(
+                    x => x.SendEmailAsync(It.Is<SendEmailRequest>(request =>
+                        request.Source == "sender@example.com" &&
+                        request.Destination.ToAddresses.Contains("moderator@example.com") &&
+                        request.Message.Subject.Data.Contains("Bush Point"))),
+                    Times.Once);
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("SenderEmail", previousSenderEmail);
+            }
         }
     }
 }
