@@ -35,9 +35,8 @@ namespace NotificationSystem.Tests.Integration
                 };
                 var recipients = new List<ModeratorEmailEntity> { new("moderator@example.com") };
 
-                bool ok = await function.ProcessDocumentsAsync(input, recipients);
+                await function.ProcessDocumentsAsync(input, recipients);
 
-                Assert.True(ok);
                 emailServiceMock.Verify(
                     x => x.SendEmailAsync(It.Is<SendEmailRequest>(request =>
                         request.Source == "sender@example.com" &&
@@ -72,9 +71,8 @@ namespace NotificationSystem.Tests.Integration
             };
             var recipients = new List<ModeratorEmailEntity> { new("moderator@example.com") };
 
-            bool ok = await function.ProcessDocumentsAsync(input, recipients);
+            await function.ProcessDocumentsAsync(input, recipients);
 
-            Assert.True(ok);
             emailServiceMock.Verify(x => x.SendEmailAsync(It.IsAny<SendEmailRequest>()), Times.Never);
         }
 
@@ -103,9 +101,8 @@ namespace NotificationSystem.Tests.Integration
                 };
                 var recipients = new List<ModeratorEmailEntity> { new("moderator@example.com") };
 
-                bool ok = await function.ProcessDocumentsAsync(input, recipients);
+                await function.ProcessDocumentsAsync(input, recipients);
 
-                Assert.True(ok);
                 emailServiceMock.Verify(
                     x => x.SendEmailAsync(It.Is<SendEmailRequest>(request =>
                         request.Source == "sender@example.com" &&

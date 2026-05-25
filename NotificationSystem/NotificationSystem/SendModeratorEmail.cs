@@ -25,14 +25,14 @@ namespace NotificationSystem
             _emailService = emailService;
         }
 
-        public async Task<bool> ProcessDocumentsAsync(
+        public async Task ProcessDocumentsAsync(
             IReadOnlyList<JsonElement> input,
             IEnumerable<ModeratorEmailEntity> emailEntities)
         {
             if (input == null || input.Count == 0)
             {
                 _logger.LogInformation("No updated records");
-                return true;
+                return;
             }
 
             var newDocumentCreated = false;
@@ -53,7 +53,7 @@ namespace NotificationSystem
             if (!newDocumentCreated)
             {
                 _logger.LogInformation("No unreviewed records");
-                return true;
+                return;
             }
 
             string body = EmailTemplate.GetModeratorEmailBody(documentTimeStamp, location);
@@ -68,8 +68,6 @@ namespace NotificationSystem
                     emailEntity.Email, emailSubject, body);
                 await _emailService.SendEmailAsync(email);
             }
-
-            return true;
         }
 
         private static bool HasUnreviewedRecords(IReadOnlyList<JsonElement> input)
