@@ -77,7 +77,7 @@ namespace NotificationSystem
         {
             foreach (var document in input)
             {
-                if (document.GetProperty("reviewed").ValueKind != JsonValueKind.True)
+                if (!document.TryGetProperty("reviewed", out JsonElement reviewed) || reviewed.ValueKind != JsonValueKind.True)
                 {
                     return true;
                 }
