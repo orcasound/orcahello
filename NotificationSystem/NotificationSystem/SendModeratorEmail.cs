@@ -41,9 +41,8 @@ namespace NotificationSystem
 
             foreach (var document in input)
             {
-                // Check whether the "reviewed" property exists.
-                JsonElement reviewed = document.GetProperty("reviewed");
-                if (reviewed.ValueKind != JsonValueKind.True)
+                if (!document.TryGetProperty("reviewed", out JsonElement reviewed) ||
+                    reviewed.ValueKind != JsonValueKind.True)
                 {
                     newDocumentCreated = true;
                     documentTimeStamp = document.GetProperty("timestamp").GetDateTime();
@@ -77,7 +76,8 @@ namespace NotificationSystem
         {
             foreach (var document in input)
             {
-                if (!document.TryGetProperty("reviewed", out JsonElement reviewed) || reviewed.ValueKind != JsonValueKind.True)
+                if (!document.TryGetProperty("reviewed", out JsonElement reviewed) ||
+                    reviewed.ValueKind != JsonValueKind.True)
                 {
                     return true;
                 }
