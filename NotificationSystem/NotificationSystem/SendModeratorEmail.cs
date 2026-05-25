@@ -1,5 +1,3 @@
-using Amazon;
-using Amazon.SimpleEmail;
 using Azure.Data.Tables;
 using ComposableAsync;
 using Microsoft.Azure.Functions.Worker;
@@ -18,28 +16,23 @@ namespace NotificationSystem
     public class SendModeratorEmail
     {
         private readonly ILogger _logger;
+        private readonly IEmailService _emailService;
         const int SendRate = 14;
 
-        public SendModeratorEmail(ILogger<SendModeratorEmail> logger)
+        public SendModeratorEmail(ILogger<SendModeratorEmail> logger, IEmailService emailService)
         {
             _logger = logger;
+            _emailService = emailService;
         }
 
-        [Function("SendModeratorEmail")]
-        public async Task Run(
-            [CosmosDBTrigger(
-                databaseName: "predictions",
-                containerName: "metadata",
-                Connection = "aifororcasmetadatastore_DOCUMENTDB",
-                LeaseContainerName = "leases",
-                LeaseContainerPrefix = "moderator",
-                CreateLeaseContainerIfNotExists = true)] IReadOnlyList<JsonElement> input,
-            [TableInput("EmailList", Connection = "OrcaNotificationStorageSetting")] TableClient tableClient)
+        public async Task<bool> ProcessDocumentsAsync(
+            IReadOnlyList<JsonElement> input,
+            IEnumerable<ModeratorEmailEntity> emailEntities)
         {
             if (input == null || input.Count == 0)
             {
                 _logger.LogInformation("No updated records");
-                return;
+                return true;
             }
 
             var newDocumentCreated = false;
@@ -61,22 +54,63 @@ namespace NotificationSystem
             if (!newDocumentCreated)
             {
                 _logger.LogInformation("No unreviewed records");
-                return;
+                return true;
             }
 
             string body = EmailTemplate.GetModeratorEmailBody(documentTimeStamp, location);
 
             var timeConstraint = TimeLimiter.GetFromMaxCountByInterval(SendRate, TimeSpan.FromSeconds(1));
-            var aws = new AmazonSimpleEmailServiceClient(RegionEndpoint.USWest2);
             _logger.LogInformation("Retrieving email list and sending notifications");
-            foreach (var emailEntity in await EmailHelpers.GetEmailEntitiesAsync<ModeratorEmailEntity>(tableClient, "Moderator"))
+            foreach (var emailEntity in emailEntities)
             {
                 await timeConstraint;
                 string emailSubject = $"OrcaHello Candidate at location {(string.IsNullOrEmpty(location) ? "Unknown" : location)}";
                 var email = EmailHelpers.CreateEmail(Environment.GetEnvironmentVariable("SenderEmail"),
                     emailEntity.Email, emailSubject, body);
-                await aws.SendEmailAsync(email);
+                await _emailService.SendEmailAsync(email);
             }
+
+            return true;
+        }
+
+        private static bool HasUnreviewedRecords(IReadOnlyList<JsonElement> input)
+        {
+            foreach (var document in input)
+            {
+                if (document.GetProperty("reviewed").ValueKind != JsonValueKind.True)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        [Function("SendModeratorEmail")]
+        public async Task Run(
+            [CosmosDBTrigger(
+                databaseName: "predictions",
+                containerName: "metadata",
+                Connection = "aifororcasmetadatastore_DOCUMENTDB",
+                LeaseContainerName = "leases",
+                LeaseContainerPrefix = "moderator",
+                CreateLeaseContainerIfNotExists = true)] IReadOnlyList<JsonElement> input,
+            [TableInput("EmailList", Connection = "OrcaNotificationStorageSetting")] TableClient tableClient)
+        {
+            if (input == null || input.Count == 0)
+            {
+                _logger.LogInformation("No updated records");
+                return;
+            }
+
+            if (!HasUnreviewedRecords(input))
+            {
+                _logger.LogInformation("No unreviewed records");
+                return;
+            }
+
+            var emailEntities = await EmailHelpers.GetEmailEntitiesAsync<ModeratorEmailEntity>(tableClient, "Moderator");
+            await ProcessDocumentsAsync(input, emailEntities);
         }
     }
 }

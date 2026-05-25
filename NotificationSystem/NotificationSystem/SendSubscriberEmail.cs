@@ -1,5 +1,3 @@
-using Amazon;
-using Amazon.SimpleEmail;
 using Azure.Data.Tables;
 using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
@@ -15,6 +13,7 @@ using NotificationSystem.Utilities;
 using RateLimiter;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -25,13 +24,40 @@ namespace NotificationSystem
         private readonly ILogger _logger;
         private readonly OrcasiteHelper _orcasiteHelper;
         private readonly IConfiguration _configuration;
+        private readonly IEmailService _emailService;
         const int SendRate = 14;
 
-        public SendSubscriberEmail(ILogger<SendSubscriberEmail> logger, OrcasiteHelper orcasiteHelper, IConfiguration configuration)
+        public SendSubscriberEmail(ILogger<SendSubscriberEmail> logger, OrcasiteHelper orcasiteHelper, IConfiguration configuration, IEmailService emailService)
         {
             _logger = logger;
             _orcasiteHelper = orcasiteHelper;
             _configuration = configuration;
+            _emailService = emailService;
+        }
+
+        public async Task ProcessMessagesAsync(
+            List<JObject> messages,
+            IEnumerable<SubscriberEmailEntity> emailEntities)
+        {
+            var subscribers = emailEntities.ToList();
+            var timeConstraint = TimeLimiter.GetFromMaxCountByInterval(SendRate, TimeSpan.FromSeconds(1));
+            _logger.LogInformation("Retrieving email list and sending notifications");
+            foreach (var message in messages)
+            {
+                string location = EmailTemplate.GetLocation(message);
+                string emailSubject = EmailTemplate.GetSubscriberEmailSubject(location);
+                string body = CreateBody(message);
+                foreach (var emailEntity in subscribers)
+                {
+                    await timeConstraint;
+                    var email = EmailHelpers.CreateEmail(
+                        Environment.GetEnvironmentVariable("SenderEmail"),
+                        emailEntity.Email,
+                        emailSubject,
+                        body);
+                    await _emailService.SendEmailAsync(email);
+                }
+            }
         }
 
         [Function("SendSubscriberEmail")]
@@ -58,25 +84,8 @@ namespace NotificationSystem
             _logger.LogInformation("Creating email message");
             List<JObject> messages = await GetMessages(queueClient);
 
-            var timeConstraint = TimeLimiter.GetFromMaxCountByInterval(SendRate, TimeSpan.FromSeconds(1));
-            var aws = new AmazonSimpleEmailServiceClient(RegionEndpoint.USWest2);
-            _logger.LogInformation("Retrieving email list and sending notifications");
-            foreach (var message in messages)
-            {
-                string location = EmailTemplate.GetLocation(message);
-                string emailSubject = EmailTemplate.GetSubscriberEmailSubject(location);
-                string body = CreateBody(message);
-                foreach (var emailEntity in await EmailHelpers.GetEmailEntitiesAsync<SubscriberEmailEntity>(tableClient, "Subscriber"))
-                {
-                    await timeConstraint;
-                    var email = EmailHelpers.CreateEmail(
-                        Environment.GetEnvironmentVariable("SenderEmail"),
-                        emailEntity.Email,
-                        emailSubject,
-                        body);
-                    await aws.SendEmailAsync(email);
-                }
-            }
+            var emailEntities = await EmailHelpers.GetEmailEntitiesAsync<SubscriberEmailEntity>(tableClient, "Subscriber");
+            await ProcessMessagesAsync(messages, emailEntities);
         }
 
         private async Task<List<JObject>> GetMessages(QueueClient queueClient)
