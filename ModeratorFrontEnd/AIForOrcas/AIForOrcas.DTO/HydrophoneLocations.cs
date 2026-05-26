@@ -23,11 +23,6 @@ namespace AIForOrcas.DTO
         };
 
         /// <summary>
-        /// Dictionary mapping location names to hydrophone IDs.
-        /// </summary>
-        public static IReadOnlyDictionary<string, string> LocationToIdMap => _locationToIdMap;
-
-        /// <summary>
         /// Initializes the hydrophone location map from an API or other source.
         /// Should be called once at application startup.
         /// </summary>
@@ -54,10 +49,5 @@ namespace AIForOrcas.DTO
         /// Gets all available location names.
         /// </summary>
         public static IEnumerable<string> Locations => _locationToIdMap.Keys;
-
-        /// <summary>
-        /// Gets all available hydrophone IDs.
-        /// </summary>
-        public static IEnumerable<string> HydrophoneIds => _locationToIdMap.Values;
     }
 }
