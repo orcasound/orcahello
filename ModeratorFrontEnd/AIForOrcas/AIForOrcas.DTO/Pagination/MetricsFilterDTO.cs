@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 
 namespace AIForOrcas.DTO
@@ -17,7 +16,7 @@ namespace AIForOrcas.DTO
 		[DataMember]
 		public string Timeframe { get; set; }
 
-		[BindNever]
+		[JsonIgnore]
 		public virtual string QueryString => $"timeframe={Timeframe}";
 	}
 }
