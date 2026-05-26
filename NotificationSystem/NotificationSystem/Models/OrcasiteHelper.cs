@@ -1,4 +1,5 @@
-﻿using Amazon;
+﻿using AIForOrcas.DTO;
+using Amazon;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Microsoft.Extensions.Configuration;
@@ -108,11 +109,15 @@ namespace NotificationSystem.Models
             if (_orcasiteFeedsArray == null)
             {
                 _orcasiteApiKey = configuration["ORCASITE_APIKEY"];
-                _orcasiteHostname = configuration["ORCASITE_HOSTNAME"] ?? "beta.orcasound.net";
+                _orcasiteHostname = configuration["ORCASITE_HOSTNAME"] ?? "live.orcasound.net";
                 _orcasiteFeedsArray = await GetDataArrayAsync(OrcasiteGetFeedsUri);
                 if (_orcasiteFeedsArray == null)
                 {
                     _logger.LogError("Failed to retrieve orcasite feeds.");
+                }
+                else
+                {
+                    HydrophoneLocations.Initialize(GetLocationToHydrophoneIdMap(_orcasiteFeedsArray.Value));
                 }
 
                 string? currentEpochStart = configuration["CURRENT_EPOCH_START"];
@@ -125,6 +130,40 @@ namespace NotificationSystem.Models
                 }
             }
             _initialized = true;
+        }
+
+        private static IReadOnlyDictionary<string, string> GetLocationToHydrophoneIdMap(JsonElement feedsArray)
+        {
+            var locationToIdMap = new Dictionary<string, string>();
+
+            foreach (JsonElement feed in feedsArray.EnumerateArray())
+            {
+                if (!feed.TryGetProperty("attributes", out var attributes) || attributes.ValueKind != JsonValueKind.Object)
+                {
+                    continue;
+                }
+
+                if (!attributes.TryGetProperty("name", out var locationNameElement) || locationNameElement.ValueKind != JsonValueKind.String)
+                {
+                    continue;
+                }
+
+                if (!attributes.TryGetProperty("node_name", out var hydrophoneIdElement) || hydrophoneIdElement.ValueKind != JsonValueKind.String)
+                {
+                    continue;
+                }
+
+                string locationName = locationNameElement.GetString();
+                string hydrophoneId = hydrophoneIdElement.GetString();
+                if (string.IsNullOrWhiteSpace(locationName) || string.IsNullOrWhiteSpace(hydrophoneId))
+                {
+                    continue;
+                }
+
+                locationToIdMap[locationName] = hydrophoneId;
+            }
+
+            return locationToIdMap;
         }
 
         /// <summary>

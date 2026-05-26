@@ -24,4 +24,7 @@
     <PackageReference Include="RateLimiter" Version="2.2.0" />
     <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\ModeratorFrontEnd\AIForOrcas\AIForOrcas.DTO\AIForOrcas.DTO.csproj" />
+  </ItemGroup>
 </Project>
