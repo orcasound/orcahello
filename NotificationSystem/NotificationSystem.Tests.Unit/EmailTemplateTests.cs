@@ -66,7 +66,7 @@ namespace NotificationSystem.Tests.Unit
                 .Select(locationName => new object[]
                 {
                     locationName,
-                    $"{GetExpectedSlug(locationName)}.jpg"
+                    $"{GetExpectedFileName(locationName)}.jpg"
                 });
 
         /// <summary>
@@ -293,14 +293,12 @@ namespace NotificationSystem.Tests.Unit
             Assert.Null(location);
         }
 
-        private static string GetExpectedSlug(string locationName)
+        private static string GetExpectedFileName(string locationName)
         {
-            if (locationName == "North San Juan Channel")
-            {
-                return "north-sjc";
-            }
+            string hydrophoneId = HydrophoneLocations.GetIdByLocation(locationName)
+                ?? throw new InvalidOperationException($"No hydrophone ID found for location '{locationName}'.");
 
-            return locationName.ToLowerInvariant().Replace(" ", "-");
+            return hydrophoneId.Replace("rpi_", string.Empty).Replace('_', '-');
         }
     }
 }
