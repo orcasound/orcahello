@@ -1,10 +1,12 @@
+using AIForOrcas.DTO;
+using Microsoft.Extensions.Logging;
+using Moq;
 using Newtonsoft.Json.Linq;
 using NotificationSystem.Models;
 using NotificationSystem.Template;
 using System;
 using System.Collections.Generic;
-using Microsoft.Extensions.Logging;
-using Moq;
+using System.Linq;
 
 namespace NotificationSystem.Tests.Unit
 {
@@ -16,14 +18,7 @@ namespace NotificationSystem.Tests.Unit
         /// Uses mocked OrcasiteHelper to simulate production behavior.
         /// </summary>
         [Theory]
-        [InlineData("Sunset Bay", "sunset-bay.jpg")]
-        [InlineData("Mast Center", "mast-center.jpg")]
-        [InlineData("North San Juan Channel", "north-sjc.jpg")]
-        [InlineData("Point Robinson", "point-robinson.jpg")]
-        [InlineData("Bush Point", "bush-point.jpg")]
-        [InlineData("Haro Strait", "haro-strait.jpg")]
-        [InlineData("Port Townsend", "port-townsend.jpg")]
-        [InlineData("Orcasound Lab", "orcasound-lab.jpg")]
+        [MemberData(nameof(HydrophoneLocationMapUriData))]
         public void GetSubscriberEmailBody_GeneratesCorrectMapUri_ForLocationName(string locationName, string expectedFileName)
         {
             // Arrange
@@ -65,6 +60,14 @@ namespace NotificationSystem.Tests.Unit
             // Assert
             Assert.Contains(expectedMapUrl, emailBody);
         }
+
+        public static IEnumerable<object[]> HydrophoneLocationMapUriData =>
+            HydrophoneLocations.Locations
+                .Select(locationName => new object[]
+                {
+                    locationName,
+                    $"{GetExpectedSlug(locationName)}.jpg"
+                });
 
         /// <summary>
         /// Tests that location names with multiple words are correctly converted with hyphens in URIs.
@@ -288,6 +291,16 @@ namespace NotificationSystem.Tests.Unit
 
             // Assert
             Assert.Null(location);
+        }
+
+        private static string GetExpectedSlug(string locationName)
+        {
+            if (locationName == "North San Juan Channel")
+            {
+                return "north-sjc";
+            }
+
+            return locationName.ToLowerInvariant().Replace(" ", "-");
         }
     }
 }
