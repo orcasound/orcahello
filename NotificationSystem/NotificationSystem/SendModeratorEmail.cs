@@ -70,20 +70,6 @@ namespace NotificationSystem
             }
         }
 
-        private static bool HasUnreviewedRecords(IReadOnlyList<JsonElement> input)
-        {
-            foreach (var document in input)
-            {
-                if (!document.TryGetProperty("reviewed", out JsonElement reviewed) ||
-                    reviewed.ValueKind != JsonValueKind.True)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         [Function("SendModeratorEmail")]
         public async Task Run(
             [CosmosDBTrigger(
@@ -98,12 +84,6 @@ namespace NotificationSystem
             if (input == null || input.Count == 0)
             {
                 _logger.LogInformation("No updated records");
-                return;
-            }
-
-            if (!HasUnreviewedRecords(input))
-            {
-                _logger.LogInformation("No unreviewed records");
                 return;
             }
 
