@@ -8,6 +8,7 @@ using NotificationSystem.Utilities;
 
 namespace NotificationSystem.Tests.Integration
 {
+    [Collection(SenderEmailTestCollection.Name)]
     public class SendSubscriberEmailIntegrationTests
     {
         [Fact]

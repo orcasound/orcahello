@@ -7,6 +7,7 @@ using System.Text.Json;
 
 namespace NotificationSystem.Tests.Integration
 {
+    [Collection(SenderEmailTestCollection.Name)]
     public class SendModeratorEmailIntegrationTests
     {
         [Fact]
