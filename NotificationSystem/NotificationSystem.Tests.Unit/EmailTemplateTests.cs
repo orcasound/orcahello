@@ -10,6 +10,8 @@ namespace NotificationSystem.Tests.Unit
 {
     public class EmailTemplateTests
     {
+        #region Subscriber Tests
+
         /// <summary>
         /// Tests that GetSubscriberEmailBody generates correct map URIs for various locations
         /// by verifying the generated HTML contains the expected image URLs.
@@ -21,7 +23,7 @@ namespace NotificationSystem.Tests.Unit
         [InlineData("North San Juan Channel", "north-sjc.jpg")]
         [InlineData("Point Robinson", "point-robinson.jpg")]
         [InlineData("Bush Point", "bush-point.jpg")]
-        [InlineData("Haro Strait", "haro-strait.jpg")]
+        [InlineData("Andrews Bay", "andrews-bay.jpg")]
         [InlineData("Port Townsend", "port-townsend.jpg")]
         [InlineData("Orcasound Lab", "orcasound-lab.jpg")]
         public void GetSubscriberEmailBody_GeneratesCorrectMapUri_ForLocationName(string locationName, string expectedFileName)
@@ -60,7 +62,7 @@ namespace NotificationSystem.Tests.Unit
             string expectedMapUrl = $"https://orcanotificationstorage.blob.core.windows.net/images/{expectedFileName}";
 
             // Act - with OrcasiteHelper as in production
-            string emailBody = EmailTemplate.GetSubscriberEmailBody(message, mockOrcasiteHelper.Object);
+            string emailBody = EmailTemplate.GetSubscriberEmailBody(message, "Southern Resident Killer Whale", mockOrcasiteHelper.Object);
 
             // Assert
             Assert.Contains(expectedMapUrl, emailBody);
@@ -96,7 +98,7 @@ namespace NotificationSystem.Tests.Unit
                 .Returns("north-sjc");
 
             // Act - with OrcasiteHelper as in production
-            string emailBody = EmailTemplate.GetSubscriberEmailBody(message, mockOrcasiteHelper.Object);
+            string emailBody = EmailTemplate.GetSubscriberEmailBody(message, "Southern Resident Killer Whale", mockOrcasiteHelper.Object);
 
             // Assert - the URI should use "north-sjc" from OrcasiteHelper
             Assert.Contains("north-sjc.jpg", emailBody);
@@ -127,7 +129,7 @@ namespace NotificationSystem.Tests.Unit
             });
 
             // Act - without OrcasiteHelper, it falls back to simple transformation
-            string emailBody = EmailTemplate.GetSubscriberEmailBody(message, null);
+            string emailBody = EmailTemplate.GetSubscriberEmailBody(message, "Southern Resident Killer Whale", null);
 
             // Assert - should use simple transformation
             Assert.Contains("sunset-bay.jpg", emailBody);
@@ -157,7 +159,7 @@ namespace NotificationSystem.Tests.Unit
             });
 
             // Act - without OrcasiteHelper, it falls back to simple transformation
-            string emailBody = EmailTemplate.GetSubscriberEmailBody(message, null);
+            string emailBody = EmailTemplate.GetSubscriberEmailBody(message, "Southern Resident Killer Whale", null);
 
             // Assert
             Assert.Contains("Southern Resident Killer Whale Detected", emailBody);
@@ -203,7 +205,7 @@ namespace NotificationSystem.Tests.Unit
                 });
             
             // Act
-            string emailBody = EmailTemplate.GetSubscriberEmailBody(message, mockOrcasiteHelper.Object);
+            string emailBody = EmailTemplate.GetSubscriberEmailBody(message, "Southern Resident Killer Whale", mockOrcasiteHelper.Object);
 
             // Assert - should use "north-sjc" from OrcasiteHelper, not "north-san-juan-channel"
             Assert.Contains("north-sjc.jpg", emailBody);
@@ -234,10 +236,10 @@ namespace NotificationSystem.Tests.Unit
 
             // Act
             string location = EmailTemplate.GetLocation(message);
-            string subject = EmailTemplate.GetSubscriberEmailSubject(location);
+            string subject = EmailTemplate.GetSubscriberEmailSubject("Southern Resident Killer Whale", location);
 
             // Assert
-            Assert.Equal("Notification: Orca detected at location Sunset Bay", subject);
+            Assert.Equal("Notification: Southern Resident Killer Whale detected at location Sunset Bay", subject);
         }
 
         /// <summary>
@@ -263,11 +265,212 @@ namespace NotificationSystem.Tests.Unit
 
             // Act
             string location = EmailTemplate.GetLocation(message);
-            string subject = EmailTemplate.GetSubscriberEmailSubject(location);
+            string subject = EmailTemplate.GetSubscriberEmailSubject("Southern Resident Killer Whale", location);
 
             // Assert
-            Assert.Equal("Notification: Orca detected at location Unknown", subject);
+            Assert.Equal("Notification: Southern Resident Killer Whale detected at location Unknown", subject);
         }
+
+        /// <summary>
+        /// Tests that GetSubscriberEmailSubject handles null location with "Unknown".
+        /// </summary>
+        [Fact]
+        public void GetSubscriberEmailSubject_HandlesNullLocation()
+        {
+            // Arrange
+            string category = "Southern Resident Killer Whale";
+            string location = null;
+
+            // Act
+            string subject = EmailTemplate.GetSubscriberEmailSubject(category, location);
+
+            // Assert
+            Assert.Equal("Notification: Southern Resident Killer Whale detected at location Unknown", subject);
+        }
+        
+        #endregion
+
+        #region Moderator Tests
+
+        /// <summary>
+        /// Tests that GetModeratorEmailBody contains all required sections.
+        /// </summary>
+        [Fact]
+        public void GetModeratorEmailBody_ContainsAllRequiredSections()
+        {
+            // Arrange
+            var testTimestamp = new DateTime(2025, 1, 15, 10, 30, 0, DateTimeKind.Utc);
+            string category = "Southern Resident Killer Whale";
+            string location = "Sunset Bay";
+
+            // Act
+            string emailBody = EmailTemplate.GetModeratorEmailBody(testTimestamp, category, location);
+
+            // Assert
+            Assert.Contains("Southern Resident Killer Whale Call Candidate", emailBody);
+            Assert.Contains(category, emailBody);
+            Assert.Contains(location, emailBody);
+            Assert.Contains("Orca Moderation Portal", emailBody);
+            Assert.Contains("https://aifororcas.azurewebsites.net/", emailBody);
+        }
+
+        /// <summary>
+        /// Tests that GetModeratorEmailBody handles null timestamp gracefully.
+        /// </summary>
+        [Fact]
+        public void GetModeratorEmailBody_HandlesNullTimestamp()
+        {
+            // Arrange
+            DateTime? testTimestamp = null;
+            string category = "Southern Resident Killer Whale";
+            string location = "Sunset Bay";
+
+            // Act
+            string emailBody = EmailTemplate.GetModeratorEmailBody(testTimestamp, category, location);
+
+            // Assert
+            Assert.Contains("unknown time", emailBody);
+            Assert.Contains("Southern Resident Killer Whale Call Candidate", emailBody);
+        }
+
+        /// <summary>
+        /// Tests that GetModeratorEmailBody formats timestamp to Pacific correctly.
+        /// </summary>
+        [Fact]
+        public void GetModeratorEmailBody_FormatsTimestampToPacific()
+        {
+            // Arrange
+            var testTimestamp = new DateTime(2025, 1, 15, 18, 30, 0, DateTimeKind.Utc); // 6:30 PM UTC
+            string category = "Southern Resident Killer Whale";
+            string location = "Sunset Bay";
+
+            // Act
+            string emailBody = EmailTemplate.GetModeratorEmailBody(testTimestamp, category, location);
+
+            // Assert
+            // UTC 18:30 converts to PST 10:30 (UTC-8 during standard time)
+            Assert.Contains("Pacific", emailBody);
+            // Verify the date is present
+            Assert.Contains("1/15/2025", emailBody);
+        }
+
+        /// <summary>
+        /// Tests that GetModeratorEmailBody includes proper HTML structure.
+        /// </summary>
+        [Fact]
+        public void GetModeratorEmailBody_IncludesValidHtmlStructure()
+        {
+            // Arrange
+            var testTimestamp = new DateTime(2025, 1, 15, 10, 30, 0, DateTimeKind.Utc);
+            string category = "Southern Resident Killer Whale";
+            string location = "Sunset Bay";
+
+            // Act
+            string emailBody = EmailTemplate.GetModeratorEmailBody(testTimestamp, category, location);
+
+            // Assert
+            Assert.StartsWith("<html>", emailBody);
+            Assert.Contains("<style>", emailBody);
+            Assert.Contains("</style>", emailBody);
+            Assert.Contains("<body>", emailBody);
+            Assert.Contains("</body>", emailBody);
+            Assert.EndsWith("</html>", emailBody);
+        }
+
+        /// <summary>
+        /// Tests that GetModeratorEmailSubject generates correct subject line with category and location.
+        /// </summary>
+        [Fact]
+        public void GetModeratorEmailSubject_IncludesCategoryAndLocation()
+        {
+            // Arrange
+            string category = "Southern Resident Killer Whale";
+            string location = "Sunset Bay";
+
+            // Act
+            string subject = EmailTemplate.GetModeratorEmailSubject(category, location);
+
+            // Assert
+            Assert.Equal("Southern Resident Killer Whale Candidate at location Sunset Bay", subject);
+        }
+
+        /// <summary>
+        /// Tests that GetModeratorEmailSubject handles empty location with "Unknown".
+        /// </summary>
+        [Fact]
+        public void GetModeratorEmailSubject_HandlesEmptyLocation()
+        {
+            // Arrange
+            string category = "Southern Resident Killer Whale";
+            string location = "";
+
+            // Act
+            string subject = EmailTemplate.GetModeratorEmailSubject(category, location);
+
+            // Assert
+            Assert.Equal("Southern Resident Killer Whale Candidate at location Unknown", subject);
+        }
+
+        /// <summary>
+        /// Tests that GetModeratorEmailSubject handles null location with "Unknown".
+        /// </summary>
+        [Fact]
+        public void GetModeratorEmailSubject_HandlesNullLocation()
+        {
+            // Arrange
+            string category = "Southern Resident Killer Whale";
+            string location = null;
+
+            // Act
+            string subject = EmailTemplate.GetModeratorEmailSubject(category, location);
+
+            // Assert
+            Assert.Equal("Southern Resident Killer Whale Candidate at location Unknown", subject);
+        }
+
+        /// <summary>
+        /// Tests that GetModeratorEmailBody works with different category types.
+        /// </summary>
+        [Theory]
+        [InlineData("Southern Resident Killer Whale")]
+        [InlineData("Humpback Whale")]
+        [InlineData("Other")]
+        public void GetModeratorEmailBody_WorksWithDifferentCategories(string category)
+        {
+            // Arrange
+            var testTimestamp = new DateTime(2025, 1, 15, 10, 30, 0, DateTimeKind.Utc);
+            string location = "Sunset Bay";
+
+            // Act
+            string emailBody = EmailTemplate.GetModeratorEmailBody(testTimestamp, category, location);
+
+            // Assert
+            Assert.Contains(category, emailBody);
+            Assert.Contains($"{category} Call Candidate", emailBody);
+            Assert.Contains(location, emailBody);
+        }
+
+        /// <summary>
+        /// Tests that GetModeratorEmailBody includes the portal link button.
+        /// </summary>
+        [Fact]
+        public void GetModeratorEmailBody_IncludesPortalLinkButton()
+        {
+            // Arrange
+            var testTimestamp = new DateTime(2025, 1, 15, 10, 30, 0, DateTimeKind.Utc);
+            string category = "Southern Resident Killer Whale";
+            string location = "Sunset Bay";
+
+            // Act
+            string emailBody = EmailTemplate.GetModeratorEmailBody(testTimestamp, category, location);
+
+            // Assert
+            Assert.Contains("Go to portal", emailBody);
+            Assert.Contains("button-link", emailBody);
+            Assert.Contains("https://aifororcas.azurewebsites.net/", emailBody);
+        }
+
+        #endregion
 
         /// <summary>
         /// Tests that GetLocation handles null location.
@@ -288,6 +491,28 @@ namespace NotificationSystem.Tests.Unit
 
             // Assert
             Assert.Null(location);
+        }
+
+        /// <summary>
+        /// Tests that GetCategory correctly identifies different whale categories from comments.
+        /// </summary>
+        [Theory]
+        [InlineData("AI: resident", "Southern Resident Killer Whale")]
+        [InlineData("AI: resident and vessel", "Southern Resident Killer Whale")]
+        [InlineData("AI: transient", "Transient Killer Whale")]
+        [InlineData("AI: transient and vessel", "Transient Killer Whale")]
+        [InlineData("AI: humpback", "Humpback")]
+        [InlineData("AI: humpback and vessel", "Humpback")]
+        [InlineData("Other", "Southern Resident Killer Whale")] // Default case
+        [InlineData("", "Southern Resident Killer Whale")] // Empty string default
+        [InlineData(null, "Southern Resident Killer Whale")] // Null default
+        public void GetCategory_IdentifiesCorrectCategory(string? comments, string expectedCategory)
+        {
+            // Act
+            string category = EmailTemplate.GetCategory(comments);
+
+            // Assert
+            Assert.Equal(expectedCategory, category);
         }
     }
 }
