@@ -1,5 +1,3 @@
-using Amazon;
-using Amazon.SimpleEmail;
 using Azure.Data.Tables;
 using ComposableAsync;
 using Microsoft.Azure.Functions.Worker;
@@ -18,23 +16,18 @@ namespace NotificationSystem
     public class SendModeratorEmail
     {
         private readonly ILogger _logger;
+        private readonly IEmailService _emailService;
         const int SendRate = 14;
 
-        public SendModeratorEmail(ILogger<SendModeratorEmail> logger)
+        public SendModeratorEmail(ILogger<SendModeratorEmail> logger, IEmailService emailService)
         {
             _logger = logger;
+            _emailService = emailService;
         }
 
-        [Function("SendModeratorEmail")]
-        public async Task Run(
-            [CosmosDBTrigger(
-                databaseName: "predictions",
-                containerName: "metadata",
-                Connection = "aifororcasmetadatastore_DOCUMENTDB",
-                LeaseContainerName = "leases",
-                LeaseContainerPrefix = "moderator",
-                CreateLeaseContainerIfNotExists = true)] IReadOnlyList<JsonElement> input,
-            [TableInput("EmailList", Connection = "OrcaNotificationStorageSetting")] TableClient tableClient)
+        public async Task ProcessDocumentsAsync(
+            IReadOnlyList<JsonElement> input,
+            IEnumerable<ModeratorEmailEntity> emailEntities)
         {
             if (input == null || input.Count == 0)
             {
@@ -49,9 +42,8 @@ namespace NotificationSystem
 
             foreach (var document in input)
             {
-                // Check whether the "reviewed" property exists.
-                JsonElement reviewed = document.GetProperty("reviewed");
-                if (reviewed.ValueKind != JsonValueKind.True)
+                if (!document.TryGetProperty("reviewed", out JsonElement reviewed) ||
+                    reviewed.ValueKind != JsonValueKind.True)
                 {
                     newDocumentCreated = true;
                     documentTimeStamp = document.GetProperty("timestamp").GetDateTime();
@@ -73,16 +65,36 @@ namespace NotificationSystem
             string body = EmailTemplate.GetModeratorEmailBody(documentTimeStamp, category, location);
 
             var timeConstraint = TimeLimiter.GetFromMaxCountByInterval(SendRate, TimeSpan.FromSeconds(1));
-            var aws = new AmazonSimpleEmailServiceClient(RegionEndpoint.USWest2);
             _logger.LogInformation("Retrieving email list and sending notifications");
-            foreach (var emailEntity in await EmailHelpers.GetEmailEntitiesAsync<ModeratorEmailEntity>(tableClient, "Moderator"))
+            foreach (var emailEntity in emailEntities)
             {
                 await timeConstraint;
                 string emailSubject = EmailTemplate.GetModeratorEmailSubject(category, location);
                 var email = EmailHelpers.CreateEmail(Environment.GetEnvironmentVariable("SenderEmail"),
                     emailEntity.Email, emailSubject, body);
-                await aws.SendEmailAsync(email);
+                await _emailService.SendEmailAsync(email);
             }
+        }
+
+        [Function("SendModeratorEmail")]
+        public async Task Run(
+            [CosmosDBTrigger(
+                databaseName: "predictions",
+                containerName: "metadata",
+                Connection = "aifororcasmetadatastore_DOCUMENTDB",
+                LeaseContainerName = "leases",
+                LeaseContainerPrefix = "moderator",
+                CreateLeaseContainerIfNotExists = true)] IReadOnlyList<JsonElement> input,
+            [TableInput("EmailList", Connection = "OrcaNotificationStorageSetting")] TableClient tableClient)
+        {
+            if (input == null || input.Count == 0)
+            {
+                _logger.LogInformation("No updated records");
+                return;
+            }
+
+            var emailEntities = await EmailHelpers.GetEmailEntitiesAsync<ModeratorEmailEntity>(tableClient, "Moderator");
+            await ProcessDocumentsAsync(input, emailEntities);
         }
     }
 }
