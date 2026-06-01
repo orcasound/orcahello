@@ -496,6 +496,7 @@ namespace NotificationSystem.Tests.Unit
 
             container.Helper.InitializeAsync(configuration).GetAwaiter().GetResult();
             return container.Helper;
+        }
 
         /// <summary>
         /// Tests that GetCategory correctly identifies different whale categories from comments.
