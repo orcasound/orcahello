@@ -42,20 +42,11 @@ The simplest method is to use the Orcanode Monitor dashboard:
 1. Go to [orcanodemonitor.azurewebsites.net](https://orcanodemonitor.azurewebsites.net/)
 2. Click on the cell in the "OrcaHello Lag" column for the hydrophone of interest
 
-Alternatively, you can see the log using commands on your own machine:
-
-1. Get the pod name from the namespace.  For example to get the pod for `NAMESPACE=andrews-bay`:
-
-```
-> kubectl get pods -n $NAMESPACE
-NAME                                READY   STATUS    RESTARTS   AGE
-inference-system-859f4f4dc7-85wpf   1/1     Running   0          172m
-```
-
-2. Get the last (say) 30 lines of the log for that pod using the pod name:
+Alternatively, you can see the log using a command on your own machine.
+For example to get the last (say) 30 lines of the log for `NAMESPACE=andrews-bay`:
 
 ```bash
-kubectl logs -n $NAMESPACE inference-system-859f4f4dc7-85wpf --tail=30
+kubectl logs -n $NAMESPACE -l app=inference-system --tail=30
 ```
 
 ## Pods
