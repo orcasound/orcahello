@@ -113,7 +113,7 @@ termcolor==2.4.0
 thinc==8.2.5
 threadpoolctl==3.5.0
 tinycss2==1.4.0
-torch==1.6.0+cu92
+torch==2.12.0
 torchaudio==0.6.0
 torchvision==0.7.0+cu92
 tornado==6.4.1
