@@ -47,12 +47,12 @@ namespace NotificationSystem.Template
 
         public static string GetModeratorEmailSubject(string category, string location)
         {
-            return $"{category} Candidate at location {(string.IsNullOrEmpty(location) ? "Unknown" : location)}";
+            return $"{category} Candidate at {(string.IsNullOrEmpty(location) ? "Unknown" : location)}";
         }
 
         public static string GetSubscriberEmailSubject(string category, string location)
         {
-            return $"Notification: {category} detected at location {(string.IsNullOrEmpty(location) ? "Unknown" : location)}";
+            return $"Notification: {category} detected at {(string.IsNullOrEmpty(location) ? "Unknown" : location)}";
         }
 
         private static string GetSubscriberEmailHtml(JObject message, string category, OrcasiteHelper orcasiteHelper)
@@ -141,7 +141,7 @@ namespace NotificationSystem.Template
                 {category} Call Candidate
                 </h1>
                 <p>
-                Dear moderator, a potential {category} call was detected on {timeString} Pacific at {location} location.
+                Dear moderator, a potential {category} call was detected on {timeString} Pacific at {location}.
                 </p>
                 <p>
                 This is a request for your moderation to confirm whether the sound was produced by a {category} on the portal below.
