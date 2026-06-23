@@ -141,7 +141,7 @@ namespace NotificationSystem.Template
                 {category} Call Candidate
                 </h1>
                 <p>
-                Dear moderator, a potential {category.ToLower()} call was detected on {timeString} Pacific at {location}.
+                Dear moderator, a potential {category.ToLower()} call was flagged on {timeString} Pacific at {location}.
                 </p>
                 <p>
                 This is a request for your moderation to confirm whether the sound was produced by a {category.ToLower()} on the portal below.
