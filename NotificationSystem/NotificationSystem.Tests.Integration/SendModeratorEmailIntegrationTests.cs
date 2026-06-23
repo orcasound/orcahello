@@ -31,7 +31,7 @@ namespace NotificationSystem.Tests.Integration
                     {
                         reviewed = false,
                         timestamp = DateTime.UtcNow,
-                        location = new { name = "Mast Center" }
+                        location = new { name = "MaST Center" }
                     })
                 };
                 var recipients = new List<ModeratorEmailEntity> { new("moderator@example.com") };
@@ -42,7 +42,50 @@ namespace NotificationSystem.Tests.Integration
                     x => x.SendEmailAsync(It.Is<SendEmailRequest>(request =>
                         request.Source == "sender@example.com" &&
                         request.Destination.ToAddresses.Contains("moderator@example.com") &&
-                        request.Message.Subject.Data.Contains("Mast Center"))),
+                        request.Message.Subject.Data.Contains("MaST Center"))),
+                    Times.Once);
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("SenderEmail", previousSenderEmail);
+            }
+        }
+
+        [Fact]
+        public async Task ProcessDocumentsAsync_SendsEmail_ForUnreviewedDetectionWithCategory()
+        {
+            string? previousSenderEmail = Environment.GetEnvironmentVariable("SenderEmail");
+            Environment.SetEnvironmentVariable("SenderEmail", "sender@example.com");
+
+            try
+            {
+                var emailServiceMock = new Mock<IEmailService>();
+                emailServiceMock.Setup(x => x.SendEmailAsync(It.IsAny<SendEmailRequest>()))
+                    .Returns(Task.CompletedTask);
+
+                var loggerMock = new Mock<ILogger<SendModeratorEmail>>();
+                var function = new SendModeratorEmail(loggerMock.Object, emailServiceMock.Object);
+
+                var input = new List<JsonElement>
+                {
+                    JsonSerializer.SerializeToElement(new
+                    {
+                        reviewed = false,
+                        timestamp = DateTime.UtcNow,
+                        location = new { name = "MaST Center" },
+                        comments = "AI: humpback and vessel"
+                    })
+                };
+                var recipients = new List<ModeratorEmailEntity> { new("moderator@example.com") };
+
+                await function.ProcessDocumentsAsync(input, recipients);
+
+                emailServiceMock.Verify(
+                    x => x.SendEmailAsync(It.Is<SendEmailRequest>(request =>
+                        request.Source == "sender@example.com" &&
+                        request.Destination.ToAddresses.Contains("moderator@example.com") &&
+                        request.Message.Subject.Data.Contains("MaST Center") &&
+                        request.Message.Body.Html.Data.Contains("humpback"))),
                     Times.Once);
             }
             finally

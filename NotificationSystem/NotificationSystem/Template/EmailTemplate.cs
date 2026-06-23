@@ -66,7 +66,7 @@ namespace NotificationSystem.Template
                 {category} Detected
                 </h1>
                 <p>
-                Dear subscriber, a {category} was most recently detected at around {timeString} Pacific.
+                Dear subscriber, a {category.ToLower()} was most recently detected at around {timeString} Pacific.
                 </p>
                 <p>
                 Please be mindful of their presence when travelling in the areas below.
@@ -141,10 +141,10 @@ namespace NotificationSystem.Template
                 {category} Call Candidate
                 </h1>
                 <p>
-                Dear moderator, a potential {category} call was detected on {timeString} Pacific at {location}.
+                Dear moderator, a potential {category.ToLower()} call was detected on {timeString} Pacific at {location}.
                 </p>
                 <p>
-                This is a request for your moderation to confirm whether the sound was produced by a {category} on the portal below.
+                This is a request for your moderation to confirm whether the sound was produced by a {category.ToLower()} on the portal below.
                 </p>
                 <hr/>
                 <h2>
