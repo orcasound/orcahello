@@ -19,5 +19,6 @@ namespace AIForOrcas.Server.BL.Models.CosmosDB
 		public string dateModerated { get; set; }
 		public string moderator { get; set; }
 		public string tags { get; set; }
+		public string globalPredictionLabel { get; set; }
 	}
 }

@@ -6,5 +6,6 @@
 		public decimal startTime { get; set; }
 		public decimal duration { get; set; }
 		public decimal confidence { get; set; }
+		public string label { get; set; } = string.Empty;
 	}
 }
