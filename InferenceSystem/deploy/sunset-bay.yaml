@@ -24,14 +24,14 @@ spec:
         kubernetes.azure.com/agentpool: f4sv2pool
       containers:
         - name: inference-system
-          image: orcaconservancycr.azurecr.io/live-inference-system:03-20-2026.v2.1.0
+          image: orcaconservancycr.azurecr.io/live-inference-system:04-28-2026.v2.1.1
           resources:
             requests:
-              cpu: "1"
-              memory: "1600Mi"
+              cpu: "200m"
+              memory: "1200Mi"
             limits:
-              cpu: "1"
-              memory: "2500Mi"
+              cpu: "500m"
+              memory: "1800Mi"
           env:
             - name: AZURE_COSMOSDB_PRIMARY_KEY
               valueFrom:

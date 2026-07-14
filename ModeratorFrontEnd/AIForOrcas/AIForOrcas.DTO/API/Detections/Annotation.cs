@@ -28,5 +28,10 @@
 		/// </summary>
 		/// <example>84.39</example>
 		public decimal Confidence { get; set; }
+
+		/// <summary>
+		/// Predicted label, if any.
+		/// </summary>
+		public string Label { get; set; } = string.Empty;
 	}
 }

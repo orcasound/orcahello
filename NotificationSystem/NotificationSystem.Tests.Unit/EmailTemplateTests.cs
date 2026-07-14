@@ -209,7 +209,7 @@ namespace NotificationSystem.Tests.Unit
             string subject = EmailTemplate.GetSubscriberEmailSubject("Southern Resident Killer Whale", location);
 
             // Assert
-            Assert.Equal("Notification: Southern Resident Killer Whale detected at location Sunset Bay", subject);
+            Assert.Equal("Notification: Southern Resident Killer Whale detected at Sunset Bay", subject);
         }
 
         /// <summary>
@@ -238,7 +238,7 @@ namespace NotificationSystem.Tests.Unit
             string subject = EmailTemplate.GetSubscriberEmailSubject("Southern Resident Killer Whale", location);
 
             // Assert
-            Assert.Equal("Notification: Southern Resident Killer Whale detected at location Unknown", subject);
+            Assert.Equal("Notification: Southern Resident Killer Whale detected at Unknown", subject);
         }
 
         /// <summary>
@@ -255,7 +255,7 @@ namespace NotificationSystem.Tests.Unit
             string subject = EmailTemplate.GetSubscriberEmailSubject(category, location);
 
             // Assert
-            Assert.Equal("Notification: Southern Resident Killer Whale detected at location Unknown", subject);
+            Assert.Equal("Notification: Southern Resident Killer Whale detected at Unknown", subject);
         }
         
         #endregion
@@ -361,7 +361,7 @@ namespace NotificationSystem.Tests.Unit
             string subject = EmailTemplate.GetModeratorEmailSubject(category, location);
 
             // Assert
-            Assert.Equal("Southern Resident Killer Whale Candidate at location Sunset Bay", subject);
+            Assert.Equal("Southern Resident Killer Whale Candidate at Sunset Bay", subject);
         }
 
         /// <summary>
@@ -378,7 +378,7 @@ namespace NotificationSystem.Tests.Unit
             string subject = EmailTemplate.GetModeratorEmailSubject(category, location);
 
             // Assert
-            Assert.Equal("Southern Resident Killer Whale Candidate at location Unknown", subject);
+            Assert.Equal("Southern Resident Killer Whale Candidate at Unknown", subject);
         }
 
         /// <summary>
@@ -395,7 +395,7 @@ namespace NotificationSystem.Tests.Unit
             string subject = EmailTemplate.GetModeratorEmailSubject(category, location);
 
             // Assert
-            Assert.Equal("Southern Resident Killer Whale Candidate at location Unknown", subject);
+            Assert.Equal("Southern Resident Killer Whale Candidate at Unknown", subject);
         }
 
         /// <summary>
@@ -403,7 +403,8 @@ namespace NotificationSystem.Tests.Unit
         /// </summary>
         [Theory]
         [InlineData("Southern Resident Killer Whale")]
-        [InlineData("Humpback Whale")]
+        [InlineData("Transient Killer Whale")]
+        [InlineData("Humpback")]
         [InlineData("Other")]
         public void GetModeratorEmailBody_WorksWithDifferentCategories(string category)
         {
