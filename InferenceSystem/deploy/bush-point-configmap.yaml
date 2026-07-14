@@ -19,4 +19,4 @@ data:
       inference:
         max_batch_size: 2
       global_prediction:
-        pred_global_threshold: 0.6
+        pred_global_threshold: 0.90  # Raised from 0.6 to reduce persistent false positives from mechanical squeak
