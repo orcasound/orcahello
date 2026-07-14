@@ -97,6 +97,7 @@ public static class DetectionProcessors
 			Timestamp = metadata.timestamp,
 			Comments = metadata.comments,
 			Tags = metadata.tags,
+			GlobalPredictionLabel = metadata.globalPredictionLabel ?? string.Empty,
 			Moderated = string.IsNullOrWhiteSpace(metadata.dateModerated) ? DateTime.MinValue : DateTime.Parse(metadata.dateModerated),
 			Moderator = metadata.moderator,
 			Location = new DTO.API.Location()
@@ -117,6 +118,7 @@ public static class DetectionProcessors
 					Confidence = x.confidence,
 					StartTime = x.startTime,
 					EndTime = x.startTime + x.duration,
+					Label = x.label ?? string.Empty,
 				});
 			});
 		}

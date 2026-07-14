@@ -83,5 +83,10 @@ namespace AIForOrcas.DTO.API
 		/// </summary>
 		/// <example>S7;S10</example>
 		public string Tags { get; set; }
+
+		/// <summary>
+		/// Machine-generated label for the detection based on the global prediction model.
+		/// </summary>
+		public string GlobalPredictionLabel { get; set; }
 	}
 }
