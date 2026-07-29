@@ -85,17 +85,50 @@ namespace AIForOrcas.DTO.API
 		public string Tags { get; set; }
 
 		/// <summary>
-		/// Any text comments in a list (parsed from the Tags string).
+		/// Split tags into a list.
 		/// </summary>
-		public List<string> TagList
+		/// <param name="tags">Tags string to split</param>
+		/// <returns>List of tags</returns>
+		public static List<string> GetTagList(string tags)
 		{
-			get
-			{
-				string[] delimiters = new string[] { ";", "," };
-				List<string> tagList = new List<string>(Tags?.Split(delimiters, StringSplitOptions.RemoveEmptyEntries) ?? new string[0]);
-				return tagList;
-			}
+			string[] delimiters = new string[] { ";", "," };
+			List<string> tagList = new List<string>(tags?.Split(delimiters, StringSplitOptions.RemoveEmptyEntries) ?? new string[0]);
+			return tagList;
 		}
+
+		/// <summary>
+		/// Get the leaf tags from the given tags string.
+		/// A leaf tag is a tag that does not have any child tags in the input list.
+		/// </summary>
+		/// <param name="tags"></param>
+		/// <returns></returns>
+		public static List<string> GetLeafTags(string tags)
+		{
+			List<string> tagList = GetTagList(tags);
+			List<string> leafTags = new List<string>();
+			foreach (var tag in tagList)
+			{
+				bool isLeaf = true;
+				foreach (var pair in TagHierarchy)
+				{
+					if (pair.Value == tag && tagList.Contains(pair.Key))
+					{
+						isLeaf = false;
+						break;
+					}
+				}
+				if (isLeaf)
+				{
+					leafTags.Add(tag);
+				}
+			}
+			return leafTags;
+        }
+
+        /// <summary>
+        /// Any text comments in a list (parsed from the Tags string).
+        /// </summary>
+        public List<string> TagList => GetTagList(Tags);
 
 		/// <summary>
 		/// Hierarchy of tags, where the key is the child tag and the value is the parent tag.
@@ -133,9 +166,6 @@ namespace AIForOrcas.DTO.API
 			get
 			{
 				List<string> suggestions = new List<string>();
-
-				// TODO: add any tags not in TagList that were leaf tags in the most
-				// recently moderated detection.
 
 				// For each tag in the tags list, add any child tags not already in the tags list.
 				foreach (var tag in TagList)

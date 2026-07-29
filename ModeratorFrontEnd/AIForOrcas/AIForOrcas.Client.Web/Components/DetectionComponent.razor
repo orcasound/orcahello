@@ -119,7 +119,7 @@
                             <div class="col-12 form-group">
                                 <label>Tags</label>
                                 <div class="row">
-                                    @foreach (var suggestion in Detection.SuggestedTagList)
+                                    @foreach (var suggestion in GetSuggestedTagList(Detection))
                                     {
                                         <button type="button"
                                                 class="btn btn-sm btn-outline-primary mr-1 mb-1"

@@ -1,23 +1,29 @@
-﻿using System.Text.RegularExpressions;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Azure.Cosmos;
+using System.Text.RegularExpressions;
 
 namespace AIForOrcas.Client.Web.Components;
 
 public partial class DetectionComponent
 {
 	private string _id;
+	private string _userId;
 	private TextInfo _ti = new CultureInfo("en-US", false).TextInfo;
 
 	[Inject]
 	IJSRuntime JSRuntime { get; set; }
 
-    [Inject]
+	[Inject]
 	IAccountService AccountService { get; set; }
 
-    [Inject]
+	[Inject]
 	AuthenticationStateProvider AuthenticationStateProvider { get; set; }
 
 	[Inject]
 	NavigationManager NavigationManager { get; set; }
+
+	[Inject]
+	UserTagCache TagCache { get; set; }
 
 	[Parameter]
 	public Detection Detection { get; set; }
@@ -55,9 +61,29 @@ public partial class DetectionComponent
 
 	private string LinkUrl { get => $"{NavigationManager.BaseUri}detections/detection/{Detection.Id}"; }
 
-	protected override void OnParametersSet()
+	public List<string> GetSuggestedTagList(Detection d)
+	{
+		// Add any tags not in TagList that were leaf tags in the most recently moderated detection.
+		List<string> suggestedTags = TagCache.GetTags(_userId);
+
+		foreach (var tag in d.SuggestedTagList)
+		{
+			if (!suggestedTags.Contains(tag))
+			{
+				suggestedTags.Add(tag);
+			}
+		}
+
+		return suggestedTags;
+	}
+
+	protected override async Task OnParametersSetAsync()
 	{
 		_id = Detection.Id;
+
+		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+		var user = authState.User;
+		_userId = user.FindFirst("oid")?.Value;
 
 		// Unreviewed detections are being initially populated in the database as "No"
 		// I am manually resetting it here when the reviewed status is false so that the record,

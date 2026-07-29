@@ -1,4 +1,6 @@
-﻿namespace AIForOrcas.Client.Web.Pages.Detections;
+﻿using Microsoft.Azure.Cosmos;
+
+namespace AIForOrcas.Client.Web.Pages.Detections;
 
 public partial class Candidates : IDisposable
 {
@@ -11,6 +13,13 @@ public partial class Candidates : IDisposable
 	[Inject]
 	IToastService ToastService { get; set; }
 
+	[Inject]
+	UserTagCache TagCache { get; set; }
+
+	[Inject]
+	AuthenticationStateProvider AuthenticationStateProvider { get; set; }
+
+	private string _userId;
 	private List<Detection> detections = null;
 
 	private PaginationOptionsDTO paginationOptions = 
@@ -26,6 +35,10 @@ public partial class Candidates : IDisposable
 	protected override async Task OnInitializedAsync()
 	{
 		await LoadDetections();
+
+		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+		var user = authState.User;
+		_userId = user.FindFirst("oid")?.Value;
 	}
 
 	private async Task LoadDetections()
@@ -76,6 +89,9 @@ public partial class Candidates : IDisposable
 	private async Task ActOnSubmitCallback(DetectionUpdate request)
 	{
 		await Service.UpdateRequestAsync(request);
+
+		List<string> leafTags = Detection.GetLeafTags(request.Tags);
+		TagCache.SetTags(_userId, leafTags);
 
 		ToastService.ShowSuccess("Detection successfully updated.");
 
