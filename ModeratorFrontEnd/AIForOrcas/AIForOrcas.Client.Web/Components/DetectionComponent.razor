@@ -118,10 +118,30 @@
                         <div class="row">
                             <div class="col-12 form-group">
                                 <label>Tags</label>
-                                <div>
+                                <div class="row">
+                                    @foreach (var suggestion in Detection.SuggestedTagList)
+                                    {
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-primary mr-1 mb-1"
+                                                @onclick="(() => AddSuggestedTag(suggestion))">
+                                            + @suggestion
+                                        </button>
+                                    }
+                                </div>
+                                <div class="row">
                                     <InputText class="form-control" placeholder="Add tags separated by commas or semicolons"
                                                @bind-Value="@Detection.Tags" />
 
+                                </div>
+                                <div class="row">
+                                    @foreach (var tag in Detection.TagList)
+                                    {
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-primary mr-1 mb-1"
+                                                @onclick="(() => RemoveTag(tag))">
+                                            x @tag
+                                        </button>
+                                    }
                                 </div>
                             </div>
                         </div>

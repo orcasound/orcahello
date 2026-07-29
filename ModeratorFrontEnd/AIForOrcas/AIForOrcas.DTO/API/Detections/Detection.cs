@@ -85,6 +85,84 @@ namespace AIForOrcas.DTO.API
 		public string Tags { get; set; }
 
 		/// <summary>
+		/// Any text comments in a list (parsed from the Tags string).
+		/// </summary>
+		public List<string> TagList
+		{
+			get
+			{
+				string[] delimiters = new string[] { ";", "," };
+				List<string> tagList = new List<string>(Tags?.Split(delimiters, StringSplitOptions.RemoveEmptyEntries) ?? new string[0]);
+				return tagList;
+			}
+		}
+
+		/// <summary>
+		/// Hierarchy of tags, where the key is the child tag and the value is the parent tag.
+		/// A null value indicates a top-level tag. Within tags at the same level, more likely
+		/// entries should typically appear before less likely entries.
+		/// </summary>
+		public static readonly Dictionary<string, string> TagHierarchy = new Dictionary<string, string>()
+		{
+			{ "whale", null },
+			{ "orca", "whale" },
+			{ "srkw", "orca" },
+			{ "J pod", "srkw" },
+			{ "K pod", "srkw" },
+			{ "L pod", "srkw" },
+			{ "transient", "orca" },
+			{ "humpback", "whale" },
+			{ "vessel", null },
+			{ "train", "vessel" },
+			{ "bird", null },
+			{ "pigu", "bird" },
+			{ "kier", "bird" },
+			{ "human", null },
+			{ "jingle", null },
+			{ "water", null },
+			{ "hum", null },
+		};
+
+		/// <summary>
+		/// List of suggested tags for the detection based on the machine prediction, the tag hierarchy,
+		/// and the most recently moderated detection. Tags that are already in the TagList are not
+		/// included in the suggestions.
+		/// </summary>
+		public List<string> SuggestedTagList
+		{
+			get
+			{
+				List<string> suggestions = new List<string>();
+
+				// TODO: add any tags not in TagList that were leaf tags in the most
+				// recently moderated detection.
+
+				// For each tag in the tags list, add any child tags not already in the tags list.
+				foreach (var tag in TagList)
+				{
+					foreach (var pair in TagHierarchy)
+					{
+						if (pair.Value == tag && !TagList.Contains(pair.Key))
+						{
+							suggestions.Add(pair.Key);
+						}
+					}
+				}
+
+				// Add any top-level tags not already in the tags list.
+				foreach (var pair in TagHierarchy)
+				{
+					if (pair.Value == null && !TagList.Contains(pair.Key))
+					{
+						suggestions.Add(pair.Key);
+					}
+				}
+
+				return suggestions;
+			}
+		}
+
+		/// <summary>
 		/// Machine-generated label for the detection based on the global prediction model.
 		/// </summary>
 		public string GlobalPredictionLabel { get; set; }

@@ -1,4 +1,6 @@
-﻿namespace AIForOrcas.Client.Web.Components;
+﻿using System.Text.RegularExpressions;
+
+namespace AIForOrcas.Client.Web.Components;
 
 public partial class DetectionComponent
 {
@@ -65,12 +67,117 @@ public partial class DetectionComponent
 		//       from No to something other than the three options we give the user
 
 		if (!Detection.Reviewed)
+		{
 			Detection.Found = string.Empty;
+
+			if (string.IsNullOrEmpty(Detection.Tags))
+			{
+				if (Detection.GlobalPredictionLabel == "transient")
+				{
+					AddSuggestedTag("transient");
+				}
+				else if (Detection.GlobalPredictionLabel == "humpback")
+				{
+					AddSuggestedTag("humpback");
+				}
+				else
+				{
+					AddSuggestedTag("srkw");
+				}
+			}
+
+			// If Comments is of the form "AI: A and B", then parse out the B and add it too.
+			if (!string.IsNullOrEmpty(Detection.Comments))
+			{
+				var match = Regex.Match(Detection.Comments, @"AI:\s*(?<a>.*?)\s*and\s*(?<b>.*)");
+				if (match.Success)
+				{
+					string b = match.Groups["b"].Value;
+					AddSuggestedTag(b);
+				}
+			}
+		}
 	}
 
 	private void SetFoundValue(string found)
 	{
 		Detection.Found = found;
+
+		switch (found)
+		{
+			case "Yes":
+				AddSuggestedTag("srkw");
+				break;
+			default: // No or Don't Know.
+				RemoveTag("srkw");
+				break;
+		}
+	}
+
+	private void AddSuggestedTag(string tag)
+	{
+		if (string.IsNullOrWhiteSpace(tag))
+		{
+			return;
+		}
+		var tagList = Detection.TagList;
+		if (tagList.Contains(tag))
+		{
+			// Nothing to do.
+			return;
+		}
+
+		// Add the suggested tag before its parent tag if present, otherwise add it to the end of the list.
+		Detection.TagHierarchy.TryGetValue(tag, out string parentTag);
+		if (!string.IsNullOrWhiteSpace(parentTag))
+	        {
+			var parentIndex = tagList.IndexOf(parentTag);
+			if (parentIndex >= 0)
+			{
+				tagList.Insert(parentIndex, tag);
+			}
+			else
+			{
+				tagList.Add(tag);
+			}
+		}
+		else
+		{
+			tagList.Add(tag);
+		}
+		Detection.Tags = string.Join(";", tagList);
+
+		// Add parent tag if not already present.
+		if (!string.IsNullOrEmpty(parentTag))
+		{
+			AddSuggestedTag(parentTag);
+		}
+	}
+
+	private void RemoveTag(string tag)
+	{
+		if (string.IsNullOrWhiteSpace(tag))
+		{
+			return;
+		}
+		var tagList = Detection.TagList;
+		if (!tagList.Contains(tag))
+		{
+			// Nothing to do.
+			return;
+		}
+
+		tagList.Remove(tag);
+		Detection.Tags = string.Join(";", tagList);
+
+	        // Remove child tags if they exist in the hierarchy.
+	        foreach (var pair in Detection.TagHierarchy)
+		{
+			if (pair.Value == tag)
+			{
+				RemoveTag(pair.Key);
+			}
+		}
 	}
 
 	private async Task SubmitUpdate()
