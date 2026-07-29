@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.Azure.Cosmos;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 namespace AIForOrcas.Client.Web.Components;
 

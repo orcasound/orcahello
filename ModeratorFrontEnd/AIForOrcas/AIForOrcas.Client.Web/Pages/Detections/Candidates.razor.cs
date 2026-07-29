@@ -1,6 +1,4 @@
-﻿using Microsoft.Azure.Cosmos;
-
-namespace AIForOrcas.Client.Web.Pages.Detections;
+﻿namespace AIForOrcas.Client.Web.Pages.Detections;
 
 public partial class Candidates : IDisposable
 {
