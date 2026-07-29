@@ -91,8 +91,18 @@ namespace AIForOrcas.DTO.API
 		/// <returns>List of tags</returns>
 		public static List<string> GetTagList(string tags)
 		{
+			if (string.IsNullOrWhiteSpace(tags))
+				return new List<string>();
+
 			string[] delimiters = new string[] { ";", "," };
-			List<string> tagList = new List<string>(tags?.Split(delimiters, StringSplitOptions.RemoveEmptyEntries) ?? new string[0]);
+			var rawTags = tags.Split(delimiters, StringSplitOptions.RemoveEmptyEntries);
+			var tagList = new List<string>(rawTags.Length);
+			foreach (var rawTag in rawTags)
+			{
+				var trimmed = rawTag.Trim();
+				if (trimmed.Length > 0)
+					tagList.Add(trimmed);
+			}
 			return tagList;
 		}
 
