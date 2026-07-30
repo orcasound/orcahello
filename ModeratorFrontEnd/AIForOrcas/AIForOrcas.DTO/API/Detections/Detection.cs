@@ -178,11 +178,12 @@ namespace AIForOrcas.DTO.API
 				List<string> suggestions = new List<string>();
 
 				// For each tag in the tags list, add any child tags not already in the tags list.
-				foreach (var tag in TagList)
+				var tagList = TagList;
+				foreach (var tag in tagList)
 				{
 					foreach (var pair in TagHierarchy)
 					{
-						if (pair.Value == tag && !TagList.Contains(pair.Key))
+						if (pair.Value == tag && !tagList.Contains(pair.Key))
 						{
 							suggestions.Add(pair.Key);
 						}
@@ -192,7 +193,7 @@ namespace AIForOrcas.DTO.API
 				// Add any top-level tags not already in the tags list.
 				foreach (var pair in TagHierarchy)
 				{
-					if (pair.Value == null && !TagList.Contains(pair.Key))
+					if (pair.Value == null && !tagList.Contains(pair.Key))
 					{
 						suggestions.Add(pair.Key);
 					}
