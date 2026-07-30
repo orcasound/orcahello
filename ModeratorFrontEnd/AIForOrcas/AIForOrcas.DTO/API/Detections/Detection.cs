@@ -133,12 +133,12 @@ namespace AIForOrcas.DTO.API
 				}
 			}
 			return leafTags;
-        }
+		}
 
-        /// <summary>
-        /// Any text comments in a list (parsed from the Tags string).
-        /// </summary>
-        public List<string> TagList => GetTagList(Tags);
+		/// <summary>
+		/// Tags in a list (parsed from the Tags string).
+		/// </summary>
+		public List<string> TagList => GetTagList(Tags);
 
 		/// <summary>
 		/// Hierarchy of tags, where the key is the child tag and the value is the parent tag.

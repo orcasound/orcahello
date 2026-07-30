@@ -14,12 +14,23 @@ public partial class SingleDetection : ComponentBase, IDisposable
 	[Inject]
 	IToastService ToastService { get; set; }
 
+	[Inject]
+	UserTagCache TagCache { get; set; }
+
+	[Inject]
+	AuthenticationStateProvider AuthenticationStateProvider { get; set; }
+
+	private string _userId;
 	private Detection detection = null;
 	private bool isFound = true;
 
 	protected override async Task OnInitializedAsync()
 	{
 		await LoadDetection();
+
+		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+		var user = authState.User;
+		_userId = user.FindFirst("oid")?.Value;
 	}
 
 	private async Task LoadDetection()
@@ -32,6 +43,9 @@ public partial class SingleDetection : ComponentBase, IDisposable
 	private async Task ActOnSubmitCallback(DetectionUpdate request)
 	{
 		await Service.UpdateRequestAsync(request);
+
+		List<string> leafTags = Detection.GetLeafTags(request.Tags);
+		TagCache.SetTags(_userId, leafTags);
 
 		ToastService.ShowSuccess("Detection successfully updated.");
 
