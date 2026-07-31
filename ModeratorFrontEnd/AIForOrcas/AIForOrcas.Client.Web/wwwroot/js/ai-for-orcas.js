@@ -207,6 +207,13 @@ function InitializeModalSpectrogram(modalId, audioUrl, regionsJson) {
 		SetDuration();
 	});
 
+	// If the audio fails to load, reset the button so the failure is visible
+	// instead of leaving the spinner stuck forever.
+	wavesurfer.on('error', function (e) {
+		console.error('Spectrogram audio failed to load: ' + e);
+		SetSpinnerButtonToPlay();
+	});
+
 	// when something is happening, update
 	wavesurfer.on('audioprocess', function () {
 		SetElapsedTime();
@@ -315,8 +322,6 @@ function CardSpectrogram(cardId, audioUrl, regionsJson) {
 
 	var containerId = 'card-' + cardId;
 
-	RemoveCardRegionPreview(cardId);
-
 	if (wavesurfer.container != undefined && wavesurfer.containerId != containerId) {
 		DestroyActivePlayer();
 	}
@@ -353,7 +358,18 @@ function CardSpectrogram(cardId, audioUrl, regionsJson) {
 			AdjustSizes(spectrogram);
 			SetSpinnerButtonToPause();
 			SetDuration();
+			// Swap the static region preview for the player's own regions only
+			// once they can actually render, so the shades never blink out.
+			RemoveCardRegionPreview(cardId);
 			wavesurfer.play();
+		});
+
+		// If the audio fails to load, reset the button so the failure is visible
+		// instead of leaving the spinner stuck forever. The static region
+		// preview is intentionally left in place.
+		wavesurfer.on('error', function (e) {
+			console.error('Spectrogram audio failed to load: ' + e);
+			SetSpinnerButtonToPlay();
 		});
 
 		// when done playing, reset everything
@@ -397,5 +413,18 @@ function OpenSpectrogramModal(event, anchor) {
 	DestroyActivePlayer();
 	InitializeModalSpectrogram(anchor.dataset.detectionId, anchor.dataset.audioUri, anchor.dataset.regions);
 	$(anchor.dataset.modalTarget).modal('show');
+
+	// The player is created while the modal is still hidden, so it measures a
+	// zero-width container. If the audio gets ready before the modal fade ends,
+	// the waveform and its regions keep that zero width and the shades render
+	// invisible. Re-measure and redraw once the modal is actually visible.
+	$(anchor.dataset.modalTarget).one('shown.bs.modal', function () {
+		if (IsPlayerActive()) {
+			ResizeActivePlayer();
+			if (wavesurfer.isReady) {
+				wavesurfer.drawBuffer();
+			}
+		}
+	});
 	return false;
 }
