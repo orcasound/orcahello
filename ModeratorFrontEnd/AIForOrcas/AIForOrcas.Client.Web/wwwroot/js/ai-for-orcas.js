@@ -414,12 +414,16 @@ function OpenSpectrogramModal(event, anchor) {
 	InitializeModalSpectrogram(anchor.dataset.detectionId, anchor.dataset.audioUri, anchor.dataset.regions);
 	$(anchor.dataset.modalTarget).modal('show');
 
+	var containerId = 'modal-' + anchor.dataset.detectionId;
+
 	// The player is created while the modal is still hidden, so it measures a
 	// zero-width container. If the audio gets ready before the modal fade ends,
 	// the waveform and its regions keep that zero width and the shades render
 	// invisible. Re-measure and redraw once the modal is actually visible.
+	// The containerId check makes sure the player still belongs to this modal
+	// in case another one was initialized before this modal finished showing.
 	$(anchor.dataset.modalTarget).one('shown.bs.modal', function () {
-		if (IsPlayerActive()) {
+		if (IsPlayerActive() && wavesurfer.containerId == containerId) {
 			ResizeActivePlayer();
 			if (wavesurfer.isReady) {
 				wavesurfer.drawBuffer();
