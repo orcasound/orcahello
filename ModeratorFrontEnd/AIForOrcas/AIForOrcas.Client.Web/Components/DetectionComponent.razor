@@ -95,6 +95,12 @@
                     </div>
                 }
 
+                <div class="row">
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <p><i class="fas fa-robot pr-2"></i>@Detection.AIModel</p>
+                    </div>
+                </div>
+
                 <AuthorizeView Policy="ModeratorRole">
                     <Authorized Context="Auth">
                         <!-- Detection Confirmed -->
@@ -121,10 +127,30 @@
                         <div class="row">
                             <div class="col-12 form-group">
                                 <label>Tags</label>
-                                <div>
+                                <div class="row">
+                                    @foreach (var suggestion in GetSuggestedTagList(Detection))
+                                    {
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-primary mr-1 mb-1"
+                                                @onclick="(() => AddSuggestedTag(suggestion))">
+                                            + @suggestion
+                                        </button>
+                                    }
+                                </div>
+                                <div class="row">
                                     <InputText class="form-control" placeholder="Add tags separated by commas or semicolons"
                                                @bind-Value="@Detection.Tags" />
 
+                                </div>
+                                <div class="row">
+                                    @foreach (var tag in Detection.TagList)
+                                    {
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-primary mr-1 mb-1"
+                                                @onclick="(() => RemoveTag(tag))">
+                                            x @tag
+                                        </button>
+                                    }
                                 </div>
                             </div>
                         </div>

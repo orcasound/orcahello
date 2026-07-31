@@ -5,6 +5,8 @@ var appSettings = new AppSettings();
 builder.Configuration.GetSection("AppSettings").Bind(appSettings);
 builder.Services.AddSingleton<AppSettings>(appSettings);
 
+builder.Services.AddSingleton<UserTagCache>();
+
 // Inject external libraries (Extensions\External)
 builder.ConfigureExternalUtilities(appSettings);
 

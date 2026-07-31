@@ -1,21 +1,27 @@
-﻿namespace AIForOrcas.Client.Web.Components;
+﻿using System.Text.RegularExpressions;
+
+namespace AIForOrcas.Client.Web.Components;
 
 public partial class DetectionComponent
 {
 	private string _id;
+	private string _userId;
 	private TextInfo _ti = new CultureInfo("en-US", false).TextInfo;
 
 	[Inject]
 	IJSRuntime JSRuntime { get; set; }
 
-    [Inject]
+	[Inject]
 	IAccountService AccountService { get; set; }
 
-    [Inject]
+	[Inject]
 	AuthenticationStateProvider AuthenticationStateProvider { get; set; }
 
 	[Inject]
 	NavigationManager NavigationManager { get; set; }
+
+	[Inject]
+	UserTagCache TagCache { get; set; }
 
 	[Parameter]
 	public Detection Detection { get; set; }
@@ -53,9 +59,37 @@ public partial class DetectionComponent
 
 	private string LinkUrl { get => $"{NavigationManager.BaseUri}detections/detection/{Detection.Id}"; }
 
-	protected override void OnParametersSet()
+	public List<string> GetSuggestedTagList(Detection d)
+	{
+		var suggestedTags = new List<string>();
+
+		// Add any tags not in TagList that were leaf tags in the most recently moderated detection.
+		foreach (var tag in TagCache.GetTags(_userId))
+		{
+			if (!d.TagList.Contains(tag))
+			{
+				suggestedTags.Add(tag);
+			}
+		}
+
+		foreach (var tag in d.SuggestedTagList)
+		{
+			if (!suggestedTags.Contains(tag))
+			{
+				suggestedTags.Add(tag);
+			}
+		}
+
+		return suggestedTags;
+	}
+
+	protected override async Task OnParametersSetAsync()
 	{
 		_id = Detection.Id;
+
+		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+		var user = authState.User;
+		_userId = user.FindFirst("oid")?.Value;
 
 		// Unreviewed detections are being initially populated in the database as "No"
 		// I am manually resetting it here when the reviewed status is false so that the record,
@@ -65,7 +99,35 @@ public partial class DetectionComponent
 		//       from No to something other than the three options we give the user
 
 		if (!Detection.Reviewed)
+		{
 			Detection.Found = string.Empty;
+
+			if (string.IsNullOrEmpty(Detection.Tags))
+			{
+				if (Detection.GlobalPredictionLabel == "transient")
+				{
+					AddSuggestedTag("transient");
+				}
+				else if (Detection.GlobalPredictionLabel == "humpback")
+				{
+					AddSuggestedTag("humpback");
+				}
+
+				// Don't add the "srkw" tag here because we want the user
+				// to explicitly select it if they see it in the audio.
+			}
+
+			// If Comments is of the form "AI: A and B", then parse out the B and add it too.
+			if (!string.IsNullOrEmpty(Detection.Comments))
+			{
+				var match = Regex.Match(Detection.Comments, @"AI:\s*(?<a>.*?)\s*and\s*(?<b>.*)");
+				if (match.Success)
+				{
+					string b = match.Groups["b"].Value;
+					AddSuggestedTag(b);
+				}
+			}
+		}
 	}
 
 	protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -79,6 +141,94 @@ public partial class DetectionComponent
 	private void SetFoundValue(string found)
 	{
 		Detection.Found = found;
+
+		switch (found)
+		{
+			case "Yes":
+				AddSuggestedTag("srkw");
+				break;
+			default: // No or Don't Know.
+				RemoveTag("srkw");
+				break;
+		}
+	}
+
+	private void AddSuggestedTag(string tag)
+	{
+		if (string.IsNullOrWhiteSpace(tag))
+		{
+			return;
+		}
+		var tagList = Detection.TagList;
+		if (tagList.Contains(tag))
+		{
+			// Nothing to do.
+			return;
+		}
+
+		// Add the suggested tag before its parent tag if present, otherwise add it to the end of the list.
+		Detection.TagHierarchy.TryGetValue(tag, out string parentTag);
+		if (!string.IsNullOrWhiteSpace(parentTag))
+	        {
+			var parentIndex = tagList.IndexOf(parentTag);
+			if (parentIndex >= 0)
+			{
+				tagList.Insert(parentIndex, tag);
+			}
+			else
+			{
+				tagList.Add(tag);
+			}
+		}
+		else
+		{
+			tagList.Add(tag);
+		}
+		Detection.Tags = string.Join(";", tagList);
+
+		// Add parent tag if not already present.
+		if (!string.IsNullOrEmpty(parentTag))
+		{
+			AddSuggestedTag(parentTag);
+		}
+
+		if (tag == "srkw" && Detection.Found != "Yes")
+		{
+			SetFoundValue("Yes");
+		}
+	}
+
+	private void RemoveTag(string tag)
+	{
+		if (string.IsNullOrWhiteSpace(tag))
+		{
+			return;
+		}
+		var tagList = Detection.TagList;
+		if (!tagList.Contains(tag))
+		{
+			// Nothing to do.
+			return;
+		}
+
+		tagList.Remove(tag);
+		Detection.Tags = string.Join(";", tagList);
+
+		// Remove child tags if they exist in the hierarchy.
+		foreach (var pair in Detection.TagHierarchy)
+		{
+			if (pair.Value == tag)
+			{
+				RemoveTag(pair.Key);
+			}
+		}
+
+		// If we just removed the SRKW tag and the radio button says
+		// SRKW=yes, clear that.
+		if (tag == "srkw" && Detection.Found == "Yes")
+		{
+			SetFoundValue(string.Empty);
+		}
 	}
 
 	private async Task SubmitUpdate()
