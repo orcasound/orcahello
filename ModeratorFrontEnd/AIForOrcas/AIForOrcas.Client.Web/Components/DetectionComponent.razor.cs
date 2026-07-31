@@ -130,6 +130,14 @@ public partial class DetectionComponent
 		}
 	}
 
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		// Invoked on every render because the card may not be in the DOM yet on the
+		// first render (e.g. while the single detection page is still loading the record);
+		// the JS side is idempotent and exits early once the preview exists.
+		await JSRuntime.InvokeVoidAsync("PreviewCardRegions", _id, Detection.AudioUri, RegionsJson);
+	}
+
 	private void SetFoundValue(string found)
 	{
 		Detection.Found = found;
@@ -241,7 +249,7 @@ public partial class DetectionComponent
 
 	private async Task ToggleCardPlayer()
 	{
-		await JSRuntime.InvokeVoidAsync("CardSpectrogram", _id, Detection.AudioUri);
+		await JSRuntime.InvokeVoidAsync("CardSpectrogram", _id, Detection.AudioUri, RegionsJson);
 	}
 
 	private async Task ToggleModalPlayer()
@@ -256,28 +264,21 @@ public partial class DetectionComponent
 		await JSRuntime.InvokeVoidAsync("ToggleModalSpectrogram");
 	}
 
+	private string RegionsJson =>
+		JsonSerializer.Serialize(Detection.Annotations.Select(annotation => new
+		{
+			start = annotation.StartTime,
+			end = annotation.EndTime,
+			drag = false,
+			resize = false,
+			color = "rgba(255, 255, 255, 0.1)"
+		}));
+
 	private async Task InitializeModalPlayer()
 	{
-		StringBuilder sb = new StringBuilder();
-		sb.Append("[");
-
-		var list = new List<string>();
-		foreach(var annotation in Detection.Annotations)
-		{
-			var entry = "{";
-			entry += $"\"start\":{annotation.StartTime}, ";
-			entry += $"\"end\":{annotation.EndTime},";
-			entry += "\"drag\": false";
-			entry += "}";
-			list.Add(entry);
-		}
-		sb.Append(string.Join(",", list));
-
-		sb.AppendLine("]");
-
 		await JSRuntime.InvokeVoidAsync("DestroyActivePlayer");
-		await JSRuntime.InvokeVoidAsync("InitializeModalSpectrogram", _id, 
-			Detection.AudioUri, sb.ToString());
+		await JSRuntime.InvokeVoidAsync("InitializeModalSpectrogram", _id,
+			Detection.AudioUri, RegionsJson);
 	}
 
 	private async Task InitializeModalMap()
