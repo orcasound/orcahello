@@ -88,5 +88,10 @@ namespace AIForOrcas.DTO.API
 		/// Machine-generated label for the detection based on the global prediction model.
 		/// </summary>
 		public string GlobalPredictionLabel { get; set; }
+
+		/// <summary>
+		/// AI Model that reported this detection.
+		/// </summary>
+		public string AIModel => string.IsNullOrEmpty(GlobalPredictionLabel) ? "OrcaHello" : "PODS-AI";
 	}
 }
