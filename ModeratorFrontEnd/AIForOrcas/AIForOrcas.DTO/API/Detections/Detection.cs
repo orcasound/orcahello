@@ -85,6 +85,125 @@ namespace AIForOrcas.DTO.API
 		public string Tags { get; set; }
 
 		/// <summary>
+		/// Split tags into a list.
+		/// </summary>
+		/// <param name="tags">Tags string to split</param>
+		/// <returns>List of tags</returns>
+		public static List<string> GetTagList(string tags)
+		{
+			if (string.IsNullOrWhiteSpace(tags))
+				return new List<string>();
+
+			string[] delimiters = new string[] { ";", "," };
+			var rawTags = tags.Split(delimiters, StringSplitOptions.RemoveEmptyEntries);
+			var tagList = new List<string>(rawTags.Length);
+			foreach (var rawTag in rawTags)
+			{
+				var trimmed = rawTag.Trim();
+				if (trimmed.Length > 0)
+					tagList.Add(trimmed);
+			}
+			return tagList;
+		}
+
+		/// <summary>
+		/// Get the leaf tags from the given tags string.
+		/// A leaf tag is a tag that does not have any child tags in the input list.
+		/// </summary>
+		/// <param name="tags"></param>
+		/// <returns></returns>
+		public static List<string> GetLeafTags(string tags)
+		{
+			List<string> tagList = GetTagList(tags);
+			List<string> leafTags = new List<string>();
+			foreach (var tag in tagList)
+			{
+				bool isLeaf = true;
+				foreach (var pair in TagHierarchy)
+				{
+					if (pair.Value == tag && tagList.Contains(pair.Key))
+					{
+						isLeaf = false;
+						break;
+					}
+				}
+				if (isLeaf)
+				{
+					leafTags.Add(tag);
+				}
+			}
+			return leafTags;
+		}
+
+		/// <summary>
+		/// Tags in a list (parsed from the Tags string).
+		/// </summary>
+		public List<string> TagList => GetTagList(Tags);
+
+		/// <summary>
+		/// Hierarchy of tags, where the key is the child tag and the value is the parent tag.
+		/// A null value indicates a top-level tag. Within tags at the same level, more likely
+		/// entries should typically appear before less likely entries.
+		/// </summary>
+		public static readonly Dictionary<string, string> TagHierarchy = new Dictionary<string, string>()
+		{
+			{ "whale", null },
+			{ "orca", "whale" },
+			{ "srkw", "orca" },
+			{ "J pod", "srkw" },
+			{ "K pod", "srkw" },
+			{ "L pod", "srkw" },
+			{ "transient", "orca" },
+			{ "humpback", "whale" },
+			{ "vessel", null },
+			{ "train", "vessel" },
+			{ "bird", null },
+			{ "pigu", "bird" },
+			{ "kier", "bird" },
+			{ "human", null },
+			{ "jingle", null },
+			{ "water", null },
+			{ "hum", null },
+		};
+
+		/// <summary>
+		/// List of suggested tags for the detection based on the machine prediction, the tag hierarchy,
+		/// and the most recently moderated detection. Tags that are already in the TagList are not
+		/// included in the suggestions.
+		/// </summary>
+		public List<string> SuggestedTagList
+		{
+			get
+			{
+				List<string> suggestions = new List<string>();
+
+				// For each tag in the tags list, add any child tags not already in the tags list.
+				var tagList = TagList;
+				foreach (var tag in tagList)
+				{
+					foreach (var pair in TagHierarchy)
+					{
+						if (pair.Value == tag && !tagList.Contains(pair.Key))
+						{
+							suggestions.Add(pair.Key);
+						}
+					}
+				}
+
+				// Add any top-level tags not already in the tags list.
+				foreach (var pair in TagHierarchy)
+				{
+					if (pair.Value == null && !tagList.Contains(pair.Key))
+					{
+						suggestions.Add(pair.Key);
+					}
+				}
+
+				return suggestions;
+			}
+		}
+
+		/// <summary>
 		/// Machine-generated label for the detection based on the global prediction model.
 		/// </summary>
 		public string GlobalPredictionLabel { get; set; }

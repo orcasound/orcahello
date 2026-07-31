@@ -17,9 +17,12 @@
             <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
                  aria-labelledby="dropdownMenuLink">
                 <a class="dropdown-item"
-                   href="#@ModalSpectrogramPanelId"
-                   data-toggle="modal"
-                   @onclick="(()=>InitializeModalPlayer())">View Spectrogram Details</a>
+                   href="@LinkUrl"
+                   data-modal-target="#@ModalSpectrogramPanelId"
+                   data-detection-id="@Detection.Id"
+                   data-audio-uri="@Detection.AudioUri"
+                   data-regions="@RegionsJson"
+                   onclick="return OpenSpectrogramModal(event, this)">View Spectrogram Details</a>
                 <a class="dropdown-item"
                    href="#@ModalMapPanelId"
                    data-toggle="modal"
@@ -124,10 +127,30 @@
                         <div class="row">
                             <div class="col-12 form-group">
                                 <label>Tags</label>
-                                <div>
+                                <div class="row">
+                                    @foreach (var suggestion in GetSuggestedTagList(Detection))
+                                    {
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-primary mr-1 mb-1"
+                                                @onclick="(() => AddSuggestedTag(suggestion))">
+                                            + @suggestion
+                                        </button>
+                                    }
+                                </div>
+                                <div class="row">
                                     <InputText class="form-control" placeholder="Add tags separated by commas or semicolons"
                                                @bind-Value="@Detection.Tags" />
 
+                                </div>
+                                <div class="row">
+                                    @foreach (var tag in Detection.TagList)
+                                    {
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-primary mr-1 mb-1"
+                                                @onclick="(() => RemoveTag(tag))">
+                                            x @tag
+                                        </button>
+                                    }
                                 </div>
                             </div>
                         </div>
@@ -188,11 +211,14 @@
             </Authorized>
         </AuthorizeView>
 
-        <a href="#@ModalSpectrogramPanelId"
+        <a href="@LinkUrl"
            role="button"
            class="btn btn-outline-success"
-           data-toggle="modal"
-           @onclick="(()=>InitializeModalPlayer())"><i class="fas fa-wave-square pr-2" aria-hidden="true"></i>Details</a>
+           data-modal-target="#@ModalSpectrogramPanelId"
+           data-detection-id="@Detection.Id"
+           data-audio-uri="@Detection.AudioUri"
+           data-regions="@RegionsJson"
+           onclick="return OpenSpectrogramModal(event, this)"><i class="fas fa-wave-square pr-2" aria-hidden="true"></i>Details</a>
 
         <a href="#@ModalMapPanelId"
            role="button"
