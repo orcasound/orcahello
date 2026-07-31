@@ -61,8 +61,16 @@ public partial class DetectionComponent
 
 	public List<string> GetSuggestedTagList(Detection d)
 	{
+		var suggestedTags = new List<string>();
+
 		// Add any tags not in TagList that were leaf tags in the most recently moderated detection.
-		List<string> suggestedTags = TagCache.GetTags(_userId);
+		foreach (var tag in TagCache.GetTags(_userId))
+		{
+			if (!d.TagList.Contains(tag))
+			{
+				suggestedTags.Add(tag);
+			}
+		}
 
 		foreach (var tag in d.SuggestedTagList)
 		{
@@ -104,10 +112,9 @@ public partial class DetectionComponent
 				{
 					AddSuggestedTag("humpback");
 				}
-				else
-				{
-					AddSuggestedTag("srkw");
-				}
+
+				// Don't add the "srkw" tag here because we want the user
+				// to explicitly select it if they see it in the audio.
 			}
 
 			// If Comments is of the form "AI: A and B", then parse out the B and add it too.
@@ -176,6 +183,11 @@ public partial class DetectionComponent
 		{
 			AddSuggestedTag(parentTag);
 		}
+
+		if (tag == "srkw" && Detection.Found != "Yes")
+		{
+			SetFoundValue("Yes");
+		}
 	}
 
 	private void RemoveTag(string tag)
@@ -194,13 +206,20 @@ public partial class DetectionComponent
 		tagList.Remove(tag);
 		Detection.Tags = string.Join(";", tagList);
 
-	        // Remove child tags if they exist in the hierarchy.
-	        foreach (var pair in Detection.TagHierarchy)
+		// Remove child tags if they exist in the hierarchy.
+		foreach (var pair in Detection.TagHierarchy)
 		{
 			if (pair.Value == tag)
 			{
 				RemoveTag(pair.Key);
 			}
+		}
+
+		// If we just removed the SRKW tag and the radio button says
+		// SRKW=yes, clear that.
+		if (tag == "srkw" && Detection.Found == "Yes")
+		{
+			SetFoundValue(string.Empty);
 		}
 	}
 
