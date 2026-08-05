@@ -204,6 +204,38 @@ public partial class DetectionComponent
 		{
 			return;
 		}
+
+		private void OnTagsChanged(string tags)
+		{
+			var normalizedTags = string.IsNullOrWhiteSpace(tags)
+				? new List<string>()
+				: tags
+					.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries)
+					.Select(tag => tag.Trim())
+					.Where(tag => !string.IsNullOrWhiteSpace(tag))
+					.Distinct(StringComparer.OrdinalIgnoreCase)
+					.ToList();
+
+			var existingTags = Detection.TagList.ToList();
+			var tagsToAdd = normalizedTags
+				.Where(tag => !existingTags.Contains(tag, StringComparer.OrdinalIgnoreCase))
+				.ToList();
+			var tagsToRemove = existingTags
+				.Where(tag => !normalizedTags.Contains(tag, StringComparer.OrdinalIgnoreCase))
+				.ToList();
+
+			foreach (var tag in tagsToRemove)
+			{
+				RemoveTag(tag);
+			}
+
+			foreach (var tag in tagsToAdd)
+			{
+				AddSuggestedTag(tag);
+			}
+
+			Detection.Tags = string.Join(";", Detection.TagList);
+		}
 		var tagList = Detection.TagList;
 		if (!tagList.Contains(tag))
 		{

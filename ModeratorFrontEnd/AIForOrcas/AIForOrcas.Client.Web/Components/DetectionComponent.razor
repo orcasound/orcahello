@@ -139,7 +139,9 @@
                                 </div>
                                 <div class="row">
                                     <InputText class="form-control" placeholder="Add tags separated by commas or semicolons"
-                                               @bind-Value="@Detection.Tags" />
+                                               Value="@Detection.Tags"
+                                               ValueChanged="@OnTagsChanged"
+                                               ValueExpression="(() => Detection.Tags)" />
 
                                 </div>
                                 <div class="row">
