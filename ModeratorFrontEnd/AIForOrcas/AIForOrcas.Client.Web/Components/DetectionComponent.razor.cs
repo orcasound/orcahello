@@ -175,7 +175,7 @@ public partial class DetectionComponent
 		Detection.TagHierarchy.TryGetValue(tag, out string parentTag);
 		if (!string.IsNullOrWhiteSpace(parentTag))
 	        {
-			var parentIndex = tagList.IndexOf(parentTag);
+			var parentIndex = tagList.FindIndex(t => t.Equals(parentTag, StringComparison.OrdinalIgnoreCase));
 			if (parentIndex >= 0)
 			{
 				tagList.Insert(parentIndex, tag);
@@ -227,7 +227,7 @@ public partial class DetectionComponent
 		// Remove child tags if they exist in the hierarchy.
 		foreach (var pair in Detection.TagHierarchy)
 		{
-			if (pair.Value == tag)
+			if (pair.Value.Equals(tag, StringComparison.OrdinalIgnoreCase))
 			{
 				RemoveTag(pair.Key);
 			}
