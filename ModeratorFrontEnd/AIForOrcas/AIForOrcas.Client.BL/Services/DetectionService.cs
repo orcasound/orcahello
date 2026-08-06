@@ -1,6 +1,7 @@
 ﻿using AIForOrcas.DTO;
 using AIForOrcas.DTO.API;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -39,10 +40,11 @@ namespace AIForOrcas.Client.BL.Services
 			{
 				httpResponseMessage = await httpClient.GetAsync(url);
 			}
-			catch (HttpRequestException exception)
+			catch (Exception exception) when (exception is HttpRequestException || exception is TaskCanceledException)
 			{
-				// An unreachable API must degrade like a failed status code; an
-				// unhandled exception here would take down the whole circuit.
+				// An unreachable or hung API must degrade like a failed status
+				// code; an unhandled exception here would take down the whole
+				// circuit.
 				_logger.LogError(exception, "Unable to reach the detections API at {Url}", url);
 				return new PaginatedResponseDTO<List<Detection>> { Response = null, TotalAmountPages = 0, TotalNumberRecords = 0 };
 			}
@@ -54,12 +56,27 @@ namespace AIForOrcas.Client.BL.Services
 				if(string.IsNullOrWhiteSpace(responseString))
 					return new PaginatedResponseDTO<List<Detection>> { Response = new List<Detection>(), TotalAmountPages = 0, TotalNumberRecords = 0 };
 
-				return new PaginatedResponseDTO<List<Detection>>
+				// The pagination headers are not guaranteed; a response without
+				// them should not kill the page.
+				httpResponseMessage.Headers.TryGetValues("totalAmountPages", out var pageValues);
+				httpResponseMessage.Headers.TryGetValues("totalNumberRecords", out var recordValues);
+				int.TryParse(pageValues?.FirstOrDefault(), out var totalAmountPages);
+				int.TryParse(recordValues?.FirstOrDefault(), out var totalNumberRecords);
+
+				try
 				{
-					Response = JsonSerializer.Deserialize<List<Detection>>(responseString, defaultJsonSerializerOptions),
-					TotalAmountPages = int.Parse(httpResponseMessage.Headers.GetValues("totalAmountPages").FirstOrDefault()),
-					TotalNumberRecords = int.Parse(httpResponseMessage.Headers.GetValues("totalNumberRecords").FirstOrDefault())
-				};
+					return new PaginatedResponseDTO<List<Detection>>
+					{
+						Response = JsonSerializer.Deserialize<List<Detection>>(responseString, defaultJsonSerializerOptions),
+						TotalAmountPages = totalAmountPages,
+						TotalNumberRecords = totalNumberRecords
+					};
+				}
+				catch (JsonException exception)
+				{
+					_logger.LogError(exception, "Malformed response from the detections API at {Url}", url);
+					return new PaginatedResponseDTO<List<Detection>> { Response = null, TotalAmountPages = 0, TotalNumberRecords = 0 };
+				}
 			}
 			else
 			{
@@ -124,7 +141,7 @@ namespace AIForOrcas.Client.BL.Services
 			{
 				httpResponseMessage = await httpClient.GetAsync(url);
 			}
-			catch (HttpRequestException exception)
+			catch (Exception exception) when (exception is HttpRequestException || exception is TaskCanceledException)
 			{
 				// Degrade to the not-found shape rather than killing the circuit.
 				_logger.LogError(exception, "Unable to reach the detections API at {Url}", url);
@@ -135,9 +152,20 @@ namespace AIForOrcas.Client.BL.Services
 			{
 				var responseString = await httpResponseMessage.Content.ReadAsStringAsync();
 
-				var response = JsonSerializer.Deserialize<Detection>(responseString, defaultJsonSerializerOptions);
+				if (string.IsNullOrWhiteSpace(responseString))
+					return new Detection();
 
-				return response;
+				try
+				{
+					var response = JsonSerializer.Deserialize<Detection>(responseString, defaultJsonSerializerOptions);
+
+					return response ?? new Detection();
+				}
+				catch (JsonException exception)
+				{
+					_logger.LogError(exception, "Malformed response from the detections API at {Url}", url);
+					return new Detection();
+				}
 			}
 			else
 			{
