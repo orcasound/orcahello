@@ -23,6 +23,9 @@ public partial class DetectionComponent
 	[Inject]
 	UserTagCache TagCache { get; set; }
 
+	[Inject]
+	IToastService ToastService { get; set; }
+
 	[Parameter]
 	public Detection Detection { get; set; }
 
@@ -244,7 +247,16 @@ public partial class DetectionComponent
 			Found = Detection.Found
 		};
 
-		await SubmitCallback.InvokeAsync(request);
+		try
+		{
+			await SubmitCallback.InvokeAsync(request);
+		}
+		catch (Exception exception) when (exception is HttpRequestException || exception is TaskCanceledException)
+		{
+			// One guard for every page that renders this component. Keep the
+			// card and the moderator's selections untouched for a retry.
+			ToastService.ShowError("The verdict was not saved because the server could not be reached. Please try again.");
+		}
 	}
 
 	private async Task ToggleCardPlayer()
