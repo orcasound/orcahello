@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 
 namespace AIForOrcas.Client.Web.Components;
 
@@ -66,7 +66,7 @@ public partial class DetectionComponent
 		// Add any tags not in TagList that were leaf tags in the most recently moderated detection.
 		foreach (var tag in TagCache.GetTags(_userId))
 		{
-			if (!d.TagList.Contains(tag))
+			if (!d.TagList.Contains(tag, StringComparer.OrdinalIgnoreCase))
 			{
 				suggestedTags.Add(tag);
 			}
@@ -74,7 +74,7 @@ public partial class DetectionComponent
 
 		foreach (var tag in d.SuggestedTagList)
 		{
-			if (!suggestedTags.Contains(tag))
+			if (!suggestedTags.Contains(tag, StringComparer.OrdinalIgnoreCase))
 			{
 				suggestedTags.Add(tag);
 			}
@@ -106,11 +106,11 @@ public partial class DetectionComponent
 			{
 				if (Detection.GlobalPredictionLabel == "transient")
 				{
-					AddSuggestedTag("transient");
+					AddTag("transient");
 				}
 				else if (Detection.GlobalPredictionLabel == "humpback")
 				{
-					AddSuggestedTag("humpback");
+					AddTag("humpback");
 				}
 
 				// Don't add the "srkw" tag here because we want the user
@@ -124,7 +124,7 @@ public partial class DetectionComponent
 				if (match.Success)
 				{
 					string b = match.Groups["b"].Value;
-					AddSuggestedTag(b);
+					AddTag(b);
 				}
 			}
 		}
@@ -145,7 +145,7 @@ public partial class DetectionComponent
 		switch (found)
 		{
 			case "Yes":
-				AddSuggestedTag("srkw");
+				AddTag("srkw");
 				break;
 			default: // No or Don't Know.
 				RemoveTag("srkw");
@@ -153,14 +153,19 @@ public partial class DetectionComponent
 		}
 	}
 
-	private void AddSuggestedTag(string tag)
+	/// <summary>
+	/// Add a tag to the detection's tag list, ensuring that it is added before its parent tag if present, and also adding the parent tag if not already present.
+	/// If the tag is "srkw" and the Found value is not "Yes", it sets Found to "Yes".
+	/// </summary>
+	/// <param name="tag">Tag to add</param>
+	private void AddTag(string tag)
 	{
 		if (string.IsNullOrWhiteSpace(tag))
 		{
 			return;
 		}
 		var tagList = Detection.TagList;
-		if (tagList.Contains(tag))
+		if (tagList.Contains(tag, StringComparer.OrdinalIgnoreCase))
 		{
 			// Nothing to do.
 			return;
@@ -189,15 +194,20 @@ public partial class DetectionComponent
 		// Add parent tag if not already present.
 		if (!string.IsNullOrEmpty(parentTag))
 		{
-			AddSuggestedTag(parentTag);
+			AddTag(parentTag);
 		}
 
-		if (tag == "srkw" && Detection.Found != "Yes")
+		if (tag.Equals("srkw", StringComparison.OrdinalIgnoreCase) && Detection.Found != "Yes")
 		{
 			SetFoundValue("Yes");
 		}
 	}
 
+	/// <summary>
+	/// Remove a tag from the detection's tag list.
+	/// Also remove any child tags that have this tag as their parent in the hierarchy.
+	/// </summary>
+	/// <param name="tag">Tag to remove</param>
 	private void RemoveTag(string tag)
 	{
 		if (string.IsNullOrWhiteSpace(tag))
@@ -205,7 +215,7 @@ public partial class DetectionComponent
 			return;
 		}
 		var tagList = Detection.TagList;
-		if (!tagList.Contains(tag))
+		if (!tagList.Contains(tag, StringComparer.OrdinalIgnoreCase))
 		{
 			// Nothing to do.
 			return;
@@ -225,7 +235,7 @@ public partial class DetectionComponent
 
 		// If we just removed the SRKW tag and the radio button says
 		// SRKW=yes, clear that.
-		if (tag == "srkw" && Detection.Found == "Yes")
+		if (tag.Equals("srkw", StringComparison.OrdinalIgnoreCase) && Detection.Found == "Yes")
 		{
 			SetFoundValue(string.Empty);
 		}
@@ -235,10 +245,7 @@ public partial class DetectionComponent
     {
         var normalizedTags = string.IsNullOrWhiteSpace(tags)
             ? new List<string>()
-            : tags
-                .Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(tag => tag.Trim())
-                .Where(tag => !string.IsNullOrWhiteSpace(tag))
+             : Detection.GetTagList(tags)
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList();
 
@@ -257,7 +264,7 @@ public partial class DetectionComponent
 
         foreach (var tag in tagsToAdd)
         {
-            AddSuggestedTag(tag);
+            AddTag(tag);
         }
 
         Detection.Tags = string.Join(";", Detection.TagList);

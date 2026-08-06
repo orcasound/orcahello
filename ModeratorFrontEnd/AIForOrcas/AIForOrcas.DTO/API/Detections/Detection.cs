@@ -145,7 +145,7 @@ namespace AIForOrcas.DTO.API
 		/// A null value indicates a top-level tag. Within tags at the same level, more likely
 		/// entries should typically appear before less likely entries.
 		/// </summary>
-		public static readonly Dictionary<string, string> TagHierarchy = new Dictionary<string, string>()
+		public static readonly Dictionary<string, string> TagHierarchy = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
 		{
 			{ "whale", null },
 			{ "orca", "whale" },
