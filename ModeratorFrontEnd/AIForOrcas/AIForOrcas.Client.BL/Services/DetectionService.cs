@@ -1,5 +1,6 @@
 ﻿using AIForOrcas.DTO;
 using AIForOrcas.DTO.API;
+using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -15,11 +16,13 @@ namespace AIForOrcas.Client.BL.Services
 		private JsonSerializerOptions defaultJsonSerializerOptions => new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
 		private readonly IHttpClientFactory _httpClientFactory;
 		private readonly IAuthTokenProvider _authTokenProvider;
+		private readonly ILogger<DetectionService> _logger;
 
-		public DetectionService(IHttpClientFactory httpClientFactory, IAuthTokenProvider authTokenProvider)
+		public DetectionService(IHttpClientFactory httpClientFactory, IAuthTokenProvider authTokenProvider, ILogger<DetectionService> logger)
 		{
 			_httpClientFactory = httpClientFactory;
 			_authTokenProvider = authTokenProvider;
+			_logger = logger;
 		}
 
 		// Get detections based on passed view, pagination options, and filter options
@@ -30,7 +33,19 @@ namespace AIForOrcas.Client.BL.Services
 
 			// Create client on-demand from the current scope.
 			var httpClient = _httpClientFactory.CreateClient("UnauthenticatedAPI");
-			var httpResponseMessage = await httpClient.GetAsync(url);
+
+			HttpResponseMessage httpResponseMessage;
+			try
+			{
+				httpResponseMessage = await httpClient.GetAsync(url);
+			}
+			catch (HttpRequestException exception)
+			{
+				// An unreachable API must degrade like a failed status code; an
+				// unhandled exception here would take down the whole circuit.
+				_logger.LogError(exception, "Unable to reach the detections API at {Url}", url);
+				return new PaginatedResponseDTO<List<Detection>> { Response = null, TotalAmountPages = 0, TotalNumberRecords = 0 };
+			}
 
 			if (httpResponseMessage.IsSuccessStatusCode)
 			{
@@ -103,7 +118,18 @@ namespace AIForOrcas.Client.BL.Services
 
 			// Create client on-demand from the current scope.
 			var httpClient = _httpClientFactory.CreateClient("UnauthenticatedAPI");
-			var httpResponseMessage = await httpClient.GetAsync(url);
+
+			HttpResponseMessage httpResponseMessage;
+			try
+			{
+				httpResponseMessage = await httpClient.GetAsync(url);
+			}
+			catch (HttpRequestException exception)
+			{
+				// Degrade to the not-found shape rather than killing the circuit.
+				_logger.LogError(exception, "Unable to reach the detections API at {Url}", url);
+				return new Detection();
+			}
 
 			if (httpResponseMessage.IsSuccessStatusCode)
 			{
