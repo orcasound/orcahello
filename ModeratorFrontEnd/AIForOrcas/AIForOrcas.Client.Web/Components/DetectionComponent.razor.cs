@@ -221,13 +221,13 @@ public partial class DetectionComponent
 			return;
 		}
 
-		tagList.Remove(tag);
+		tagList.RemoveAll(t => t.Equals(tag, StringComparison.OrdinalIgnoreCase));
 		Detection.Tags = string.Join(";", tagList);
 
 		// Remove child tags if they exist in the hierarchy.
 		foreach (var pair in Detection.TagHierarchy)
 		{
-			if (pair.Value.Equals(tag, StringComparison.OrdinalIgnoreCase))
+			if ((pair.Value != null) && pair.Value.Equals(tag, StringComparison.OrdinalIgnoreCase))
 			{
 				RemoveTag(pair.Key);
 			}
@@ -254,9 +254,6 @@ public partial class DetectionComponent
                 .ToList();
 
         var existingTags = Detection.TagList.ToList();
-        var tagsToAdd = normalizedTags
-            .Where(tag => !existingTags.Contains(tag, StringComparer.OrdinalIgnoreCase))
-            .ToList();
         var tagsToRemove = existingTags
             .Where(tag => !normalizedTags.Contains(tag, StringComparer.OrdinalIgnoreCase))
             .ToList();
@@ -266,6 +263,9 @@ public partial class DetectionComponent
             RemoveTag(tag);
         }
 
+        var tagsToAdd = normalizedTags
+            .Where(tag => !existingTags.Contains(tag, StringComparer.OrdinalIgnoreCase))
+            .ToList();
         foreach (var tag in tagsToAdd)
         {
             AddTag(tag);
