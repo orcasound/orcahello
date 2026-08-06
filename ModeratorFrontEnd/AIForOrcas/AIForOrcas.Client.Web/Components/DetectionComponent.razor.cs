@@ -241,6 +241,10 @@ public partial class DetectionComponent
 		}
 	}
 
+    /// <summary>
+    /// Process a change in the tags string, updating the Detection's TagList accordingly.
+    /// </summary>
+    /// <param name="tags">New tags string</param>
     private void OnTagsChanged(string tags)
     {
         var normalizedTags = string.IsNullOrWhiteSpace(tags)
