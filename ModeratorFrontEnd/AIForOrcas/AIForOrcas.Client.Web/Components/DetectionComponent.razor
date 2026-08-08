@@ -132,15 +132,16 @@
                                     {
                                         <button type="button"
                                                 class="btn btn-sm btn-outline-primary mr-1 mb-1"
-                                                @onclick="(() => AddSuggestedTag(suggestion))">
+                                                @onclick="(() => AddTag(suggestion))">
                                             + @suggestion
                                         </button>
                                     }
                                 </div>
                                 <div class="row">
                                     <InputText class="form-control" placeholder="Add tags separated by commas or semicolons"
-                                               @bind-Value="@Detection.Tags" />
-
+                                               Value="@Detection.Tags"
+                                               ValueChanged="@OnTagsChanged"
+                                               ValueExpression="(() => Detection.Tags)" />
                                 </div>
                                 <div class="row">
                                     @foreach (var tag in Detection.TagList)
