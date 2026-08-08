@@ -186,6 +186,12 @@ function InitializeModalSpectrogram(modalId, audioUrl, regionsJson) {
 
 	var spectrogram = new Spectrogram(containerId);
 
+	// The regions are drawn before the audio duration is known, so they collapse
+	// at the left edge until 'ready'. Hide the player while it loads so the
+	// misdrawn regions are never shown.
+	var waveform = document.getElementById('waveform-' + containerId);
+	waveform.style.visibility = 'hidden';
+
 	wavesurfer = WaveSurfer.create({
 		container: '#waveform-' + containerId,
 		waveColor: 'rgba(0,0,0,0)',
@@ -212,6 +218,7 @@ function InitializeModalSpectrogram(modalId, audioUrl, regionsJson) {
 	wavesurfer.on('ready', function () {
 		SetMaximumVolume();
 		AdjustSizes(spectrogram);
+		waveform.style.visibility = '';
 		SetSpinnerButtonToPlay();
 		SetDuration();
 	});
@@ -355,6 +362,13 @@ function CardSpectrogram(cardId, audioUrl, regionsJson) {
 
 		var spectrogram = new Spectrogram(containerId);
 
+		// Same loading-window guard as the modal player: the regions collapse at
+		// the left edge until 'ready', and next to the static preview that reads
+		// as the shades blinking and shifting. Keep the player hidden until its
+		// regions are correct; the preview stays as the only visible shading.
+		var waveform = document.getElementById('waveform-' + containerId);
+		waveform.style.visibility = 'hidden';
+
 		wavesurfer = WaveSurfer.create({
 			container: ('#waveform-' + containerId),
 			waveColor: 'rgba(0,0,0,0)',
@@ -389,6 +403,7 @@ function CardSpectrogram(cardId, audioUrl, regionsJson) {
 			// Swap the static region preview for the player's own regions only
 			// once they can actually render, so the shades never blink out.
 			RemoveCardRegionPreview(cardId);
+			waveform.style.visibility = '';
 			wavesurfer.play();
 		});
 
