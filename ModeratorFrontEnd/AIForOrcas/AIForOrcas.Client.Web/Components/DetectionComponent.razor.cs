@@ -134,8 +134,8 @@ public partial class DetectionComponent
 	{
 		// Invoked on every render because the card may not be in the DOM yet on the
 		// first render (e.g. while the single detection page is still loading the record);
-		// the JS side is idempotent and exits early once the preview exists.
-		await JSRuntime.InvokeVoidAsync("PreviewCardRegions", _id, Detection.AudioUri, RegionsJson);
+		// the JS side is idempotent and exits early once the shades exist.
+		await JSRuntime.InvokeVoidAsync("DrawRegionShades", _id, Detection.AudioUri, RegionsJson);
 	}
 
 	private void SetFoundValue(string found)
@@ -292,7 +292,7 @@ public partial class DetectionComponent
 
 	private async Task ToggleCardPlayer()
 	{
-		await JSRuntime.InvokeVoidAsync("CardSpectrogram", _id, Detection.AudioUri, RegionsJson);
+		await JSRuntime.InvokeVoidAsync("CardSpectrogram", _id, Detection.AudioUri);
 	}
 
 	private async Task ToggleModalPlayer()
@@ -312,8 +312,6 @@ public partial class DetectionComponent
 		{
 			start = annotation.StartTime,
 			end = annotation.EndTime,
-			drag = false,
-			resize = false,
 			color = "rgba(255, 255, 255, 0.1)"
 		}));
 
@@ -321,7 +319,7 @@ public partial class DetectionComponent
 	{
 		await JSRuntime.InvokeVoidAsync("DestroyActivePlayer");
 		await JSRuntime.InvokeVoidAsync("InitializeModalSpectrogram", _id,
-			Detection.AudioUri, RegionsJson);
+			Detection.AudioUri);
 	}
 
 	private async Task InitializeModalMap()

@@ -161,22 +161,13 @@ function DestroyActivePlayer() {
 		ResetElapsedTime();
 		ResetDuration();
 
-		// Destroying a card player takes its regions with it; bring the static
-		// preview back so the detector shades stay visible after playback ends
-		// or moves to another card or modal.
-		var previewArgs = wavesurfer.previewArgs;
-
 		wavesurfer.destroy();
 
 		wavesurfer = {};
-
-		if (previewArgs != undefined) {
-			PreviewCardRegions.apply(null, previewArgs);
-		}
 	}
 }
 
-function InitializeModalSpectrogram(modalId, audioUrl, regionsJson) {
+function InitializeModalSpectrogram(modalId, audioUrl) {
 
 	var containerId = 'modal-' + modalId;
 
@@ -186,12 +177,9 @@ function InitializeModalSpectrogram(modalId, audioUrl, regionsJson) {
 
 	var spectrogram = new Spectrogram(containerId);
 
-	// The regions are drawn before the audio duration is known, so they collapse
-	// at the left edge until 'ready'. Hide the player while it loads so the
-	// misdrawn regions are never shown.
-	var waveform = document.getElementById('waveform-' + containerId);
-	waveform.style.visibility = 'hidden';
-
+	// The detector shades are drawn over the spectrogram image by
+	// DrawRegionShades; the player only contributes the progress cursor
+	// and the audio itself, so no regions plugin is needed.
 	wavesurfer = WaveSurfer.create({
 		container: '#waveform-' + containerId,
 		waveColor: 'rgba(0,0,0,0)',
@@ -201,12 +189,7 @@ function InitializeModalSpectrogram(modalId, audioUrl, regionsJson) {
 		height: spectrogram.height,
 		maxCanvasWidth: spectrogram.width,
 		responsive: true,
-		fillParent: true,
-		plugins: [
-			WaveSurfer.regions.create({
-				regions: JSON.parse(regionsJson)
-			})
-		]
+		fillParent: true
 	})
 
 	wavesurfer.containerId = containerId;
@@ -218,7 +201,6 @@ function InitializeModalSpectrogram(modalId, audioUrl, regionsJson) {
 	wavesurfer.on('ready', function () {
 		SetMaximumVolume();
 		AdjustSizes(spectrogram);
-		waveform.style.visibility = '';
 		SetSpinnerButtonToPlay();
 		SetDuration();
 	});
@@ -255,9 +237,14 @@ function ToggleModalSpectrogram() {
 	}
 }
 
-/* Card Region Preview (shows detector regions on the static spectrogram before playback) */
+/* Region Shades (detector regions drawn over the spectrogram image) */
 
-function PreviewCardRegions(cardId, audioUrl, regionsJson) {
+// The shades are the single source of truth for where the AI heard something:
+// percentage-positioned strips over the responsive spectrogram image, in both
+// the card and its modal, present before, during, and after playback. The
+// player never draws its own regions, so the shades cannot jump, blink, or
+// disappear across the playback lifecycle.
+function DrawRegionShades(detectionId, audioUrl, regionsJson) {
 
 	var regions = JSON.parse(regionsJson || '[]');
 
@@ -265,40 +252,31 @@ function PreviewCardRegions(cardId, audioUrl, regionsJson) {
 		return;
 	}
 
-	var image = document.getElementById('spectrogram-card-' + cardId);
-	var waveform = document.getElementById('waveform-card-' + cardId);
+	var drawInto = function (containerId, duration) {
 
-	if (image === null || waveform === null || document.getElementById('regions-preview-card-' + cardId) !== null) {
-		return;
-	}
+		var image = document.getElementById('spectrogram-' + containerId);
+		var waveform = document.getElementById('waveform-' + containerId);
 
-	// The player draws its own regions; skip the preview while it is active on this card
-	if (wavesurfer.containerId == 'card-' + cardId) {
-		return;
-	}
-
-	var drawForDuration = function (duration) {
-
-		if (!isFinite(duration) || duration <= 0) {
+		if (image === null || waveform === null || document.getElementById('regions-shades-' + containerId) !== null) {
 			return;
 		}
 
 		var draw = function () {
 
-			if (wavesurfer.containerId == 'card-' + cardId || document.getElementById('regions-preview-card-' + cardId) !== null) {
+			if (document.getElementById('regions-shades-' + containerId) !== null) {
 				return;
 			}
 
 			// Absolutely positioned over the card-img-overlay, which tracks the
 			// responsive spectrogram image, so the strips follow every resize
 			// and the waveform below is not displaced out of the overlay.
-			var preview = document.createElement('div');
-			preview.id = 'regions-preview-card-' + cardId;
-			preview.style.position = 'absolute';
-			preview.style.top = '0';
-			preview.style.left = '0';
-			preview.style.width = '100%';
-			preview.style.height = '100%';
+			var shades = document.createElement('div');
+			shades.id = 'regions-shades-' + containerId;
+			shades.style.position = 'absolute';
+			shades.style.top = '0';
+			shades.style.left = '0';
+			shades.style.width = '100%';
+			shades.style.height = '100%';
 
 			regions.forEach(function (region) {
 				var strip = document.createElement('div');
@@ -309,10 +287,12 @@ function PreviewCardRegions(cardId, audioUrl, regionsJson) {
 				strip.style.left = (region.start / duration * 100) + '%';
 				strip.style.width = ((region.end - region.start) / duration * 100) + '%';
 				strip.style.backgroundColor = region.color;
-				preview.appendChild(strip);
+				shades.appendChild(strip);
 			});
 
-			waveform.parentElement.insertBefore(preview, waveform);
+			// Inserted below the waveform so the progress cursor stays visible
+			// and seek clicks keep landing on the player.
+			waveform.parentElement.insertBefore(shades, waveform);
 		};
 
 		if (image.complete) {
@@ -321,6 +301,16 @@ function PreviewCardRegions(cardId, audioUrl, regionsJson) {
 		else {
 			image.addEventListener('load', draw, { once: true });
 		}
+	};
+
+	var drawForDuration = function (duration) {
+
+		if (!isFinite(duration) || duration <= 0) {
+			return;
+		}
+
+		drawInto('card-' + detectionId, duration);
+		drawInto('modal-' + detectionId, duration);
 	};
 
 	// preload="metadata" fetches only the audio header, enough to know the clip duration
@@ -341,16 +331,7 @@ function PreviewCardRegions(cardId, audioUrl, regionsJson) {
 	});
 }
 
-function RemoveCardRegionPreview(cardId) {
-
-	var preview = document.getElementById('regions-preview-card-' + cardId);
-
-	if (preview !== null) {
-		preview.remove();
-	}
-}
-
-function CardSpectrogram(cardId, audioUrl, regionsJson) {
+function CardSpectrogram(cardId, audioUrl) {
 
 	var containerId = 'card-' + cardId;
 
@@ -362,13 +343,9 @@ function CardSpectrogram(cardId, audioUrl, regionsJson) {
 
 		var spectrogram = new Spectrogram(containerId);
 
-		// Same loading-window guard as the modal player: the regions collapse at
-		// the left edge until 'ready', and next to the static preview that reads
-		// as the shades blinking and shifting. Keep the player hidden until its
-		// regions are correct; the preview stays as the only visible shading.
-		var waveform = document.getElementById('waveform-' + containerId);
-		waveform.style.visibility = 'hidden';
-
+		// The detector shades are drawn over the spectrogram image by
+		// DrawRegionShades; the player only contributes the progress cursor
+		// and the audio itself, so no regions plugin is needed.
 		wavesurfer = WaveSurfer.create({
 			container: ('#waveform-' + containerId),
 			waveColor: 'rgba(0,0,0,0)',
@@ -378,18 +355,10 @@ function CardSpectrogram(cardId, audioUrl, regionsJson) {
 			height: spectrogram.height,
 			maxCanvasWidth: spectrogram.width,
 			responsive: true,
-			fillParent: true,
-			plugins: [
-				WaveSurfer.regions.create({
-					regions: JSON.parse(regionsJson || '[]')
-				})
-			]
+			fillParent: true
 		})
 
 		wavesurfer.containerId = containerId;
-		// Remembered so DestroyActivePlayer can restore the static preview
-		// this player replaces.
-		wavesurfer.previewArgs = [cardId, audioUrl, regionsJson];
 
 		SetPlayButtonToSpinner();
 
@@ -400,16 +369,12 @@ function CardSpectrogram(cardId, audioUrl, regionsJson) {
 			AdjustSizes(spectrogram);
 			SetSpinnerButtonToPause();
 			SetDuration();
-			// Swap the static region preview for the player's own regions only
-			// once they can actually render, so the shades never blink out.
-			RemoveCardRegionPreview(cardId);
-			waveform.style.visibility = '';
 			wavesurfer.play();
 		});
 
 		// If the audio fails to load, reset the button so the failure is visible
-		// instead of leaving the spinner stuck forever. The static region
-		// preview is intentionally left in place.
+		// instead of leaving the spinner stuck forever. The region shades stay
+		// in place either way.
 		wavesurfer.on('error', function (e) {
 			console.error('Spectrogram audio failed to load: ' + e);
 			SetSpinnerButtonToPlay();
@@ -454,14 +419,14 @@ function OpenSpectrogramModal(event, anchor) {
 	}
 
 	DestroyActivePlayer();
-	InitializeModalSpectrogram(anchor.dataset.detectionId, anchor.dataset.audioUri, anchor.dataset.regions);
+	InitializeModalSpectrogram(anchor.dataset.detectionId, anchor.dataset.audioUri);
 	$(anchor.dataset.modalTarget).modal('show');
 
 	var containerId = 'modal-' + anchor.dataset.detectionId;
 
 	// The player is created while the modal is still hidden, so it measures a
 	// zero-width container. If the audio gets ready before the modal fade ends,
-	// the waveform and its regions keep that zero width and the shades render
+	// the waveform keeps that zero width and the progress cursor renders
 	// invisible. Re-measure and redraw once the modal is actually visible.
 	// The containerId check makes sure the player still belongs to this modal
 	// in case another one was initialized before this modal finished showing.
