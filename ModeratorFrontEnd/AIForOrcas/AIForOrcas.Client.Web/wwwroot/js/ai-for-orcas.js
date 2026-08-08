@@ -252,6 +252,17 @@ function DrawRegionShades(detectionId, audioUrl, regionsJson) {
 		return;
 	}
 
+	// Blazor re-renders the component many times; once every present container
+	// has its shades there is nothing left to draw, so skip the metadata probe.
+	var needsShades = function (containerId) {
+		return document.getElementById('spectrogram-' + containerId) !== null
+			&& document.getElementById('regions-shades-' + containerId) === null;
+	};
+
+	if (!needsShades('card-' + detectionId) && !needsShades('modal-' + detectionId)) {
+		return;
+	}
+
 	var drawInto = function (containerId, duration) {
 
 		var image = document.getElementById('spectrogram-' + containerId);
