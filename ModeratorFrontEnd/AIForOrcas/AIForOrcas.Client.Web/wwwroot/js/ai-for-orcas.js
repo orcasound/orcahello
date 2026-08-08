@@ -161,9 +161,18 @@ function DestroyActivePlayer() {
 		ResetElapsedTime();
 		ResetDuration();
 
+		// Destroying a card player takes its regions with it; bring the static
+		// preview back so the detector shades stay visible after playback ends
+		// or moves to another card or modal.
+		var previewArgs = wavesurfer.previewArgs;
+
 		wavesurfer.destroy();
 
 		wavesurfer = {};
+
+		if (previewArgs != undefined) {
+			PreviewCardRegions.apply(null, previewArgs);
+		}
 	}
 }
 
@@ -261,14 +270,7 @@ function PreviewCardRegions(cardId, audioUrl, regionsJson) {
 		return;
 	}
 
-	// preload="metadata" fetches only the audio header, enough to know the clip duration
-	var audio = document.createElement('audio');
-	audio.preload = 'metadata';
-	audio.src = audioUrl;
-
-	audio.addEventListener('loadedmetadata', function () {
-
-		var duration = audio.duration;
+	var drawForDuration = function (duration) {
 
 		if (!isFinite(duration) || duration <= 0) {
 			return;
@@ -280,10 +282,16 @@ function PreviewCardRegions(cardId, audioUrl, regionsJson) {
 				return;
 			}
 
+			// Absolutely positioned over the card-img-overlay, which tracks the
+			// responsive spectrogram image, so the strips follow every resize
+			// and the waveform below is not displaced out of the overlay.
 			var preview = document.createElement('div');
 			preview.id = 'regions-preview-card-' + cardId;
-			preview.style.position = 'relative';
-			preview.style.height = image.clientHeight + 'px';
+			preview.style.position = 'absolute';
+			preview.style.top = '0';
+			preview.style.left = '0';
+			preview.style.width = '100%';
+			preview.style.height = '100%';
 
 			regions.forEach(function (region) {
 				var strip = document.createElement('div');
@@ -306,6 +314,23 @@ function PreviewCardRegions(cardId, audioUrl, regionsJson) {
 		else {
 			image.addEventListener('load', draw, { once: true });
 		}
+	};
+
+	// preload="metadata" fetches only the audio header, enough to know the clip duration
+	var audio = document.createElement('audio');
+	audio.preload = 'metadata';
+	audio.src = audioUrl;
+
+	audio.addEventListener('loadedmetadata', function () {
+		drawForDuration(audio.duration);
+	});
+
+	// If the audio cannot load at all, still show where the AI heard something.
+	// Every deployment produces 60 second clips (inference_segment_size), so a
+	// fixed fallback keeps the strips close to their real place until playback
+	// becomes available again.
+	audio.addEventListener('error', function () {
+		drawForDuration(60);
 	});
 }
 
@@ -348,6 +373,9 @@ function CardSpectrogram(cardId, audioUrl, regionsJson) {
 		})
 
 		wavesurfer.containerId = containerId;
+		// Remembered so DestroyActivePlayer can restore the static preview
+		// this player replaces.
+		wavesurfer.previewArgs = [cardId, audioUrl, regionsJson];
 
 		SetPlayButtonToSpinner();
 
