@@ -36,8 +36,10 @@ public partial class PaginationComponent
 
 		for (int i = 1; i <= PaginationResults.TotalNumberOfPages; i++)
 		{
-			if (i >= PaginationResults.CurrentPage - PaginationOptions.Radius && 
-				i <= PaginationResults.CurrentPage + PaginationOptions.Radius)
+			if (i == 1 ||
+				i == PaginationResults.TotalNumberOfPages ||
+				(i >= PaginationResults.CurrentPage - PaginationOptions.Radius &&
+				 i <= PaginationResults.CurrentPage + PaginationOptions.Radius))
 			{
 				links.Add(new PageLinkDTO(i) { Active = PaginationResults.CurrentPage == i });
 			}

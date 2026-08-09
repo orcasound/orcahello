@@ -12,6 +12,16 @@
 }
 else
 {
+	<!-- Pagination -->
+	@if (detections != null && detections.Count > 0)
+	{
+		<div class="col-12 text-left px-0">
+			<PaginationComponent PaginationOptions=@paginationOptions
+								PaginationResults="@pagination"
+								SelectPageCallback="ActOnSelectPageCallback" />
+		</div>
+	}
+
 	<!-- Cards -->
 	@for (var i = 0; i < detections.Count(); i++)
 	{
