@@ -189,7 +189,10 @@ function InitializeModalSpectrogram(modalId, audioUrl) {
 		height: spectrogram.height,
 		maxCanvasWidth: spectrogram.width,
 		responsive: true,
-		fillParent: true
+		fillParent: true,
+		// Clip instead of scroll: a window drag can briefly leave the canvas
+		// wider than its container, blinking a scrollbar under the spectrogram.
+		hideScrollbar: true
 	})
 
 	wavesurfer.containerId = containerId;
@@ -366,7 +369,9 @@ function CardSpectrogram(cardId, audioUrl) {
 			height: spectrogram.height,
 			maxCanvasWidth: spectrogram.width,
 			responsive: true,
-			fillParent: true
+			fillParent: true,
+			// Same as the modal player: no scrollbar blink on resize.
+			hideScrollbar: true
 		})
 
 		wavesurfer.containerId = containerId;
