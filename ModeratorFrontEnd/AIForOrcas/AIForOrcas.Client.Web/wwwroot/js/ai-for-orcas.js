@@ -151,6 +151,13 @@ function ResizeActivePlayer() {
 	if (wavesurfer.container != undefined) {
 		spectrogram = new Spectrogram(wavesurfer.containerId);
 		AdjustSizes(spectrogram);
+		// Redraw now instead of waiting for wavesurfer's debounced responsive
+		// redraw, so the progress cursor tracks the scaling image during a
+		// drag. Same event the debounced handler fires, which redraws the
+		// waveform and repositions the progress cursor.
+		if (wavesurfer.isReady) {
+			wavesurfer.drawer.fireEvent('redraw');
+		}
 	}
 }
 
