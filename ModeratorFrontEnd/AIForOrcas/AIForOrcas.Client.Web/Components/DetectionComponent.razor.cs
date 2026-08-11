@@ -7,6 +7,7 @@ public partial class DetectionComponent
 	private string _id;
 	private string _userId;
 	private Detection _initializedDetection;
+	private bool _submitting;
 	private TextInfo _ti = new CultureInfo("en-US", false).TextInfo;
 
 	[Inject]
@@ -57,7 +58,7 @@ public partial class DetectionComponent
 
 	private string AverageConfidence { get => $"{Detection.Confidence.ToString("00.##")}% average confidence"; }
 
-	private bool IsSubmitDisabled { get => string.IsNullOrWhiteSpace(Detection.Found); }
+	private bool IsSubmitDisabled { get => _submitting || string.IsNullOrWhiteSpace(Detection.Found); }
 
 	private string WasFound	{ get => _ti.ToTitleCase(Detection.Found); }
 
@@ -296,6 +297,7 @@ public partial class DetectionComponent
 			Found = Detection.Found
 		};
 
+		_submitting = true;
 		try
 		{
 			await SubmitCallback.InvokeAsync(request);
@@ -305,6 +307,10 @@ public partial class DetectionComponent
 			// One guard for every page that renders this component. Keep the
 			// card and the moderator's selections untouched for a retry.
 			ToastService.ShowError("The verdict was not saved because the server could not be reached. Please try again.");
+		}
+		finally
+		{
+			_submitting = false;
 		}
 	}
 
