@@ -6,6 +6,7 @@ public partial class DetectionComponent
 {
 	private string _id;
 	private string _userId;
+	private Detection _initializedDetection;
 	private TextInfo _ti = new CultureInfo("en-US", false).TextInfo;
 
 	[Inject]
@@ -101,8 +102,13 @@ public partial class DetectionComponent
 		// TODO: Determine whether or not we should change the initial Found state
 		//       from No to something other than the three options we give the user
 
-		if (!Detection.Reviewed)
+		// Only initialize each detection once. This hook runs again on every
+		// parent re-render with the same Detection instance, and resetting
+		// then would wipe a verdict the moderator already selected (e.g. right
+		// after a failed submit shows its retry toast).
+		if (!Detection.Reviewed && !ReferenceEquals(Detection, _initializedDetection))
 		{
+			_initializedDetection = Detection;
 			Detection.Found = string.Empty;
 
 			if (string.IsNullOrEmpty(Detection.Tags))
