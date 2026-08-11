@@ -157,9 +157,10 @@ namespace AIForOrcas.Client.BL.Services
 			}
 			catch (Exception exception) when (exception is HttpRequestException || exception is TaskCanceledException)
 			{
-				// Degrade to the not-found shape rather than killing the circuit.
+				// Null means the API could not be reached, so the page can say
+				// so instead of misreporting the detection as missing.
 				_logger.LogError(exception, "Unable to reach the detections API at {Url}", url);
-				return new Detection();
+				return null;
 			}
 
 			if (httpResponseMessage.IsSuccessStatusCode)
@@ -178,11 +179,12 @@ namespace AIForOrcas.Client.BL.Services
 				catch (JsonException exception)
 				{
 					_logger.LogError(exception, "Malformed response from the detections API at {Url}", url);
-					return new Detection();
+					return null;
 				}
 			}
 			else
 			{
+				// The API answered: this id genuinely has no detection.
 				return new Detection();
 			}
 		}

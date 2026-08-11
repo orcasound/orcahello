@@ -23,6 +23,7 @@ public partial class SingleDetection : ComponentBase, IDisposable
 	private string _userId;
 	private Detection detection = null;
 	private bool isFound = true;
+	private bool isUnavailable = false;
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -36,7 +37,8 @@ public partial class SingleDetection : ComponentBase, IDisposable
 	private async Task LoadDetection()
 	{
 		detection = await Service.GetDetectionAsync(Id);
-		if(detection.Id == null)
+		isUnavailable = detection == null;
+		if (!isUnavailable && detection.Id == null)
 			isFound = false;
 	}
 

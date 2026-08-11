@@ -3,7 +3,11 @@
 <PageTitle>Detection - @Id</PageTitle>
 <PageHeadingComponent Title="Detection" />
 
-@if (detection == null)
+@if (isUnavailable)
+{
+	<h5 class="mt-5">An unknown error occurred while loading the record...</h5>
+}
+else if (detection == null)
 {
 	<h5 class="mt-5">Loading record...</h5>
 }
