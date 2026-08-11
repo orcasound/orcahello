@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AIForOrcas.DTO.API
 {
@@ -121,7 +122,7 @@ namespace AIForOrcas.DTO.API
 				bool isLeaf = true;
 				foreach (var pair in TagHierarchy)
 				{
-					if (pair.Value == tag && tagList.Contains(pair.Key))
+					if (tag.Equals(pair.Value, StringComparison.OrdinalIgnoreCase) && tagList.Contains(pair.Key, StringComparer.OrdinalIgnoreCase))
 					{
 						isLeaf = false;
 						break;
@@ -145,7 +146,7 @@ namespace AIForOrcas.DTO.API
 		/// A null value indicates a top-level tag. Within tags at the same level, more likely
 		/// entries should typically appear before less likely entries.
 		/// </summary>
-		public static readonly Dictionary<string, string> TagHierarchy = new Dictionary<string, string>()
+		public static readonly Dictionary<string, string> TagHierarchy = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
 		{
 			{ "whale", null },
 			{ "orca", "whale" },
@@ -159,7 +160,7 @@ namespace AIForOrcas.DTO.API
 			{ "train", "vessel" },
 			{ "bird", null },
 			{ "pigu", "bird" },
-			{ "kier", "bird" },
+			{ "keir", "bird" },
 			{ "human", null },
 			{ "jingle", null },
 			{ "water", null },
@@ -183,7 +184,7 @@ namespace AIForOrcas.DTO.API
 				{
 					foreach (var pair in TagHierarchy)
 					{
-						if (pair.Value == tag && !tagList.Contains(pair.Key))
+						if (tag.Equals(pair.Value, StringComparison.OrdinalIgnoreCase) && !tagList.Contains(pair.Key, StringComparer.OrdinalIgnoreCase))
 						{
 							suggestions.Add(pair.Key);
 						}
@@ -193,7 +194,7 @@ namespace AIForOrcas.DTO.API
 				// Add any top-level tags not already in the tags list.
 				foreach (var pair in TagHierarchy)
 				{
-					if (pair.Value == null && !tagList.Contains(pair.Key))
+					if (pair.Value == null && !tagList.Contains(pair.Key, StringComparer.OrdinalIgnoreCase))
 					{
 						suggestions.Add(pair.Key);
 					}

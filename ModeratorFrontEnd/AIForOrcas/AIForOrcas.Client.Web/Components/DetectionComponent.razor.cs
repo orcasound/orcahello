@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 
 namespace AIForOrcas.Client.Web.Components;
 
@@ -69,7 +69,7 @@ public partial class DetectionComponent
 		// Add any tags not in TagList that were leaf tags in the most recently moderated detection.
 		foreach (var tag in TagCache.GetTags(_userId))
 		{
-			if (!d.TagList.Contains(tag))
+			if (!d.TagList.Contains(tag, StringComparer.OrdinalIgnoreCase))
 			{
 				suggestedTags.Add(tag);
 			}
@@ -77,7 +77,7 @@ public partial class DetectionComponent
 
 		foreach (var tag in d.SuggestedTagList)
 		{
-			if (!suggestedTags.Contains(tag))
+			if (!suggestedTags.Contains(tag, StringComparer.OrdinalIgnoreCase))
 			{
 				suggestedTags.Add(tag);
 			}
@@ -109,11 +109,11 @@ public partial class DetectionComponent
 			{
 				if (Detection.GlobalPredictionLabel == "transient")
 				{
-					AddSuggestedTag("transient");
+					AddTag("transient");
 				}
 				else if (Detection.GlobalPredictionLabel == "humpback")
 				{
-					AddSuggestedTag("humpback");
+					AddTag("humpback");
 				}
 
 				// Don't add the "srkw" tag here because we want the user
@@ -127,7 +127,7 @@ public partial class DetectionComponent
 				if (match.Success)
 				{
 					string b = match.Groups["b"].Value;
-					AddSuggestedTag(b);
+					AddTag(b);
 				}
 			}
 		}
@@ -137,8 +137,8 @@ public partial class DetectionComponent
 	{
 		// Invoked on every render because the card may not be in the DOM yet on the
 		// first render (e.g. while the single detection page is still loading the record);
-		// the JS side is idempotent and exits early once the preview exists.
-		await JSRuntime.InvokeVoidAsync("PreviewCardRegions", _id, Detection.AudioUri, RegionsJson);
+		// the JS side is idempotent and exits early once the shades exist.
+		await JSRuntime.InvokeVoidAsync("DrawRegionShades", _id, Detection.AudioUri, RegionsJson);
 	}
 
 	private void SetFoundValue(string found)
@@ -148,7 +148,7 @@ public partial class DetectionComponent
 		switch (found)
 		{
 			case "Yes":
-				AddSuggestedTag("srkw");
+				AddTag("srkw");
 				break;
 			default: // No or Don't Know.
 				RemoveTag("srkw");
@@ -156,14 +156,19 @@ public partial class DetectionComponent
 		}
 	}
 
-	private void AddSuggestedTag(string tag)
+	/// <summary>
+	/// Add a tag to the detection's tag list, ensuring that it is added before its parent tag if present, and also adding the parent tag if not already present.
+	/// If the tag is "srkw" and the Found value is not "Yes", it sets Found to "Yes".
+	/// </summary>
+	/// <param name="tag">Tag to add</param>
+	private void AddTag(string tag)
 	{
 		if (string.IsNullOrWhiteSpace(tag))
 		{
 			return;
 		}
 		var tagList = Detection.TagList;
-		if (tagList.Contains(tag))
+		if (tagList.Contains(tag, StringComparer.OrdinalIgnoreCase))
 		{
 			// Nothing to do.
 			return;
@@ -173,7 +178,7 @@ public partial class DetectionComponent
 		Detection.TagHierarchy.TryGetValue(tag, out string parentTag);
 		if (!string.IsNullOrWhiteSpace(parentTag))
 	        {
-			var parentIndex = tagList.IndexOf(parentTag);
+			var parentIndex = tagList.FindIndex(t => t.Equals(parentTag, StringComparison.OrdinalIgnoreCase));
 			if (parentIndex >= 0)
 			{
 				tagList.Insert(parentIndex, tag);
@@ -192,15 +197,20 @@ public partial class DetectionComponent
 		// Add parent tag if not already present.
 		if (!string.IsNullOrEmpty(parentTag))
 		{
-			AddSuggestedTag(parentTag);
+			AddTag(parentTag);
 		}
 
-		if (tag == "srkw" && Detection.Found != "Yes")
+		if (tag.Equals("srkw", StringComparison.OrdinalIgnoreCase) && Detection.Found != "Yes")
 		{
 			SetFoundValue("Yes");
 		}
 	}
 
+	/// <summary>
+	/// Remove a tag from the detection's tag list.
+	/// Also remove any child tags that have this tag as their parent in the hierarchy.
+	/// </summary>
+	/// <param name="tag">Tag to remove</param>
 	private void RemoveTag(string tag)
 	{
 		if (string.IsNullOrWhiteSpace(tag))
@@ -208,19 +218,19 @@ public partial class DetectionComponent
 			return;
 		}
 		var tagList = Detection.TagList;
-		if (!tagList.Contains(tag))
+		if (!tagList.Contains(tag, StringComparer.OrdinalIgnoreCase))
 		{
 			// Nothing to do.
 			return;
 		}
 
-		tagList.Remove(tag);
+		tagList.RemoveAll(t => t.Equals(tag, StringComparison.OrdinalIgnoreCase));
 		Detection.Tags = string.Join(";", tagList);
 
 		// Remove child tags if they exist in the hierarchy.
 		foreach (var pair in Detection.TagHierarchy)
 		{
-			if (pair.Value == tag)
+			if ((pair.Value != null) && pair.Value.Equals(tag, StringComparison.OrdinalIgnoreCase))
 			{
 				RemoveTag(pair.Key);
 			}
@@ -228,13 +238,46 @@ public partial class DetectionComponent
 
 		// If we just removed the SRKW tag and the radio button says
 		// SRKW=yes, clear that.
-		if (tag == "srkw" && Detection.Found == "Yes")
+		if (tag.Equals("srkw", StringComparison.OrdinalIgnoreCase) && Detection.Found == "Yes")
 		{
 			SetFoundValue(string.Empty);
 		}
 	}
 
-	private async Task SubmitUpdate()
+    /// <summary>
+    /// Process a change in the tags string, updating the Detection's TagList accordingly.
+    /// </summary>
+    /// <param name="tags">New tags string</param>
+    private void OnTagsChanged(string tags)
+    {
+        var normalizedTags = string.IsNullOrWhiteSpace(tags)
+            ? new List<string>()
+             : Detection.GetTagList(tags)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+        var existingTags = Detection.TagList.ToList();
+        var tagsToRemove = existingTags
+            .Where(tag => !normalizedTags.Contains(tag, StringComparer.OrdinalIgnoreCase))
+            .ToList();
+
+        foreach (var tag in tagsToRemove)
+        {
+            RemoveTag(tag);
+        }
+
+        var tagsToAdd = normalizedTags
+            .Where(tag => !existingTags.Contains(tag, StringComparer.OrdinalIgnoreCase))
+            .ToList();
+        foreach (var tag in tagsToAdd)
+        {
+            AddTag(tag);
+        }
+
+        Detection.Tags = string.Join(";", Detection.TagList);
+    }
+
+    private async Task SubmitUpdate()
 	{
 		var request = new DetectionUpdate()
 		{
@@ -261,7 +304,7 @@ public partial class DetectionComponent
 
 	private async Task ToggleCardPlayer()
 	{
-		await JSRuntime.InvokeVoidAsync("CardSpectrogram", _id, Detection.AudioUri, RegionsJson);
+		await JSRuntime.InvokeVoidAsync("CardSpectrogram", _id, Detection.AudioUri);
 	}
 
 	private async Task ToggleModalPlayer()
@@ -281,8 +324,6 @@ public partial class DetectionComponent
 		{
 			start = annotation.StartTime,
 			end = annotation.EndTime,
-			drag = false,
-			resize = false,
 			color = "rgba(255, 255, 255, 0.1)"
 		}));
 
@@ -290,7 +331,7 @@ public partial class DetectionComponent
 	{
 		await JSRuntime.InvokeVoidAsync("DestroyActivePlayer");
 		await JSRuntime.InvokeVoidAsync("InitializeModalSpectrogram", _id,
-			Detection.AudioUri, RegionsJson);
+			Detection.AudioUri);
 	}
 
 	private async Task InitializeModalMap()
