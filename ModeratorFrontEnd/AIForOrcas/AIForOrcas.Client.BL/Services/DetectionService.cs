@@ -117,7 +117,21 @@ namespace AIForOrcas.Client.BL.Services
 
 			_authTokenProvider.ApplyToken(httpRequest);
 
-			var httpResponseMessage = await httpClient.SendAsync(httpRequest);
+			HttpResponseMessage httpResponseMessage;
+			try
+			{
+				httpResponseMessage = await httpClient.SendAsync(httpRequest);
+			}
+			catch (TaskCanceledException exception)
+			{
+				// A timed-out PUT surfaces as a canceled task, and Blazor drops
+				// canceled event tasks without running any catch block, so the
+				// caller would never learn the update was lost. Rethrowing as a
+				// request failure keeps the task faulted and lets callers react.
+				_logger.LogError(exception, "Timed out updating the detection at {Url}", url);
+				throw new HttpRequestException(
+					$"Failed to update detection. The request to {url} timed out.", exception);
+			}
 
 			if (!httpResponseMessage.IsSuccessStatusCode)
 			{
