@@ -84,13 +84,16 @@ public partial class DetectionComponent
 		}
 
 		// Add any default tag suggestions from the DEFAULT_TAG_SUGGESTIONS environment variable.
-		var defaultTagSuggestions = Configuration["DEFAULT_TAG_SUGGESTIONS"] ?? string.Empty;
-		foreach (var tag in defaultTagSuggestions.Split(';', StringSplitOptions.RemoveEmptyEntries))
+		var defaultTagSuggestions = Configuration["DEFAULT_TAG_SUGGESTIONS"];
+		if (!string.IsNullOrWhiteSpace(defaultTagSuggestions))
 		{
-			if (!d.TagList.Contains(tag, StringComparer.OrdinalIgnoreCase) &&
-				!suggestedTags.Contains(tag, StringComparer.OrdinalIgnoreCase))
+			foreach (var tag in defaultTagSuggestions.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
 			{
-				suggestedTags.Add(tag);
+				if (!d.TagList.Contains(tag, StringComparer.OrdinalIgnoreCase) &&
+					!suggestedTags.Contains(tag, StringComparer.OrdinalIgnoreCase))
+				{
+					suggestedTags.Add(tag);
+				}
 			}
 		}
 
