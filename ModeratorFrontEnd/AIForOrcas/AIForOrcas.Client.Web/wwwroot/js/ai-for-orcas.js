@@ -411,11 +411,15 @@ function CardSpectrogram(cardId, audioUrl, startFraction) {
 			SetSpinnerButtonToPause();
 			SetDuration();
 			// A touch created this player carrying where it landed; start
-			// playback from that point (seekTo takes a 0..1 progress).
+			// playback from that point (seekTo takes a 0..1 progress). The
+			// seek handler below already calls play(), so calling it again
+			// here would start a second buffer source.
 			if (startFraction > 0) {
 				wavesurfer.seekTo(startFraction);
 			}
-			wavesurfer.play();
+			else {
+				wavesurfer.play();
+			}
 		});
 
 		// If the audio fails to load, reset the button so the failure is visible
