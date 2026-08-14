@@ -93,6 +93,7 @@ public partial class Candidates : IDisposable
 
 		ToastService.ShowSuccess("Detection successfully updated.");
 
+		await JSRuntime.InvokeVoidAsync("DestroyActivePlayer");
 		await LoadDetections();
 	}
 
