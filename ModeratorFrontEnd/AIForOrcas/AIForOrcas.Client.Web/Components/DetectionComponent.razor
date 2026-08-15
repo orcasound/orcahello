@@ -209,6 +209,10 @@
                         type="submit"
                         @onclick="(() => SubmitUpdate())"
                         disabled="@IsSubmitDisabled">
+                    @if (_submitting)
+                    {
+                        <i class="fas fa-spinner fa-spin mr-1"></i>
+                    }
                     Submit
                 </button>
             </Authorized>
