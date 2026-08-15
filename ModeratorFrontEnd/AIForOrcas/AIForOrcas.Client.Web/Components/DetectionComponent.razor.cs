@@ -23,6 +23,9 @@ public partial class DetectionComponent
 	NavigationManager NavigationManager { get; set; }
 
 	[Inject]
+	IConfiguration Configuration { get; set; }
+
+	[Inject]
 	UserTagCache TagCache { get; set; }
 
 	[Inject]
@@ -82,6 +85,20 @@ public partial class DetectionComponent
 			if (!suggestedTags.Contains(tag, StringComparer.OrdinalIgnoreCase))
 			{
 				suggestedTags.Add(tag);
+			}
+		}
+
+		// Add any default tag suggestions from the DEFAULT_TAG_SUGGESTIONS environment variable.
+		var defaultTagSuggestions = Configuration["DEFAULT_TAG_SUGGESTIONS"];
+		if (!string.IsNullOrWhiteSpace(defaultTagSuggestions))
+		{
+			foreach (var tag in defaultTagSuggestions.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+			{
+				if (!d.TagList.Contains(tag, StringComparer.OrdinalIgnoreCase) &&
+					!suggestedTags.Contains(tag, StringComparer.OrdinalIgnoreCase))
+				{
+					suggestedTags.Add(tag);
+				}
 			}
 		}
 

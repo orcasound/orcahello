@@ -43,7 +43,10 @@
                         <img class="img-fluid"
                              id=@CardSpectrogramId
                              src=@Detection.SpectrogramUri />
-                        <div class="card-img-overlay p-0">
+                        <div class="card-img-overlay p-0"
+                             data-detection-id="@Detection.Id"
+                             data-audio-uri="@Detection.AudioUri"
+                             onclick="CardSpectrogramTouch(event, this)">
                             <div id=@CardWaveformId class="d-block"></div>
                         </div>
                     </div>

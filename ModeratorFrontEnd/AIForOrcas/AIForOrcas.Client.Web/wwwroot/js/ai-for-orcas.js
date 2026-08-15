@@ -352,7 +352,25 @@ function DrawRegionShades(detectionId, audioUrl, regionsJson) {
 	});
 }
 
-function CardSpectrogram(cardId, audioUrl) {
+// Touch on a card spectrogram that has no player yet: create the player and
+// start playback at the touched point, like the modal spectrogram does. When
+// this card's player already exists, wavesurfer's own click-to-seek on the
+// waveform handles the touch, so do nothing here.
+function CardSpectrogramTouch(event, overlay) {
+
+	var containerId = 'card-' + overlay.dataset.detectionId;
+
+	if (wavesurfer.container != undefined && wavesurfer.containerId == containerId) {
+		return;
+	}
+
+	var rect = overlay.getBoundingClientRect();
+	var fraction = (event.clientX - rect.left) / rect.width;
+
+	CardSpectrogram(overlay.dataset.detectionId, overlay.dataset.audioUri, fraction);
+}
+
+function CardSpectrogram(cardId, audioUrl, startFraction) {
 
 	var containerId = 'card-' + cardId;
 
@@ -392,7 +410,16 @@ function CardSpectrogram(cardId, audioUrl) {
 			AdjustSizes(spectrogram);
 			SetSpinnerButtonToPause();
 			SetDuration();
-			wavesurfer.play();
+			// A touch created this player carrying where it landed; start
+			// playback from that point (seekTo takes a 0..1 progress). The
+			// seek handler below already calls play(), so calling it again
+			// here would start a second buffer source.
+			if (startFraction > 0) {
+				wavesurfer.seekTo(startFraction);
+			}
+			else {
+				wavesurfer.play();
+			}
 		});
 
 		// If the audio fails to load, reset the button so the failure is visible
