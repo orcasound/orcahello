@@ -303,20 +303,25 @@ public partial class DetectionComponent
 
     private async Task SubmitUpdate()
 	{
-		var request = new DetectionUpdate()
-		{
-			Id = Detection.Id,
-			Comments = Detection.Comments,
-			Tags = Detection.Tags,
-			Moderator = await AccountService.GetUsername(),
-			Moderated = DateTime.Now,
-			Reviewed = true,
-			Found = Detection.Found
-		};
-
+		// Guard before any await: a second click can be dispatched before the
+		// disabled attribute reaches the browser, and it must not enter here.
+		if (_submitting)
+			return;
 		_submitting = true;
+
 		try
 		{
+			var request = new DetectionUpdate()
+			{
+				Id = Detection.Id,
+				Comments = Detection.Comments,
+				Tags = Detection.Tags,
+				Moderator = await AccountService.GetUsername(),
+				Moderated = DateTime.Now,
+				Reviewed = true,
+				Found = Detection.Found
+			};
+
 			await SubmitCallback.InvokeAsync(request);
 		}
 		catch (Exception exception) when (exception is HttpRequestException || exception is TaskCanceledException)
