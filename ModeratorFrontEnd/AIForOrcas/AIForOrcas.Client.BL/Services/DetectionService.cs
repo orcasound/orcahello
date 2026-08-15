@@ -124,10 +124,9 @@ namespace AIForOrcas.Client.BL.Services
 			}
 			catch (TaskCanceledException exception)
 			{
-				// A timed-out PUT surfaces as a canceled task, and Blazor drops
-				// canceled event tasks without running any catch block, so the
-				// caller would never learn the update was lost. Rethrowing as a
-				// request failure keeps the task faulted and lets callers react.
+				// A timed-out PUT surfaces as a canceled task. Rethrow it as a
+				// request failure so callers handle one exception type for "the
+				// update was lost", whether the API refused or timed out.
 				_logger.LogError(exception, "Timed out updating the detection at {Url}", url);
 				throw new HttpRequestException(
 					$"Failed to update detection. The request to {url} timed out.", exception);
@@ -182,10 +181,18 @@ namespace AIForOrcas.Client.BL.Services
 					return null;
 				}
 			}
+			else if (httpResponseMessage.StatusCode == System.Net.HttpStatusCode.NotFound)
+			{
+				// The API answered 404: this id genuinely has no detection.
+				return new Detection();
+			}
 			else
 			{
-				// The API answered: this id genuinely has no detection.
-				return new Detection();
+				// Any other error status is the API failing, not a missing
+				// record; report it like an unreachable API.
+				_logger.LogError("The detections API returned {StatusCode} at {Url}",
+					(int)httpResponseMessage.StatusCode, url);
+				return null;
 			}
 		}
 	}
