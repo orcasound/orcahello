@@ -131,12 +131,21 @@ namespace AIForOrcas.Client.BL.Services
 				throw new HttpRequestException(
 					$"Failed to update detection. The request to {url} timed out.", exception);
 			}
+			catch (HttpRequestException exception)
+			{
+				// The UI suppresses this into a toast, so log it here or the
+				// failure never reaches the server diagnostics.
+				_logger.LogError(exception, "Unable to reach the detections API to update at {Url}", url);
+				throw;
+			}
 
 			if (!httpResponseMessage.IsSuccessStatusCode)
 			{
 				var errorContent = await httpResponseMessage.Content.ReadAsStringAsync();
 				var statusCode = (int)httpResponseMessage.StatusCode;
 
+				_logger.LogError("The detections API rejected the update at {Url} with {StatusCode}: {Details}",
+					url, statusCode, errorContent);
 				throw new HttpRequestException(
 					$"Failed to update detection. Status: {statusCode} {httpResponseMessage.ReasonPhrase}. Details: {errorContent}");
 			}

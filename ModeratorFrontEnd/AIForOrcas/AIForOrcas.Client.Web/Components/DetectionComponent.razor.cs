@@ -327,8 +327,10 @@ public partial class DetectionComponent
 		catch (Exception exception) when (exception is HttpRequestException || exception is TaskCanceledException)
 		{
 			// One guard for every page that renders this component. Keep the
-			// card and the moderator's selections untouched for a retry.
-			ToastService.ShowError("The verdict was not saved because the server could not be reached. Please try again.");
+			// card and the moderator's selections untouched for a retry. The
+			// wording stays generic: the same exception covers an unreachable
+			// server and an error response, and the service logs the detail.
+			ToastService.ShowError("The verdict was not saved. Please try again.");
 		}
 		finally
 		{
