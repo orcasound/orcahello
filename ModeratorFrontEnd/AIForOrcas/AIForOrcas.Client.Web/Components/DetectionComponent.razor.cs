@@ -122,7 +122,7 @@ public partial class DetectionComponent
 
 		// Only initialize each detection once. This hook runs again on every
 		// parent re-render with the same Detection instance, and resetting
-		// then would wipe a verdict the moderator already selected (e.g. right
+		// then would wipe a verdict the moderator already selected (e.g., right
 		// after a failed submit shows its retry toast).
 		if (!Detection.Reviewed && !ReferenceEquals(Detection, _initializedDetection))
 		{
