@@ -306,7 +306,9 @@ public partial class DetectionComponent
 		// Guard before any await: a second click can be dispatched before the
 		// disabled attribute reaches the browser, and it must not enter here.
 		if (_submitting)
+		{
 			return;
+		}
 		_submitting = true;
 
 		try
