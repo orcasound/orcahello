@@ -22,17 +22,20 @@ public static class Services
         // Register the scoped token provider that resolves the token from the active circuit.
         builder.Services.AddScoped<IAuthTokenProvider, CircuitAuthTokenProvider>();
 
-        // Register HTTP clients with handlers.
+        // Register HTTP clients with handlers. The 30s timeout keeps a hung API
+        // from pinning a page on the default 100s before it can degrade.
         builder.Services.AddHttpClient("UnauthenticatedAPI", (sp, client) =>
         {
             var apiUrl = sp.GetRequiredService<AppSettings>().APIUrl;
             client.BaseAddress = new Uri(apiUrl);
+            client.Timeout = TimeSpan.FromSeconds(30);
         });
 
         builder.Services.AddHttpClient("AuthenticatedAPI", (sp, client) =>
         {
             var apiUrl = sp.GetRequiredService<AppSettings>().APIUrl;
             client.BaseAddress = new Uri(apiUrl);
+            client.Timeout = TimeSpan.FromSeconds(30);
         });
 
         builder.Services.AddScoped<IDetectionService, DetectionService>();
