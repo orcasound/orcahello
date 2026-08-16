@@ -176,7 +176,9 @@ namespace AIForOrcas.Client.BL.Services
 				var responseString = await httpResponseMessage.Content.ReadAsStringAsync();
 
 				if (string.IsNullOrWhiteSpace(responseString))
+				{
 					return new Detection();
+				}
 
 				try
 				{
