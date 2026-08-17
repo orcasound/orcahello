@@ -136,10 +136,13 @@ public partial class DetectionComponent
 			// does not prevent a moderator from manually entering
 			// "resident" if the moderator tries to moderate some
 			// other type of resident.
-			if (Detection.TagList.Contains("resident"))
+			if (Detection.TagList.Contains("resident", StringComparer.OrdinalIgnoreCase))
 			{
 				RemoveTag("resident");
-				AddTag("srkw");
+
+				// Don't add srkw since that would make the SRKWFound
+				// button default to yes.  Instead leave it unselected,
+				// like OrcaHello candidates do.
 			}
 		}
 	}
