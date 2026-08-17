@@ -53,16 +53,16 @@
             try
             {
                 var tagListForTimeframeResponse = await _tagOrchestrationService.RetrieveTagsForGivenTimePeriodAsync(fromDate, toDate);
-                
+
                 return Ok(tagListForTimeframeResponse);
             }
-            catch(Exception exception)
+            catch (Exception exception)
             {
                 if (exception is TagOrchestrationValidationException ||
                     exception is TagOrchestrationDependencyValidationException)
                     return BadRequest(ValidatorUtilities.GetInnerMessage(exception));
 
-                if(exception is TagOrchestrationDependencyException ||
+                if (exception is TagOrchestrationDependencyException ||
                     exception is TagOrchestrationServiceException)
                     return Problem(exception.Message);
 

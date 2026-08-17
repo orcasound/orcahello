@@ -217,23 +217,23 @@
         /// <exception cref="NullDashboardViewRequestException">If the request is null.</exception>
         /// <exception cref="InvalidDashboardViewException">If the moderator is invalid or the request is improperly formatted.</exception>
         /// <exception cref="NullDashboardViewResponseException">If the response from ModeratorService is null.</exception>
-       public ValueTask<ModeratorMetricsItemViewResponse> RetrieveFilteredMetricsForModeratorAsync(string moderator, MetricsByDateRequest request) =>
-        TryCatch(async () =>
-        {
-            ValidateRequest(request);
-            ValidateModerator(moderator);
-            ValidateDateRange(request.FromDate, request.ToDate);
+        public ValueTask<ModeratorMetricsItemViewResponse> RetrieveFilteredMetricsForModeratorAsync(string moderator, MetricsByDateRequest request) =>
+         TryCatch(async () =>
+         {
+             ValidateRequest(request);
+             ValidateModerator(moderator);
+             ValidateDateRange(request.FromDate, request.ToDate);
 
-            MetricsForModeratorResponse response =
-                await _moderatorService.GetFilteredMetricsForModeratorAsync(
-                    moderator: moderator,
-                    fromDate: request.FromDate,
-                    toDate: request.ToDate);
+             MetricsForModeratorResponse response =
+                 await _moderatorService.GetFilteredMetricsForModeratorAsync(
+                     moderator: moderator,
+                     fromDate: request.FromDate,
+                     toDate: request.ToDate);
 
-            ValidateResponse(response);
+             ValidateResponse(response);
 
-            return AsModeratorMetricsItemViewResponse(response);
-        });
+             return AsModeratorMetricsItemViewResponse(response);
+         });
 
         /// <summary>
         /// Retrieves a list of positive comments for a moderator from ModeratorService, filtered by the date range
@@ -352,7 +352,7 @@
             FromDate = metricsResponse.FromDate,
             ToDate = metricsResponse.ToDate,
             Moderator = metricsResponse.Moderator,
-            };
+        };
 
         #endregion
     }

@@ -30,7 +30,7 @@ namespace OrcaHello.Web.Api.Tests.Unit.Services
             Assert.AreEqual(expectedResult.PaginatedRecords.Count(), result.QueryableRecords.Count());
 
             _storageBrokerMock.Verify(broker =>
-                broker.GetPositiveMetadataListByTimeframe(It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<int>(), It.IsAny<int>()),  
+                broker.GetPositiveMetadataListByTimeframe(It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<int>(), It.IsAny<int>()),
                     Times.Once);
         }
 

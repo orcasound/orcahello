@@ -9,7 +9,7 @@
         public DetectionAPIBroker(IHttpService apiClient, AppSettings appSettings)
         {
             _apiClient = apiClient;
-            _appSettings = appSettings; 
+            _appSettings = appSettings;
         }
 
         private async ValueTask<T> GetAsync<T>(string relativeUrl) =>

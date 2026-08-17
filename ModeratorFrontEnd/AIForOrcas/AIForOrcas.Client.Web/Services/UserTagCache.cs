@@ -22,7 +22,7 @@ public class UserTagCache
     {
         if (string.IsNullOrWhiteSpace(userId) || tags == null)
         {
-           return;
+            return;
         }
 
         _cache[userId] = tags.ToList();

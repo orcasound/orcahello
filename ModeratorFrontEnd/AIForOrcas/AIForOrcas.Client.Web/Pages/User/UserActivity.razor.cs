@@ -2,60 +2,60 @@
 
 public partial class UserActivity
 {
-	[Inject]
-	IMetricsService Service { get; set; }
+    [Inject]
+    IMetricsService Service { get; set; }
 
-	[Inject]
-	IJSRuntime JSRuntime { get; set; }
+    [Inject]
+    IJSRuntime JSRuntime { get; set; }
 
-	[Inject]
-	//AuthenticationStateProvider AuthenticationStateProvider { get; set; }
-	IAccountService AccountService { get; set; }
+    [Inject]
+    //AuthenticationStateProvider AuthenticationStateProvider { get; set; }
+    IAccountService AccountService { get; set; }
 
-	private ModeratorMetrics metrics = null;
+    private ModeratorMetrics metrics = null;
 
-	private ModeratorMetricsFilterDTO filterOptions =
-		new ModeratorMetricsFilterDTO() { Timeframe = "1m" };
+    private ModeratorMetricsFilterDTO filterOptions =
+        new ModeratorMetricsFilterDTO() { Timeframe = "1m" };
 
-	private string messageStyle = "d-none";
-	private string message = string.Empty;
-	private string displayStyle = "d-none";
+    private string messageStyle = "d-none";
+    private string message = string.Empty;
+    private string displayStyle = "d-none";
 
-	protected override async Task OnInitializedAsync()
-	{
-		await LoadMetrics();
-	}
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMetrics();
+    }
 
-	private async Task LoadMetrics()
-	{
-		filterOptions.Moderator = await AccountService.GetUsername();
+    private async Task LoadMetrics()
+    {
+        filterOptions.Moderator = await AccountService.GetUsername();
 
-		displayStyle = "d-none";
-		messageStyle = "";
-		message = "Loading metrics...";
+        displayStyle = "d-none";
+        messageStyle = "";
+        message = "Loading metrics...";
 
-		metrics = await Service.GetModeratorMetricsAsync(filterOptions);
+        metrics = await Service.GetModeratorMetricsAsync(filterOptions);
 
-		if (!metrics.HasContent)
-		{
-			message = "No metrics found for the selected filter options. Please select a different set of filter options...";
-			displayStyle = "d-none";
-		}
-		else
-		{
-			messageStyle = "d-none";
-			displayStyle = "";
-		}
+        if (!metrics.HasContent)
+        {
+            message = "No metrics found for the selected filter options. Please select a different set of filter options...";
+            displayStyle = "d-none";
+        }
+        else
+        {
+            messageStyle = "d-none";
+            displayStyle = "";
+        }
 
-		StateHasChanged();
+        StateHasChanged();
 
-		await JSRuntime.InvokeVoidAsync("DrawDetectionsChart", metrics.DetectionsArray);
-		await JSRuntime.InvokeVoidAsync("DrawDetectionResultsChart", metrics.DetectionResultsArray);
-	}
+        await JSRuntime.InvokeVoidAsync("DrawDetectionsChart", metrics.DetectionsArray);
+        await JSRuntime.InvokeVoidAsync("DrawDetectionResultsChart", metrics.DetectionResultsArray);
+    }
 
-	private async Task ActOnApplyFilterCallback(MetricsFilterDTO returnedFilterOptions)
-	{
-		filterOptions.Timeframe = returnedFilterOptions.Timeframe;
-		await LoadMetrics();
-	}
+    private async Task ActOnApplyFilterCallback(MetricsFilterDTO returnedFilterOptions)
+    {
+        filterOptions.Timeframe = returnedFilterOptions.Timeframe;
+        await LoadMetrics();
+    }
 }

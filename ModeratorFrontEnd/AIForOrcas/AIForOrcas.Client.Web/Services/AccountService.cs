@@ -94,7 +94,7 @@ public class AccountService : IAccountService
             {
                 await apiProvider.MarkUserAsAuthenticated(token.AccessToken);
             }
-            
+
             _logger.LogInformation("User logged in successfully");
         }
         catch (Exception ex)
@@ -109,9 +109,9 @@ public class AccountService : IAccountService
         {
             apiProvider.MarkUserAsLoggedOut();
         }
-        
+
         _logger.LogInformation("User logged out");
-        
+
         return Task.CompletedTask;
     }
 }

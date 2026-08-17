@@ -30,7 +30,8 @@
         /// <exception cref="InvalidHydrophoneException">If the API returns no hydrophones (empty list).</exception>
         /// <exception cref="NullHydrophoneResponseException">If the response from the API is null.</exception>
         public ValueTask<List<Hydrophone>> RetrieveAllHydrophonesAsync() =>
-        TryCatch(async () => {
+        TryCatch(async () =>
+        {
 
             HydrophoneListResponse response = await _apiBroker.GetAllHydrophonesAsync();
 

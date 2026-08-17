@@ -58,7 +58,7 @@
 
             int totalRemoved = 0;
 
-            foreach(Metadata item in allMetadataWithTag.QueryableRecords)
+            foreach (Metadata item in allMetadataWithTag.QueryableRecords)
             {
                 item.Tags.Remove(tagToRemove);
 

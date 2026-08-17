@@ -135,7 +135,7 @@
                     }
                 }
             }
-            catch 
+            catch
             {
                 _apiAuthenticationStateProvider.ClearMemoryToken();
 

@@ -15,7 +15,7 @@
             if (ids == null || !ids.Any())
                 throw new InvalidDetectionViewException("At least one 'Id' must be provided.");
 
-            foreach(var id in ids)
+            foreach (var id in ids)
             {
                 if (String.IsNullOrWhiteSpace(id))
                     throw new InvalidDetectionViewException("At least one 'Id' is either null, empty, or whitespace.");

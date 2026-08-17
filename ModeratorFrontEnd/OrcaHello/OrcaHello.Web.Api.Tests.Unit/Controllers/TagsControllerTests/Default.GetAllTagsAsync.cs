@@ -7,7 +7,7 @@
         {
             TagListResponse response = new()
             {
-                Tags = new List<string>() {  "Tag1", "Tag2" },
+                Tags = new List<string>() { "Tag1", "Tag2" },
                 Count = 2
             };
 

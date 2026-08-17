@@ -155,7 +155,7 @@
                  SpectrogramUri = detection.SpectrogramUri,
                  Confidence = detection.Confidence,
                  State = detection.State,
-                 Location = LocationItemView.AsLocationItemView(detection.Location), 
+                 Location = LocationItemView.AsLocationItemView(detection.Location),
                  Comments = detection.Comments,
                  Moderator = detection.Moderator,
                  Moderated = detection.Moderated,

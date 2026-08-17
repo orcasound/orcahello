@@ -4,7 +4,7 @@ namespace OrcaHello.Web.UI.Pages.Dashboard.Components
 {
     [ExcludeFromCodeCoverage]
     public partial class DetectionMetricsComponent
-    { 
+    {
         [Inject]
         public IDashboardViewService ViewService { get; set; } = null!;
 

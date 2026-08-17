@@ -9,7 +9,7 @@ public static class Services
     {
         // Register server-side token store as singleton.
         builder.Services.AddSingleton<ITokenStore, ServerSideTokenStore>();
-        
+
         // Register circuit handler.
         builder.Services.AddScoped<CircuitHandlerService>();
         builder.Services.AddScoped<CircuitHandler>(sp => sp.GetRequiredService<CircuitHandlerService>());

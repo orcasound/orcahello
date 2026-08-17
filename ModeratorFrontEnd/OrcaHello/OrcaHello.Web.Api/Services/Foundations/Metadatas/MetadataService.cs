@@ -101,7 +101,7 @@ namespace OrcaHello.Web.Api.Services
         });
 
         public ValueTask<QueryableMetadataFiltered> RetrievePaginatedMetadataAsync(string state, DateTime fromDate, DateTime toDate, string sortBy, bool isDescending, string location, int page, int pageSize) =>
-        TryCatch(async() =>
+        TryCatch(async () =>
         {
             Validate(fromDate, nameof(fromDate));
             Validate(toDate, nameof(toDate));
@@ -394,12 +394,12 @@ namespace OrcaHello.Web.Api.Services
             List<string> tags = new();
             string tagOperator = "";
 
-            if(tag.Contains(','))
+            if (tag.Contains(','))
             {
                 tagOperator = "AND";
                 tags = tag.Split(',').ToList();
-            } 
-            else if(tag.Contains('|'))
+            }
+            else if (tag.Contains('|'))
             {
                 tagOperator = "OR";
                 tags = tag.Split('|').ToList();
@@ -505,7 +505,7 @@ namespace OrcaHello.Web.Api.Services
             };
         }
 
-    [ExcludeFromCodeCoverage]
+        [ExcludeFromCodeCoverage]
         private static string GetSortOrder(bool isDescending)
         {
             return isDescending ? "DESC" : "ASC";

@@ -12,7 +12,7 @@
                     new() { Id = Guid.NewGuid().ToString(), Moderator = "John Smith", Tags = new() { "Tag 1" } }
                 },
                 Moderator = "John Smith",
-                Tag =  "Tag 1"
+                Tag = "Tag 1"
             };
 
             _apiBrokerMock.Setup(broker =>

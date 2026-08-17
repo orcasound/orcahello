@@ -26,7 +26,7 @@
             if (items == null || !items.Any())
                 throw new InvalidDetectionException($"Property '{propertyName}' must not be null and contain at least one value.");
 
-            foreach(var item in items)
+            foreach (var item in items)
             {
                 if (ValidatorUtilities.IsInvalid(item))
                     throw new InvalidDetectionException($"Property '{propertyName}' contains at least one empty or non-string value.");

@@ -8,7 +8,7 @@ public class ApiAuthenticationStateProvider : AuthenticationStateProvider
     private readonly CircuitHandlerService _circuitHandler;
     private readonly ILogger<ApiAuthenticationStateProvider> _logger;
     private ClaimsPrincipal _currentUser = new ClaimsPrincipal(new ClaimsIdentity());
-    
+
     private static int _instanceCount = 0;
     private readonly int _instanceId;
 
@@ -20,7 +20,7 @@ public class ApiAuthenticationStateProvider : AuthenticationStateProvider
         _tokenStore = tokenStore;
         _circuitHandler = circuitHandler;
         _logger = logger;
-        
+
         _instanceId = Interlocked.Increment(ref _instanceCount);
         _logger.LogDebug("ApiAuthenticationStateProvider Instance #{InstanceId} created", _instanceId);
     }
@@ -28,7 +28,7 @@ public class ApiAuthenticationStateProvider : AuthenticationStateProvider
     public override Task<AuthenticationState> GetAuthenticationStateAsync()
     {
         _logger.LogDebug("GetAuthenticationStateAsync called on Instance #{InstanceId}", _instanceId);
-        
+
         var circuitId = _circuitHandler.CircuitId;
         if (!string.IsNullOrWhiteSpace(circuitId))
         {
@@ -40,7 +40,7 @@ public class ApiAuthenticationStateProvider : AuthenticationStateProvider
                 {
                     var claims = ParseClaimsFromJwt(token).ToList();
                     _currentUser = new ClaimsPrincipal(new ClaimsIdentity(claims, "jwt"));
-                    
+
                     _logger.LogDebug("Instance #{InstanceId} - User authenticated from token store", _instanceId);
                 }
                 catch (Exception ex)
@@ -61,14 +61,14 @@ public class ApiAuthenticationStateProvider : AuthenticationStateProvider
             _currentUser = new ClaimsPrincipal(new ClaimsIdentity());
             _logger.LogWarning("Instance #{InstanceId} has no circuit ID; treating user as anonymous", _instanceId);
         }
-        
+
         return Task.FromResult(new AuthenticationState(_currentUser));
     }
 
     public Task MarkUserAsAuthenticated(string token)
     {
         _logger.LogDebug("MarkUserAsAuthenticated called on Instance #{InstanceId}", _instanceId);
-        
+
         if (string.IsNullOrWhiteSpace(token))
         {
             _logger.LogWarning("Attempted to mark user as authenticated with empty token");
@@ -88,15 +88,15 @@ public class ApiAuthenticationStateProvider : AuthenticationStateProvider
 
             // Parse claims and update local state.
             var claims = ParseClaimsFromJwt(token).ToList();
-            
+
             _currentUser = new ClaimsPrincipal(new ClaimsIdentity(claims, "jwt"));
-            
-            _logger.LogDebug("Instance #{InstanceId} - _currentUser.IsAuthenticated = {IsAuth}", 
+
+            _logger.LogDebug("Instance #{InstanceId} - _currentUser.IsAuthenticated = {IsAuth}",
                 _instanceId, _currentUser.Identity?.IsAuthenticated ?? false);
-            
+
             // Notify authentication state changed.
             NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(_currentUser)));
-            
+
             _logger.LogInformation("User authenticated successfully");
         }
         catch (Exception ex)
@@ -110,7 +110,7 @@ public class ApiAuthenticationStateProvider : AuthenticationStateProvider
     public void MarkUserAsLoggedOut()
     {
         _logger.LogDebug("MarkUserAsLoggedOut called on Instance #{InstanceId}", _instanceId);
-        
+
         var circuitId = _circuitHandler.CircuitId;
         if (!string.IsNullOrWhiteSpace(circuitId))
         {
@@ -118,9 +118,9 @@ public class ApiAuthenticationStateProvider : AuthenticationStateProvider
         }
 
         _currentUser = new ClaimsPrincipal(new ClaimsIdentity());
-        
+
         NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(_currentUser)));
-        
+
         _logger.LogInformation("User logged out");
     }
 
@@ -138,7 +138,7 @@ public class ApiAuthenticationStateProvider : AuthenticationStateProvider
     private IEnumerable<Claim> ParseClaimsFromJwt(string jwt)
     {
         var claims = new List<Claim>();
-        
+
         try
         {
             var payload = jwt.Split('.')[1];

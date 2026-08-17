@@ -74,7 +74,7 @@
         /// <returns>A <see cref="ValueTask{TResult}"/> that represents the asynchronous operation.</returns>
         /// <exception cref="InvalidDetectionViewException">If one of the passed parameters is null or invalid.</exception>
         /// <exception cref="NullDetectionViewResponseException">If the response from DetectionService is null.</exception>
-        public ValueTask<ModerateDetectionsResponse> ModerateDetectionsAsync(List<string> ids, string state, string moderator, 
+        public ValueTask<ModerateDetectionsResponse> ModerateDetectionsAsync(List<string> ids, string state, string moderator,
             string comments, string tags) =>
         TryCatch(async () =>
         {
@@ -97,7 +97,7 @@
                 Tags = tagsList
             };
 
-            ModerateDetectionsResponse response = 
+            ModerateDetectionsResponse response =
                 await _detectionService.ModerateDetectionsAsync(request);
 
             ValidateResponse(response);
@@ -149,10 +149,12 @@
                 SpectrogramUri = detection.SpectrogramUri,
                 Confidence = detection.Confidence,
                 State = detection.State,
-                Location = new() { 
+                Location = new()
+                {
                     Name = detection.Location.Name,
                     Longitude = detection.Location.Longitude,
-                    Latitude = detection.Location.Latitude },
+                    Latitude = detection.Location.Latitude
+                },
                 Comments = detection.Comments,
                 Moderator = detection.Moderator,
                 Moderated = detection.Moderated,

@@ -15,7 +15,7 @@
             };
 
             _storageBrokerMock.Setup(broker =>
-                broker.GetMetadataListFiltered(It.IsAny<string>(), It.IsAny<DateTime>(), It.IsAny<DateTime>(), 
+                broker.GetMetadataListFiltered(It.IsAny<string>(), It.IsAny<DateTime>(), It.IsAny<DateTime>(),
                     It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()))
                     .ReturnsAsync(expectedResult);
 

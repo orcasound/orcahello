@@ -28,7 +28,7 @@ namespace OrcaHello.Web.Api.Services
 
             // TODO: Are there any other required fields
 
-            switch(metadata) 
+            switch (metadata)
             {
                 case { } when ValidatorUtilities.IsInvalid(metadata.Id):
                     throw new InvalidMetadataException(LoggingUtilities.MissingRequiredProperty(nameof(metadata.Id)));

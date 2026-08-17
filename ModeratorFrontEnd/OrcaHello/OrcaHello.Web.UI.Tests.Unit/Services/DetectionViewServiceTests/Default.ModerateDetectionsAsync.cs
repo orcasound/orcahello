@@ -25,7 +25,7 @@
             _detectionServiceMock.Verify(service =>
                 service.ModerateDetectionsAsync(It.IsAny<ModerateDetectionsRequest>()),
                 Times.Once);
-         }
+        }
 
         [TestMethod]
         public async Task Default_Expect_ModerateDetectionsAsync_EmptyCommentsAndTags()

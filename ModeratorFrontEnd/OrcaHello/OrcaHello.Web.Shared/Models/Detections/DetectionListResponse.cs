@@ -16,7 +16,7 @@
     {
         [SwaggerSchema("The starting date of the timeframe.")]
         public DateTime FromDate { get; set; }
-        
+
         [SwaggerSchema("The ending date of the timeframe.")]
         public DateTime ToDate { get; set; }
 

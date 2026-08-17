@@ -7,7 +7,7 @@
         ValueTask<QueryableTagsForTimeframeAndModerator> RetrieveTagsForGivenTimePeriodAndModeratorAsync(DateTime fromDate, DateTime toDate, string moderator);
         ValueTask<QueryableMetadataForTimeframeAndTag> RetrieveMetadataForGivenTimeframeAndTagAsync(DateTime fromDate, DateTime toDate, string tag, int page, int pageSize);
         ValueTask<QueryableMetadataForTimeframe> RetrievePositiveMetadataForGivenTimeframeAsync(DateTime fromDate, DateTime toDate, int page, int pageSize);
-        ValueTask<QueryableMetadataForTimeframeAndModerator> RetrievePositiveMetadataForGivenTimeframeAndModeratorAsync(DateTime fromDate, DateTime toDate, 
+        ValueTask<QueryableMetadataForTimeframeAndModerator> RetrievePositiveMetadataForGivenTimeframeAndModeratorAsync(DateTime fromDate, DateTime toDate,
             string moderator, int page, int pageSize);
         ValueTask<QueryableMetadataForTimeframe> RetrieveNegativeAndUnknownMetadataForGivenTimeframeAsync(DateTime fromDate, DateTime toDate, int page, int pageSize);
         ValueTask<QueryableMetadataForTimeframeAndModerator> RetrieveNegativeAndUnknownMetadataForGivenTimeframeAndModeratorAsync(DateTime fromDate, DateTime toDate,

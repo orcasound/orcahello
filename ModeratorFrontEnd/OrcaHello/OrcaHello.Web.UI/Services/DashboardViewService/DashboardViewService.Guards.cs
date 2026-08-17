@@ -59,7 +59,7 @@
         // RULE: Response cannot be null.
         protected void ValidateResponse<T>(T response)
         {
-             if (response == null)
+            if (response == null)
             {
                 throw new NullDashboardViewResponseException(nameof(T));
             }

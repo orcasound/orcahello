@@ -81,7 +81,7 @@ namespace OrcaHello.Web.UI.Pages.Dashboard.Components
                     : await ViewService.RetrieveFilteredTagsAsync(request);
                 StateView.Count = StateView.Items.Count;
             }
-            catch(Exception exception)
+            catch (Exception exception)
             {
                 LogAndReportUnknownException(exception);
             }
@@ -117,7 +117,7 @@ namespace OrcaHello.Web.UI.Pages.Dashboard.Components
                 // Update the count
                 TagDetectionsState.Count = result.Count;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 ReportError("Trouble loading Tag Detections data", ex.Message);
             }

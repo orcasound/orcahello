@@ -32,7 +32,7 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    var clientId = !string.IsNullOrWhiteSpace(appSettings.AzureAd.ClientId) ? 
+    var clientId = !string.IsNullOrWhiteSpace(appSettings.AzureAd.ClientId) ?
         appSettings.AzureAd.ClientId : Guid.NewGuid().ToString();
 
     c.OAuthClientId(clientId);

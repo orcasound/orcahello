@@ -53,7 +53,7 @@
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "If there is an internal error reading or processing data from the data source.")]
         [AllowAnonymous]
         public async ValueTask<ActionResult<DetectionListForTagResponse>> GetPaginatedDetectionsForGivenTimeframeAndTagAsync(
-            [SwaggerParameter("The desired tag(s) (i.e. tag1,tag2 for AND tag1|tag2 for OR).", Required = true)] string tag, 
+            [SwaggerParameter("The desired tag(s) (i.e. tag1,tag2 for AND tag1|tag2 for OR).", Required = true)] string tag,
             [SwaggerParameter("The start date of the search (MM/DD/YYYY).", Required = true)] DateTime? fromDate,
             [SwaggerParameter("The end date of the search (MM/DD/YYYY).", Required = true)] DateTime? toDate,
             [SwaggerParameter("The page in the list to request.", Required = true)] int page,

@@ -74,7 +74,7 @@ public class TagsController : ControllerBase
             if (detectionsToUpdate.Count() == 0)
                 return NoContent();
 
-            foreach(var detection in detectionsToUpdate)
+            foreach (var detection in detectionsToUpdate)
             {
                 detection.tags = detection.tags.Replace(tagUpdate.OldTag, tagUpdate.NewTag);
             }

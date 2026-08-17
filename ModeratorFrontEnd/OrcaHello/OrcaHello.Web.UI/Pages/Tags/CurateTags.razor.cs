@@ -94,7 +94,7 @@
 
                 // Update the TagItemViews collection with the retrieved data
                 TagItemViews = result;
-            } 
+            }
             catch (Exception exception)
             {
                 LogAndReportUnknownException(exception);

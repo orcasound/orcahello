@@ -9,8 +9,8 @@
             {
                 Detections = new()
                 {
-                    new() { 
-                        Id = Guid.NewGuid().ToString(), 
+                    new() {
+                        Id = Guid.NewGuid().ToString(),
                         Comments = "These are the comments.",
                         Location = new()
                         {
@@ -29,7 +29,7 @@
 
             PaginatedDetectionsByTagsAndDateRequest request = new()
             {
-                Tags = new() { "Tag 1", "Tag 2"},
+                Tags = new() { "Tag 1", "Tag 2" },
                 Logic = LogicalOperator.And,
                 Page = 1,
                 PageSize = 10,

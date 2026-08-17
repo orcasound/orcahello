@@ -16,7 +16,7 @@
         {
             IsExpanded = !IsExpanded;
 
-            if(IsExpanded && Items == null)
+            if (IsExpanded && Items == null)
             {
                 Items = new();
                 Page = 1;

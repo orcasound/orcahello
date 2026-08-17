@@ -21,7 +21,7 @@
 
         [SwaggerSchema("Date and time of when the detection was collected.")]
         public DateTime Timestamp { get; set; }
-        
+
         [SwaggerSchema("URI of the detection's audio file (.wav) in blob storage.")]
         public string AudioUri { get; set; }
 

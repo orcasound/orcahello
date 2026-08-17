@@ -4,10 +4,10 @@ using System.Threading.Tasks;
 
 namespace AIForOrcas.Client.BL.Services
 {
-	public interface IMetricsService
-	{
+    public interface IMetricsService
+    {
 
-		Task<Metrics> GetSiteMetricsAsync(IFilterOptions filterOptions);
-		Task<ModeratorMetrics> GetModeratorMetricsAsync(IFilterOptions filterOptions);
-	}
+        Task<Metrics> GetSiteMetricsAsync(IFilterOptions filterOptions);
+        Task<ModeratorMetrics> GetModeratorMetricsAsync(IFilterOptions filterOptions);
+    }
 }

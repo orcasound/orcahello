@@ -1,5 +1,5 @@
 ﻿namespace OrcaHello.Web.UI.Services
-{ 
+{
     public interface ITagViewService
     {
         ValueTask<List<TagItemView>> RetrieveAllTagViewsAsync();

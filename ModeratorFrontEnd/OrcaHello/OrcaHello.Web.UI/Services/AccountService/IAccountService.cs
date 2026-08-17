@@ -1,5 +1,5 @@
 ﻿namespace OrcaHello.Web.UI.Services
-{ 
+{
     public interface IAccountService
     {
         Task Login();

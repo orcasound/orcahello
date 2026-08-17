@@ -1,5 +1,5 @@
 ﻿namespace OrcaHello.Web.Api.Services
-{ 
+{
     public partial class HydrophoneService : IHydrophoneService
     {
         private readonly IHydrophoneBroker _hydrophoneBroker;

@@ -2,9 +2,9 @@
 
 public partial class PageHeadingComponent
 {
-	[Parameter]
-	public string Title { get; set; }
+    [Parameter]
+    public string Title { get; set; }
 
-	[Parameter]
-	public int PillCount { get; set; }
+    [Parameter]
+    public int PillCount { get; set; }
 }

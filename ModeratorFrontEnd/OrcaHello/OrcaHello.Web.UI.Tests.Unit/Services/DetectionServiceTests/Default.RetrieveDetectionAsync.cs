@@ -9,8 +9,8 @@
 
             Detection expectedResponse = new()
             {
-                Id = id, 
-                Moderator = "John Smith", 
+                Id = id,
+                Moderator = "John Smith",
                 Tags = new() { "Tag 1" }
             };
 

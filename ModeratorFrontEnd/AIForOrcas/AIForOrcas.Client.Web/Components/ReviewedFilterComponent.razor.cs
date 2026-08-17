@@ -2,24 +2,24 @@
 
 public partial class ReviewedFilterComponent
 {
-	[Parameter]
-	public ReviewedFilterOptionsDTO FilterOptions { get; set; } = new ReviewedFilterOptionsDTO();
+    [Parameter]
+    public ReviewedFilterOptionsDTO FilterOptions { get; set; } = new ReviewedFilterOptionsDTO();
 
-	[Parameter]
-	public EventCallback<ReviewedFilterOptionsDTO> ApplyFilterCallback { get; set; }
+    [Parameter]
+    public EventCallback<ReviewedFilterOptionsDTO> ApplyFilterCallback { get; set; }
 
-	[Inject]
-	public AppSettings AppSettings { get; set; }
+    [Inject]
+    public AppSettings AppSettings { get; set; }
 
-	private List<string> AllLocations = new List<string>();
+    private List<string> AllLocations = new List<string>();
 
-	protected override void OnInitialized()
-	{
-		AllLocations = HydrophoneLocations.Locations.ToList();
-	}
+    protected override void OnInitialized()
+    {
+        AllLocations = HydrophoneLocations.Locations.ToList();
+    }
 
-	private async Task ApplyFilter()
-	{
-		await ApplyFilterCallback.InvokeAsync(FilterOptions);
-	}
+    private async Task ApplyFilter()
+    {
+        await ApplyFilterCallback.InvokeAsync(FilterOptions);
+    }
 }

@@ -77,7 +77,7 @@ namespace OrcaHello.Web.UI.Pages.Dashboard.Components
                 // Update the count
                 StateView.Count = response.Count;
             }
-            catch(Exception exception)
+            catch (Exception exception)
             {
                 LogAndReportUnknownException(exception);
             }

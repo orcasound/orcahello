@@ -22,7 +22,7 @@
                 // the user's token has not expired. Right now we are checking once
                 // a minute. We can adjust it to longer if need be.
 
-                _timer = new System.Timers.Timer(60000); 
+                _timer = new System.Timers.Timer(60000);
                 _timer.Elapsed += OnTimerElapsed;
                 _timer.Start();
             }
@@ -40,7 +40,7 @@
 
         private async Task OnProfileMenuClicked(RadzenProfileMenuItem item)
         {
-            if(item.Text == "Log Out")
+            if (item.Text == "Log Out")
             {
                 bool? result = await DialogService.Confirm("Select \"Log Out\" below if you are ready to end your current session.", "Ready to Leave?", new ConfirmOptions() { OkButtonText = "Log Out", CancelButtonText = "Cancel" });
 

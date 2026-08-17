@@ -24,7 +24,7 @@
                     It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()))
                 .ReturnsAsync(expectedResult);
 
-            DetectionListForModeratorAndTagResponse response = 
+            DetectionListForModeratorAndTagResponse response =
                 await _orchestrationService.RetrieveDetectionsForGivenTimeframeTagAndModeratorAsync(DateTime.Now, DateTime.Now.AddDays(1), "Moderator", "Tag", 1, 10);
 
             Assert.AreEqual(expectedResult.QueryableRecords.Count(), response.Detections.Count());

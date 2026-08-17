@@ -28,7 +28,7 @@
             if (string.IsNullOrWhiteSpace(savedToken))
                 return new AuthenticationState(_anonymous);
 
-            _httpClient.DefaultRequestHeaders.Authorization = 
+            _httpClient.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue(_headerName, savedToken);
 
             return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(
@@ -160,7 +160,8 @@
                             foreach (var parsedRole in parsedRoles)
                             {
                                 claims.Add(new Claim(ClaimTypes.Role, parsedRole));
-                            };
+                            }
+                            ;
                         }
                     }
                     else

@@ -250,7 +250,7 @@ namespace OrcaHello.Web.UI.Pages.Detections.Components
                 PillCount = result.Count;
                 await PillCountChanged.InvokeAsync(PillCount);
             }
-            catch(Exception exception)
+            catch (Exception exception)
             {
                 // Handle data entry validation errors
                 if (exception is DetectionViewValidationException ||

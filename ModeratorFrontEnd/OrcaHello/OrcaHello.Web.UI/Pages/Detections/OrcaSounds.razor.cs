@@ -100,7 +100,7 @@
             LocationDropdownOptions.Add(new(index, "All"));
             SelectedLocation = index;
 
-             SelectedDetectionState = DetectionState.Unreviewed;
+            SelectedDetectionState = DetectionState.Unreviewed;
 
             SetFilterDefaults();
 

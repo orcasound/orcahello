@@ -1,7 +1,7 @@
 namespace AIForOrcas.Client.BL.Services
 {
-	public interface IAuthTokenProvider
-	{
-		string GetToken();
-	}
+    public interface IAuthTokenProvider
+    {
+        string GetToken();
+    }
 }

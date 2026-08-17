@@ -20,7 +20,7 @@
                     var statusCode = exception1.StatusCode;
                     var innerException = new InvalidHydrophoneException($"Error encountered accessing down range service defined by 'HydrophoneFeedUrl' setting: {exception1.Message}");
 
-                    if(statusCode == HttpStatusCode.BadRequest ||
+                    if (statusCode == HttpStatusCode.BadRequest ||
                         statusCode == HttpStatusCode.NotFound)
                         throw LoggingUtilities.CreateAndLogException<HydrophoneDependencyValidationException>(_logger, innerException);
 

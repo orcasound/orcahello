@@ -21,15 +21,15 @@ namespace OrcaHello.Web.Api.Services
             if (request is null)
                 throw new NullModerateDetectionRequestException();
 
-            switch(request)
+            switch (request)
             {
                 case { } when request.Ids is null || !request.Ids.Any():
                     throw new InvalidDetectionOrchestrationException(LoggingUtilities.MissingRequiredProperty(nameof(request.Ids)));
 
-                case { } when ValidatorUtilities.IsInvalid(request.State) :
+                case { } when ValidatorUtilities.IsInvalid(request.State):
                     throw new InvalidDetectionOrchestrationException(LoggingUtilities.MissingRequiredProperty(nameof(request.State)));
 
-                case { } when ValidatorUtilities.IsInvalid(request.Moderator) :
+                case { } when ValidatorUtilities.IsInvalid(request.Moderator):
                     throw new InvalidDetectionOrchestrationException(LoggingUtilities.MissingRequiredProperty(nameof(request.Moderator)));
             }
 

@@ -15,7 +15,7 @@
             if (fromDate.Value > DateTime.UtcNow)
                 throw new InvalidCommentException("Property 'fromDate' cannot be in the future.");
 
-            if(!toDate.HasValue)
+            if (!toDate.HasValue)
                 throw new InvalidCommentException("Property 'toDate' cannot be null.");
 
             if (toDate.Value < fromDate.Value)

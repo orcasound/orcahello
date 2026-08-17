@@ -14,7 +14,7 @@
 
             ActionResult<Detection> actionResult =
                 await _controller.GetDetectionByIdAsync(Guid.NewGuid().ToString());
-            
+
 
             var contentResult = actionResult.Result as ObjectResult;
             Assert.IsNotNull(contentResult);

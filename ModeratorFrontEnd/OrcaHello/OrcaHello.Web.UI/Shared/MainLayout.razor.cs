@@ -4,7 +4,7 @@
     public partial class MainLayout
     {
         protected bool sidebarExpanded = true;
-        protected DateTime RightNow = DateTime.UtcNow;        
+        protected DateTime RightNow = DateTime.UtcNow;
         protected bool isSummarySelected = false;
 
         protected override void OnAfterRender(bool firstRender)

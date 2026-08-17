@@ -6,7 +6,7 @@
         public void Guard_AllGuardConditions_Expect_Exception()
         {
             var wrapper = new TagViewServiceWrapper();
-         
+
             List<string> badIds = null!;
 
             Assert.ThrowsException<InvalidTagViewException>(() =>

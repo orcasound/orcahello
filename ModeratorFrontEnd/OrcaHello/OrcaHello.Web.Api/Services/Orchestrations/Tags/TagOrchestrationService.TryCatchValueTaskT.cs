@@ -10,12 +10,12 @@
             {
                 return await returningGenericFunction();
             }
-            catch(Exception exception)
+            catch (Exception exception)
             {
                 if (exception is InvalidTagOrchestrationException)
                     throw LoggingUtilities.CreateAndLogException<TagOrchestrationValidationException>(_logger, exception);
 
-                if(exception is MetadataValidationException ||
+                if (exception is MetadataValidationException ||
                     exception is MetadataDependencyValidationException)
                     throw LoggingUtilities.CreateAndLogException<TagOrchestrationDependencyValidationException>(_logger, exception);
 

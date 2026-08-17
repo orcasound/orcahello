@@ -28,7 +28,7 @@
 
         private async Task ExecuteRetrieveTags(int count, int statusCode)
         {
-            for(int x = 0; x < count; x++)
+            for (int x = 0; x < count; x++)
             {
                 ActionResult<TagListForTimeframeResponse> actionResult =
                     await _controller.GetTagsForGivenTimeframeAsync(DateTime.Now, DateTime.Now.AddDays(1));

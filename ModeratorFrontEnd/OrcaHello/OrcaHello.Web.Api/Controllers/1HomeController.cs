@@ -10,7 +10,7 @@
         [SwaggerResponse(StatusCodes.Status200OK, "Indicates the API is operational.")]
 
         [AllowAnonymous]
-        [ExcludeFromCodeCoverage ]
+        [ExcludeFromCodeCoverage]
         public ActionResult<string> Get() =>
             Ok("Welcome to the OrcaHello API v2.0!");
 

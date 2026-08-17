@@ -19,8 +19,8 @@ namespace OrcaHello.Web.Api.Tests.Unit.Controllers
                 Tag = "Tag",
                 Detections = new List<Detection>
                 {
-                    new() { 
-                        State = "Positive", 
+                    new() {
+                        State = "Positive",
                         Id = Guid.NewGuid().ToString(),
                         Moderator = "Moderator",
                         Tags  = new List<string> { "Tag" }

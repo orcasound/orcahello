@@ -6,7 +6,8 @@ namespace OrcaHello.Web.Shared.Services
     public class HttpService : IHttpService
     {
         private readonly HttpClient _httpClient;
-        private JsonSerializerOptions _jsonSerializeOptions = new() { 
+        private JsonSerializerOptions _jsonSerializeOptions = new()
+        {
             PropertyNameCaseInsensitive = true,
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         };

@@ -7,7 +7,7 @@
         {
             var expectedResults = new QueryableHydrophoneData
             {
-                QueryableRecords = (new List<HydrophoneData> { new() { Attributes = new() { NodeName = "test_id", Name = "test" } } } ).AsQueryable(),
+                QueryableRecords = (new List<HydrophoneData> { new() { Attributes = new() { NodeName = "test_id", Name = "test" } } }).AsQueryable(),
                 TotalCount = 1
             };
 

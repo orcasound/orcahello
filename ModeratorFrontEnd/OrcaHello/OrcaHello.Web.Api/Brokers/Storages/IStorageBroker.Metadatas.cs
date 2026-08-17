@@ -7,7 +7,7 @@
         Task<List<string>> GetTagListByTimeframeAndModerator(DateTime fromDate, DateTime toDate, string moderator);
         Task<ListMetadataAndCount> GetMetadataListByTimeframeAndTag(DateTime fromDate, DateTime toDate,
             List<string> tags, string tagOperator, int page = 1, int pageSize = 10);
-        Task<ListMetadataAndCount> GetPositiveMetadataListByTimeframe(DateTime fromDate, DateTime toDate, 
+        Task<ListMetadataAndCount> GetPositiveMetadataListByTimeframe(DateTime fromDate, DateTime toDate,
             int page = 1, int pageSize = 10);
         Task<ListMetadataAndCount> GetPositiveMetadataListByTimeframeAndModerator(DateTime fromDate, DateTime toDate,
             string moderator, int page = 1, int pageSize = 10);

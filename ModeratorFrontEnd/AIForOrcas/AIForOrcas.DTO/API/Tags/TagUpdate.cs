@@ -17,7 +17,7 @@ namespace AIForOrcas.DTO.API.Tags
         /// What the Tag is being change to
         /// </summary>
         /// <example>NewTag</example>
-        [Required(ErrorMessage="Please enter the new tag.")]
+        [Required(ErrorMessage = "Please enter the new tag.")]
         public string NewTag { get; set; }
     }
 }

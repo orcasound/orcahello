@@ -27,12 +27,12 @@ namespace OrcaHello.Web.Api.Tests.Unit.Services
             };
 
             _metadataServiceMock.Setup(service =>
-                service.RetrievePaginatedMetadataAsync(It.IsAny<string>(), It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<string>(), 
+                service.RetrievePaginatedMetadataAsync(It.IsAny<string>(), It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<string>(),
                     It.IsAny<bool>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()))
                 .ReturnsAsync(expectedResults);
 
             DetectionListResponse result = await _orchestrationService.
-                RetrieveFilteredDetectionsAsync(DateTime.Now, DateTime.Now.AddDays(1), "Positive", "timestamp",true, null!, 1, 10);
+                RetrieveFilteredDetectionsAsync(DateTime.Now, DateTime.Now.AddDays(1), "Positive", "timestamp", true, null!, 1, 10);
 
             Assert.AreEqual(expectedResults.QueryableRecords.Count(), result.Detections.Count);
 

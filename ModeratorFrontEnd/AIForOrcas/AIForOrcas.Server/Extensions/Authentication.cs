@@ -43,7 +43,7 @@ public static class Authentication
     // Set up Swagger so users can use OAuth to authenticate against it
     public static void ConfigureSwagger(this WebApplicationBuilder builder, AppSettings appSettings)
     {
-        var instance = !string.IsNullOrWhiteSpace(appSettings.AzureAd.Instance) ? 
+        var instance = !string.IsNullOrWhiteSpace(appSettings.AzureAd.Instance) ?
             appSettings.AzureAd.Instance : string.Empty;
         var tenantId = !string.IsNullOrWhiteSpace(appSettings.AzureAd.TenantId) ?
             appSettings.AzureAd.TenantId : Guid.NewGuid().ToString();

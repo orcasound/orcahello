@@ -32,7 +32,7 @@
         // RULE: Pagination must be correct.
         protected void ValidatePagination(int page, int pageSize)
         {
-             if (page <= 0)
+            if (page <= 0)
                 throw new InvalidModeratorException("Property 'page' number must be positive.");
 
             if (pageSize <= 0)

@@ -12,7 +12,7 @@ namespace OrcaHello.Web.Api.Tests.Unit.Services
         public new void Validate(string propertyValue, string propertyName) =>
             base.Validate(propertyValue, propertyName);
 
-        public new void ValidatePage(int page) => 
+        public new void ValidatePage(int page) =>
             base.ValidatePage(page);
 
         public new void ValidatePageSize(int pageSize) =>

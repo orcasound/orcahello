@@ -10,7 +10,7 @@
         public StorageBroker(AppSettings appSettings)
         {
             _appSettings = appSettings;
-           
+
             _cosmosClient = new CosmosClient(_appSettings.CosmosConnectionString);
 
             Database database;
@@ -20,7 +20,7 @@
                 database = _cosmosClient.GetDatabase(_appSettings.DetectionsDatabaseName);
                 database.ReadAsync().Wait();
             }
-            catch(Exception exception)
+            catch (Exception exception)
             {
                 throw new Exception($"Database '{_appSettings.DetectionsDatabaseName}' was not found or could not be opened: {exception.Message}");
             }
@@ -30,7 +30,7 @@
                 _detectionsContainer = database.GetContainer(_appSettings.MetadataContainerName);
                 _detectionsContainer.ReadContainerAsync().Wait();
             }
-            catch(Exception exception)
+            catch (Exception exception)
             {
                 throw new Exception($"Container '{_appSettings.MetadataContainerName}' was not found or could not be opened: {exception.Message}.");
             }

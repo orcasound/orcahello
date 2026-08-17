@@ -7,7 +7,7 @@
         {
             TagListForTimeframeResponse expectedResponse = new()
             {
-                Tags = new() {  "Tag 1", "Tag 2" },
+                Tags = new() { "Tag 1", "Tag 2" },
                 FromDate = DateTime.UtcNow.AddDays(-14),
                 ToDate = DateTime.UtcNow,
                 Count = 2

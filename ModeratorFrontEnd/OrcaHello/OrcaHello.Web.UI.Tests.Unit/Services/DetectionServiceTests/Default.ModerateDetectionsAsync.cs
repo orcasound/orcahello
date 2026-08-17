@@ -28,7 +28,7 @@ namespace OrcaHello.Web.UI.Tests.Unit.Services
             {
                 Ids = new() { id },
                 Moderator = "Moderator",
-                DateModerated  = DateTime.UtcNow,
+                DateModerated = DateTime.UtcNow,
                 State = "Positive"
             };
 

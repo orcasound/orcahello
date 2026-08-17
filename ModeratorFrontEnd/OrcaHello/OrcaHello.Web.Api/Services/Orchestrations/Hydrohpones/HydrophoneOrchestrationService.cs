@@ -43,9 +43,9 @@
                     IntroHtml = attributes.IntroHtml
                 };
 
-                if(attributes.LocationPoint is not null)
+                if (attributes.LocationPoint is not null)
                 {
-                    if(attributes.LocationPoint.Coordinates != null && attributes.LocationPoint.Coordinates.Count == 2)
+                    if (attributes.LocationPoint.Coordinates != null && attributes.LocationPoint.Coordinates.Count == 2)
                     {
                         result.Longitude = attributes.LocationPoint.Coordinates[0];
                         result.Latitude = attributes.LocationPoint.Coordinates[1];

@@ -20,7 +20,7 @@
         public static void ConfigureAuthProviders(this WebApplicationBuilder builder)
         {
             builder.Services.AddScoped<ApiAuthenticationStateProvider>();
-            builder.Services.AddScoped<AuthenticationStateProvider>(provider => 
+            builder.Services.AddScoped<AuthenticationStateProvider>(provider =>
                 provider.GetRequiredService<ApiAuthenticationStateProvider>());
             builder.Services.AddScoped<IAccountService, AccountService>();
         }

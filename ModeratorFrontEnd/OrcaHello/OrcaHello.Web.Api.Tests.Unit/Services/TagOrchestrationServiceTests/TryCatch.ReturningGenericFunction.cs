@@ -10,18 +10,18 @@ namespace OrcaHello.Web.Api.Tests.Unit.Services
             var wrapper = new TagOrchestrationServiceWrapper();
             var delegateMock = new Mock<ReturningGenericFunction<TagListResponse>>();
 
-             delegateMock
-                .SetupSequence(p => p())
+            delegateMock
+               .SetupSequence(p => p())
 
-            .Throws(new InvalidTagOrchestrationException())
+           .Throws(new InvalidTagOrchestrationException())
 
-            .Throws(new MetadataValidationException())
-            .Throws(new MetadataDependencyValidationException())
+           .Throws(new MetadataValidationException())
+           .Throws(new MetadataDependencyValidationException())
 
-            .Throws(new MetadataDependencyException())
-            .Throws(new MetadataServiceException())
+           .Throws(new MetadataDependencyException())
+           .Throws(new MetadataServiceException())
 
-            .Throws(new Exception());
+           .Throws(new Exception());
 
             Assert.ThrowsExceptionAsync<TagOrchestrationValidationException>(async () =>
                 await wrapper.TryCatch(delegateMock.Object));

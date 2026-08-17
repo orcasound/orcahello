@@ -1,10 +1,10 @@
 ﻿namespace AIForOrcas.Server.Helpers;
 
 public static class MetadataFilters
-	{
-		public static int DefaultRecordsPerPage = 5;
+{
+    public static int DefaultRecordsPerPage = 5;
 
-    public static void ApplyTimeframeFilter(ref IQueryable<Metadata> queryable, string timeframe, DateTime? dateFrom=null, DateTime? dateTo=null)
+    public static void ApplyTimeframeFilter(ref IQueryable<Metadata> queryable, string timeframe, DateTime? dateFrom = null, DateTime? dateTo = null)
     {
         if (!string.IsNullOrWhiteSpace(timeframe))
         {
@@ -58,36 +58,36 @@ public static class MetadataFilters
     }
 
     public static void ApplyModeratorFilter(ref IQueryable<Metadata> queryable, string moderator)
-		{
-			if (!string.IsNullOrWhiteSpace(moderator))
-			{
-				queryable = queryable.Where(x => x.moderator == moderator);
-			}
-		}
+    {
+        if (!string.IsNullOrWhiteSpace(moderator))
+        {
+            queryable = queryable.Where(x => x.moderator == moderator);
+        }
+    }
 
-		public static void ApplyLocationFilter(ref IQueryable<Metadata> queryable, string location)
-		{
-			if (!string.IsNullOrWhiteSpace(location))
-			{
-				queryable = queryable.Where(x => x.location.name == location);
-			}
-		}
+    public static void ApplyLocationFilter(ref IQueryable<Metadata> queryable, string location)
+    {
+        if (!string.IsNullOrWhiteSpace(location))
+        {
+            queryable = queryable.Where(x => x.location.name == location);
+        }
+    }
 
-		public static void ApplyHydrophoneIdFilter(ref IQueryable<Metadata> queryable, string hydrophoneId)
-		{
-			if (!string.IsNullOrWhiteSpace(hydrophoneId))
-			{
-				queryable = queryable.Where(x => x.source_guid == hydrophoneId);
-			}
-		}
+    public static void ApplyHydrophoneIdFilter(ref IQueryable<Metadata> queryable, string hydrophoneId)
+    {
+        if (!string.IsNullOrWhiteSpace(hydrophoneId))
+        {
+            queryable = queryable.Where(x => x.source_guid == hydrophoneId);
+        }
+    }
 
-		public static void ApplyReviewedFilter(ref IQueryable<Metadata> queryable, bool reviewed)
-		{
-			queryable = queryable.Where(x => x.reviewed == reviewed);
-		}
+    public static void ApplyReviewedFilter(ref IQueryable<Metadata> queryable, bool reviewed)
+    {
+        queryable = queryable.Where(x => x.reviewed == reviewed);
+    }
 
-		public static void ApplyFoundFilter(ref IQueryable<Metadata> queryable, string foundState)
-		{
-			queryable = queryable.Where(x => x.SRKWFound == foundState);
-		}
-	}
+    public static void ApplyFoundFilter(ref IQueryable<Metadata> queryable, string foundState)
+    {
+        queryable = queryable.Where(x => x.SRKWFound == foundState);
+    }
+}

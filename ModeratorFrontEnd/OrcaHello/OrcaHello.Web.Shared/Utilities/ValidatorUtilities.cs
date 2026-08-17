@@ -10,7 +10,7 @@
         public static bool IsNegative(long input) => input < 0;
         public static bool IsNegative(int input) => input < 0;
         public static bool IsZeroOrLess(int input) => input <= 0;
-        public static bool IsInvalid(Object input) => input == null;
+        public static bool IsInvalid(object input) => input == null;
         public static bool IsInvalid(DateTime input) => input == default(DateTime);
         public static bool IsInvalidGuidString(string input) => !Guid.TryParse(input, out Guid dummy);
         public static string GetInnerMessage(Exception exception) => exception.InnerException.Message;

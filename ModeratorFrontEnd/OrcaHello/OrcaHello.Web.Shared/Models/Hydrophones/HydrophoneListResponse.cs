@@ -6,7 +6,7 @@
     {
         [SwaggerSchema("The list of hydrophones.")]
         public List<Hydrophone> Hydrophones { get; set; } = new List<Hydrophone>();
-        
+
         [SwaggerSchema("The total number of hydrophones in the list")]
         public int Count { get; set; }
     }

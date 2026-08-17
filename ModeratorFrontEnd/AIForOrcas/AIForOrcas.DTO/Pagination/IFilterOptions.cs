@@ -1,7 +1,7 @@
 ﻿namespace AIForOrcas.DTO
 {
-	public interface IFilterOptions
-	{
-		string QueryString { get; }
-	}
+    public interface IFilterOptions
+    {
+        string QueryString { get; }
+    }
 }

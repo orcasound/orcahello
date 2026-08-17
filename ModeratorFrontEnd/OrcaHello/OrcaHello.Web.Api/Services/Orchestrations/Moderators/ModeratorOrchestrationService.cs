@@ -104,7 +104,7 @@
                 Count = candidateRecords.TotalCount,
                 Moderator = moderator
             };
-});
+        });
 
         public ValueTask<CommentListForModeratorResponse> RetrievePositiveCommentsForGivenTimeframeAndModeratorAsync(DateTime? fromDate, DateTime? toDate, string moderator, int page, int pageSize) =>
         TryCatch(async () =>
@@ -131,7 +131,7 @@
                 TotalCount = results.TotalCount,
                 Count = results.QueryableRecords.Count(),
                 Moderator = moderator,
-        
+
             };
         });
 

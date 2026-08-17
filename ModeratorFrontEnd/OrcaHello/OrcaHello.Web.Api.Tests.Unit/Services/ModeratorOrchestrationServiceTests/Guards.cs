@@ -8,7 +8,7 @@ namespace OrcaHello.Web.Api.Tests.Unit.Services
         public void Guard_AllGuardConditions_Expect_Exception()
         {
             var wrapper = new ModeratorOrchestrationServiceWrapper();
-          
+
             DateTime? invalidDate = DateTime.MinValue;
 
             Assert.ThrowsException<InvalidModeratorOrchestrationException>(() =>

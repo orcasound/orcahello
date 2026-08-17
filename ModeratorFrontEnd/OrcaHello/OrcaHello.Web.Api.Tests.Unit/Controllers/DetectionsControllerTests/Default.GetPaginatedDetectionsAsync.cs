@@ -18,7 +18,7 @@
             };
 
             _orchestrationServiceMock.Setup(service =>
-                service.RetrieveFilteredDetectionsAsync(It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<string>(), 
+                service.RetrieveFilteredDetectionsAsync(It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<string>(),
                 It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()))
                 .ReturnsAsync(response);
 
