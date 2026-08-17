@@ -40,7 +40,7 @@
                 <!-- Card Spectrogram Image -->
                 <div class="row">
                     <div class="col-12 px-0">
-                        <img class="img-fluid"
+                        <img class="img-fluid w-100"
                              id=@CardSpectrogramId
                              src=@Detection.SpectrogramUri />
                         <div class="card-img-overlay p-0"
@@ -209,6 +209,10 @@
                         type="submit"
                         @onclick="(() => SubmitUpdate())"
                         disabled="@IsSubmitDisabled">
+                    @if (_submitting)
+                    {
+                        <i class="fas fa-spinner fa-spin mr-1"></i>
+                    }
                     Submit
                 </button>
             </Authorized>
