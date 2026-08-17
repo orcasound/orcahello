@@ -6,6 +6,8 @@ public partial class DetectionComponent
 {
 	private string _id;
 	private string _userId;
+	private Detection _initializedDetection;
+	private bool _submitting;
 	private TextInfo _ti = new CultureInfo("en-US", false).TextInfo;
 
 	[Inject]
@@ -25,6 +27,9 @@ public partial class DetectionComponent
 
 	[Inject]
 	UserTagCache TagCache { get; set; }
+
+	[Inject]
+	IToastService ToastService { get; set; }
 
 	[Parameter]
 	public Detection Detection { get; set; }
@@ -56,7 +61,7 @@ public partial class DetectionComponent
 
 	private string AverageConfidence { get => $"{Detection.Confidence.ToString("00.##")}% average confidence"; }
 
-	private bool IsSubmitDisabled { get => string.IsNullOrWhiteSpace(Detection.Found); }
+	private bool IsSubmitDisabled { get => _submitting || string.IsNullOrWhiteSpace(Detection.Found); }
 
 	private string WasFound	{ get => _ti.ToTitleCase(Detection.Found); }
 
@@ -115,8 +120,13 @@ public partial class DetectionComponent
 		// TODO: Determine whether or not we should change the initial Found state
 		//       from No to something other than the three options we give the user
 
-		if (!Detection.Reviewed)
+		// Only initialize each detection once. This hook runs again on every
+		// parent re-render with the same Detection instance, and resetting
+		// then would wipe a verdict the moderator already selected (e.g., right
+		// after a failed submit shows its retry toast).
+		if (!Detection.Reviewed && !ReferenceEquals(Detection, _initializedDetection))
 		{
+			_initializedDetection = Detection;
 			Detection.Found = string.Empty;
 
 			if (string.IsNullOrEmpty(Detection.Tags))
@@ -293,18 +303,41 @@ public partial class DetectionComponent
 
     private async Task SubmitUpdate()
 	{
-		var request = new DetectionUpdate()
+		// Guard before any await: a second click can be dispatched before the
+		// disabled attribute reaches the browser, and it must not enter here.
+		if (_submitting)
 		{
-			Id = Detection.Id,
-			Comments = Detection.Comments,
-			Tags = Detection.Tags,
-			Moderator = await AccountService.GetUsername(),
-			Moderated = DateTime.Now,
-			Reviewed = true,
-			Found = Detection.Found
-		};
+			return;
+		}
+		_submitting = true;
 
-		await SubmitCallback.InvokeAsync(request);
+		try
+		{
+			var request = new DetectionUpdate()
+			{
+				Id = Detection.Id,
+				Comments = Detection.Comments,
+				Tags = Detection.Tags,
+				Moderator = await AccountService.GetUsername(),
+				Moderated = DateTime.Now,
+				Reviewed = true,
+				Found = Detection.Found
+			};
+
+			await SubmitCallback.InvokeAsync(request);
+		}
+		catch (Exception exception) when (exception is HttpRequestException || exception is TaskCanceledException)
+		{
+			// One guard for every page that renders this component. Keep the
+			// card and the moderator's selections untouched for a retry. The
+			// wording stays generic: the same exception covers an unreachable
+			// server and an error response, and the service logs the detail.
+			ToastService.ShowError("The verdict was not saved. Please try again.");
+		}
+		finally
+		{
+			_submitting = false;
+		}
 	}
 
 	private async Task ToggleCardPlayer()

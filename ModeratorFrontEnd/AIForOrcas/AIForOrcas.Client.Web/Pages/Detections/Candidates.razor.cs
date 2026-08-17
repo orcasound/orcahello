@@ -47,17 +47,25 @@ public partial class Candidates : IDisposable
 		pagination.TotalNumberOfRecords = paginatedResponse.TotalNumberRecords;
 		pagination.TotalNumberOfPages = paginatedResponse.TotalAmountPages;
 
-		if (paginationOptions.Page > 1 && paginationOptions.Page > pagination.TotalNumberOfPages)
+		// The page we requested may no longer exist.
+		// Clamp to the actual last valid page. re-fetch to render real data
+		if (pagination.TotalNumberOfPages > 0 && paginationOptions.Page > pagination.TotalNumberOfPages)
 		{
-			// We may have just removed the last page, so if so back up by one.
-			paginationOptions.Page--;
+			paginationOptions.Page = pagination.TotalNumberOfPages;
+			paginatedResponse = await Service.GetCandidateDetectionsAsync(paginationOptions, filterOptions);
+			pagination.TotalNumberOfRecords = paginatedResponse.TotalNumberRecords;
+			pagination.TotalNumberOfPages = paginatedResponse.TotalAmountPages;
 		}
 		pagination.CurrentPage = paginationOptions.Page;
 
 		if (paginatedResponse.Response == null)
 			loadStatus = "An unknown error occurred while loading records...";
 		else if (paginatedResponse.Response.Count == 0)
-			loadStatus = "No records found for the selected filter options. Please select a different set of filter options...";
+		{
+			loadStatus = pagination.TotalNumberOfRecords == 0
+				? "You're caught up, no records match the selected filter options..."
+				: "No records found for the selected filter options. Please select a different set of filter options...";
+		}
 		else
 		{
 			loadStatus = null;
