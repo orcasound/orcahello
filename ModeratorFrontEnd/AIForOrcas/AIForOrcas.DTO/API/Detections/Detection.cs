@@ -157,6 +157,7 @@ namespace AIForOrcas.DTO.API
             { "transient", "orca" },
             { "humpback", "whale" },
             { "vessel", null },
+            { "squeaker", "vessel" },
             { "train", "vessel" },
             { "bird", null },
             { "pigu", "bird" },
