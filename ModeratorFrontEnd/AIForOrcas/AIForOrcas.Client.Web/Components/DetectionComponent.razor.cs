@@ -154,6 +154,20 @@ public partial class DetectionComponent
 					AddTag(b);
 				}
 			}
+
+			// Handle model tag aliases / legacy tags.
+			// PODS-AI may include "resident"; OrcaHello uses "srkw" only when the moderator explicitly
+			// selects SRKW=yes, so strip "resident" during initialization to avoid an extra tag.
+			// If we later need to map other model labels (e.g., "transient" -> "biggs"), do it here.
+			// This does not block moderators from manually entering "resident" later.
+			if (Detection.TagList.Contains("resident", StringComparer.OrdinalIgnoreCase))
+			{
+				RemoveTag("resident");
+
+				// Don't add srkw since that would make the SRKWFound
+				// button default to yes.  Instead leave it unselected,
+				// like OrcaHello candidates do.
+			}
 		}
 	}
 

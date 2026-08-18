@@ -42,6 +42,7 @@ public partial class Candidates : IDisposable
 	private async Task LoadDetections()
 	{
 		loadStatus = "Loading records...";
+		detections = null;
 		var paginatedResponse = await Service.GetCandidateDetectionsAsync(paginationOptions, filterOptions);
 
 		pagination.TotalNumberOfRecords = paginatedResponse.TotalNumberRecords;
@@ -76,7 +77,6 @@ public partial class Candidates : IDisposable
 	private async Task ActOnSelectPageCallback(PaginationOptionsDTO returnedPaginationOptions)
 	{
 		paginationOptions = returnedPaginationOptions;
-		detections = null;
 		await LoadDetections();
 		await JSRuntime.InvokeVoidAsync("DestroyActivePlayer");
 		StateHasChanged();
@@ -86,7 +86,6 @@ public partial class Candidates : IDisposable
 	{
 		filterOptions = returnedFilterOptions;
 		paginationOptions.Page = 1;
-		detections = null;
 		await LoadDetections();
 		await JSRuntime.InvokeVoidAsync("DestroyActivePlayer");
 		StateHasChanged();
