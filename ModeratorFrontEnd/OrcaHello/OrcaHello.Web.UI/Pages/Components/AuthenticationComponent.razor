@@ -1,7 +1,7 @@
 ﻿@inherits ComponentManager
 
 <AuthorizeView>
-	<Authorized>
+    <Authorized>
         <RadzenProfileMenu Click="OnProfileMenuClicked">
             <Template>
                 <RadzenStack Orientation=Orientation.Horizontal AlignItems=AlignItems.Center>
@@ -14,8 +14,8 @@
                 <RadzenProfileMenuItem Text="Log Out" onclick="" Icon="logout" />
             </ChildContent>
         </RadzenProfileMenu>
-	</Authorized>
-	<NotAuthorized>
-		<RadzenButton Text="Log In" Click=Login Variant=Variant.Outlined ButtonStyle=ButtonStyle.Primary Style="margin-right:10px;" />
-	</NotAuthorized>
+    </Authorized>
+    <NotAuthorized>
+        <RadzenButton Text="Log In" Click=Login Variant=Variant.Outlined ButtonStyle=ButtonStyle.Primary Style="margin-right:10px;" />
+    </NotAuthorized>
 </AuthorizeView>

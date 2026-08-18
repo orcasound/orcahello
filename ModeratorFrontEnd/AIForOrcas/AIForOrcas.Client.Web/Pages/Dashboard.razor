@@ -8,170 +8,170 @@
 
 <div class="@displayStyle">
 
-	<div class="row">
+    <div class="row">
 
-		<div class="col-xl-6 col-lg-6">
+        <div class="col-xl-6 col-lg-6">
 
-			<!-- Detections -->
-			<div class="card shadow mb-4">
-				<!-- Card Header - Dropdown -->
-				<div class="card-header py-3">
-					<h6 class="m-0 font-weight-bold text-primary">Detections</h6>
-				</div>
-				<!-- Card Body -->
-				<div class="card-body">
-					<div class="chart-pie pt-4">
-						<canvas id="detectionsChart"></canvas>
-					</div>
-					<div class="mt-4 text-center small">
-						<span class="mr-2">
-							<i class="fas fa-circle text-success"></i> Reviewed
-						</span>
-						<span class="mr-2">
-							<i class="fas fa-circle text-danger"></i> Unreviewed
-						</span>
-					</div>
-				</div>
-			</div>
+            <!-- Detections -->
+            <div class="card shadow mb-4">
+                <!-- Card Header - Dropdown -->
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Detections</h6>
+                </div>
+                <!-- Card Body -->
+                <div class="card-body">
+                    <div class="chart-pie pt-4">
+                        <canvas id="detectionsChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-center small">
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-success"></i> Reviewed
+                        </span>
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-danger"></i> Unreviewed
+                        </span>
+                    </div>
+                </div>
+            </div>
 
-		</div>
-		<div class="col-xl-6 col-lg-6">
+        </div>
+        <div class="col-xl-6 col-lg-6">
 
-			<!-- Detection Results -->
+            <!-- Detection Results -->
 
-			<div class="card shadow mb-4">
-				<!-- Card Header - Dropdown -->
-				<div class="card-header py-3">
-					<h6 class="m-0 font-weight-bold text-primary">Results</h6>
-				</div>
-				<!-- Card Body -->
-				<div class="card-body">
-					<div class="chart-pie pt-4">
-						<canvas id="detectionResultsChart"></canvas>
-					</div>
-					<div class="mt-4 text-center small">
-						<span class="mr-2">
-							<i class="fas fa-circle text-success"></i> Confirmed
-						</span>
-						<span class="mr-2">
-							<i class="fas fa-circle text-danger"></i> False Positives
-						</span>
-						<span class="mr-2">
-							<i class="fas fa-circle text-info"></i> Don't Know
-						</span>
-					</div>
-				</div>
+            <div class="card shadow mb-4">
+                <!-- Card Header - Dropdown -->
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Results</h6>
+                </div>
+                <!-- Card Body -->
+                <div class="card-body">
+                    <div class="chart-pie pt-4">
+                        <canvas id="detectionResultsChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-center small">
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-success"></i> Confirmed
+                        </span>
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-danger"></i> False Positives
+                        </span>
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-info"></i> Don't Know
+                        </span>
+                    </div>
+                </div>
 
-			</div>
-		</div>
-	</div>
+            </div>
+        </div>
+    </div>
 
-	<div class="row">
-		<div class="col-12">
-			<div class="card shadow mb-4">
-				<a href="#Tags" class="d-block card-header py-3 collapsed"
-				   data-toggle="collapse" role="button"
-				   aria-expanded="false" aria-controls="Tags">
-					<h6 class="m-0 font-weight-bold text-primary">Tags</h6>
-				</a>
-				<div class="collapse" id="Tags">
-					<div class="card-body">
-						<div class="pt-4">
-							@if (metrics != null)
-							{
-								@foreach (var entry in metrics.Tags)
-								{
-									<h5>@entry.Tag</h5>
-									<ul class="list-inline">
-										@foreach (var link in entry.Ids)
-										{
-											<li class="list-inline-item"><a href="/detections/detection/@link" target="_blank">@link</a></li>
-										}
-									</ul>
-								}
-							}
-						</div>
-					</div>
-				</div>
-			</div>
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <a href="#Tags" class="d-block card-header py-3 collapsed"
+                   data-toggle="collapse" role="button"
+                   aria-expanded="false" aria-controls="Tags">
+                    <h6 class="m-0 font-weight-bold text-primary">Tags</h6>
+                </a>
+                <div class="collapse" id="Tags">
+                    <div class="card-body">
+                        <div class="pt-4">
+                            @if (metrics != null)
+                            {
+                                @foreach (var entry in metrics.Tags)
+                                {
+                                    <h5>@entry.Tag</h5>
+                                    <ul class="list-inline">
+                                        @foreach (var link in entry.Ids)
+                                        {
+                                            <li class="list-inline-item"><a href="/detections/detection/@link" target="_blank">@link</a></li>
+                                        }
+                                    </ul>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-			<div class="card shadow mb-4">
-				<a href="#confirmedDetectionComments" class="d-block card-header py-3 collapsed"
-				   data-toggle="collapse" role="button"
-				   aria-expanded="false" aria-controls="confirmedDetectionComments">
-					<h6 class="m-0 font-weight-bold text-primary">Comments from Confirmed Detections</h6>
-				</a>
-				<div class="collapse" id="confirmedDetectionComments">
-					<div class="card-body">
-						@if (metrics != null)
-						{<ul class="list-group">
-								@foreach (var entry in metrics.ConfirmedComments)
-								{
-									<li class="list-group-item">
-										<div class="row">
-											<div class="col-xs-2 col-md-1">
-												<img src="/img/comments.png" class="img-fluid" alt="" height="80" width="80" />
-											</div>
-											<div class="col-xs-10 col-md-11">
-												<div>
-													<a href="/detections/detection/@entry.Id">@entry.Id</a>
-													<div class="small">
-														<span class="comments">@DateHelper.UTCToPDTFull(entry.Timestamp)</span><br />
-													</div>
-												</div>
-												<blockquote class="blockquote mb-0">
-													<p class="comments">@entry.Comment</p>
-													<footer class="blockquote-footer">@entry.Moderator</footer>
-												</blockquote>
-											</div>
-										</div>
-									</li>
-								}
-							</ul>
-						}
-					</div>
-				</div>
-			</div>
+            <div class="card shadow mb-4">
+                <a href="#confirmedDetectionComments" class="d-block card-header py-3 collapsed"
+                   data-toggle="collapse" role="button"
+                   aria-expanded="false" aria-controls="confirmedDetectionComments">
+                    <h6 class="m-0 font-weight-bold text-primary">Comments from Confirmed Detections</h6>
+                </a>
+                <div class="collapse" id="confirmedDetectionComments">
+                    <div class="card-body">
+                        @if (metrics != null)
+                        {<ul class="list-group">
+                                @foreach (var entry in metrics.ConfirmedComments)
+                                {
+                                    <li class="list-group-item">
+                                        <div class="row">
+                                            <div class="col-xs-2 col-md-1">
+                                                <img src="/img/comments.png" class="img-fluid" alt="" height="80" width="80" />
+                                            </div>
+                                            <div class="col-xs-10 col-md-11">
+                                                <div>
+                                                    <a href="/detections/detection/@entry.Id">@entry.Id</a>
+                                                    <div class="small">
+                                                        <span class="comments">@DateHelper.UTCToPDTFull(entry.Timestamp)</span><br />
+                                                    </div>
+                                                </div>
+                                                <blockquote class="blockquote mb-0">
+                                                    <p class="comments">@entry.Comment</p>
+                                                    <footer class="blockquote-footer">@entry.Moderator</footer>
+                                                </blockquote>
+                                            </div>
+                                        </div>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                    </div>
+                </div>
+            </div>
 
-			<div class="card shadow mb-4">
-				<a href="#falseDetectionComments" class="d-block card-header py-3 collapsed"
-				   data-toggle="collapse" role="button"
-				   aria-expanded="false" aria-controls="falseDetectionComments">
-					<h6 class="m-0 font-weight-bold text-primary">Comments from False Positive and Unknown Detections</h6>
-				</a>
-				<div class="collapse" id="falseDetectionComments">
-					<div class="card-body">
-						@if (metrics != null)
-						{<ul class="list-group">
-								@foreach (var entry in metrics.UnconfirmedComments)
-								{
-									<li class="list-group-item">
-										<div class="row">
-											<div class="col-xs-2 col-md-1">
-												<img src="/img/comments.png" class="img-fluid" alt="" height="80" width="80" />
-											</div>
-											<div class="col-xs-10 col-md-11">
-												<div>
-													<a href="/detections/detection/@entry.Id">@entry.Id</a>
-													<div class="small">
-														<span class="comments">@DateHelper.UTCToPDTFull(entry.Timestamp)</span><br />
-													</div>
-												</div>
-												<blockquote class="blockquote mb-0">
-													<p class="comments">@entry.Comment</p>
-													<footer class="blockquote-footer">@entry.Moderator</footer>
-												</blockquote>
-											</div>
-										</div>
-									</li>
-								}
-							</ul>
-						}
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+            <div class="card shadow mb-4">
+                <a href="#falseDetectionComments" class="d-block card-header py-3 collapsed"
+                   data-toggle="collapse" role="button"
+                   aria-expanded="false" aria-controls="falseDetectionComments">
+                    <h6 class="m-0 font-weight-bold text-primary">Comments from False Positive and Unknown Detections</h6>
+                </a>
+                <div class="collapse" id="falseDetectionComments">
+                    <div class="card-body">
+                        @if (metrics != null)
+                        {<ul class="list-group">
+                                @foreach (var entry in metrics.UnconfirmedComments)
+                                {
+                                    <li class="list-group-item">
+                                        <div class="row">
+                                            <div class="col-xs-2 col-md-1">
+                                                <img src="/img/comments.png" class="img-fluid" alt="" height="80" width="80" />
+                                            </div>
+                                            <div class="col-xs-10 col-md-11">
+                                                <div>
+                                                    <a href="/detections/detection/@entry.Id">@entry.Id</a>
+                                                    <div class="small">
+                                                        <span class="comments">@DateHelper.UTCToPDTFull(entry.Timestamp)</span><br />
+                                                    </div>
+                                                </div>
+                                                <blockquote class="blockquote mb-0">
+                                                    <p class="comments">@entry.Comment</p>
+                                                    <footer class="blockquote-footer">@entry.Moderator</footer>
+                                                </blockquote>
+                                            </div>
+                                        </div>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script suppress-error="BL9992" src="vendor/chart.js/Chart.min.js"></script>
@@ -179,88 +179,88 @@
 
 <script suppress-error="BL9992">
 
-	Chart.defaults.global.defaultFontFamily = 'Segoe UI', 'Roboto,"Helvetica Neue",Arial,sans-serif';
-	Chart.defaults.global.defaultFontColor = '#858796';
+    Chart.defaults.global.defaultFontFamily = 'Segoe UI', 'Roboto,"Helvetica Neue",Arial,sans-serif';
+    Chart.defaults.global.defaultFontColor = '#858796';
 
-	var detectionsChart = null;
-	var detectionsResultChart = null;
+    var detectionsChart = null;
+    var detectionsResultChart = null;
 
-	function DrawDetectionsChart(datasetJson) {
+    function DrawDetectionsChart(datasetJson) {
 
-		if (detectionsChart != null) {
-			detectionsChart.destroy();
-		}
+        if (detectionsChart != null) {
+            detectionsChart.destroy();
+        }
 
-		var ctx = document.getElementById("detectionsChart");
+        var ctx = document.getElementById("detectionsChart");
 
-		detectionsChart = new Chart(ctx, {
-			type: 'doughnut',
-			data: {
-				labels: ["Reviewed", "Unreviewed"],
-				datasets: [{
-					data: JSON.parse(datasetJson),
-					backgroundColor: ['#28a745', '#dc3545'],
-					hoverBackgroundColor: ['#19692c', '#a71d2a'],
-					hoverBorderColor: "rgba(234, 236, 244, 1)",
-				}],
-			},
-			options: {
-				maintainAspectRatio: false,
-				tooltips: {
-					backgroundColor: "rgb(255,255,255)",
-					bodyFontColor: "#858796",
-					borderColor: '#dddfeb',
-					borderWidth: 1,
-					xPadding: 15,
-					yPadding: 15,
-					displayColors: false,
-					caretPadding: 10,
-				},
-				legend: {
-					display: false
-				},
-				cutoutPercentage: 70,
-			},
-		});
-	}
+        detectionsChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ["Reviewed", "Unreviewed"],
+                datasets: [{
+                    data: JSON.parse(datasetJson),
+                    backgroundColor: ['#28a745', '#dc3545'],
+                    hoverBackgroundColor: ['#19692c', '#a71d2a'],
+                    hoverBorderColor: "rgba(234, 236, 244, 1)",
+                }],
+            },
+            options: {
+                maintainAspectRatio: false,
+                tooltips: {
+                    backgroundColor: "rgb(255,255,255)",
+                    bodyFontColor: "#858796",
+                    borderColor: '#dddfeb',
+                    borderWidth: 1,
+                    xPadding: 15,
+                    yPadding: 15,
+                    displayColors: false,
+                    caretPadding: 10,
+                },
+                legend: {
+                    display: false
+                },
+                cutoutPercentage: 70,
+            },
+        });
+    }
 
-	function DrawDetectionResultsChart(datasetJson) {
+    function DrawDetectionResultsChart(datasetJson) {
 
-		if (detectionsResultChart != null) {
-			detectionsResultChart.destroy();
-		}
+        if (detectionsResultChart != null) {
+            detectionsResultChart.destroy();
+        }
 
-		var ctx = document.getElementById("detectionResultsChart");
-		detectionsResultChart = new Chart(ctx, {
-			type: 'doughnut',
-			data: {
-				labels: ["Confirmed", "False Positive", "Don't Know"],
-				datasets: [{
-					data: JSON.parse(datasetJson),
-					backgroundColor: ['#28a745', '#dc3545', '#17a2b8'],
-					hoverBackgroundColor: ['#19692c', '#a71d2a', '#0f6674'],
-					hoverBorderColor: "rgba(234, 236, 244, 1)",
-				}],
-			},
-			options: {
-				maintainAspectRatio: false,
-				tooltips: {
-					backgroundColor: "rgb(255,255,255)",
-					bodyFontColor: "#858796",
-					borderColor: '#dddfeb',
-					borderWidth: 1,
-					xPadding: 15,
-					yPadding: 15,
-					displayColors: false,
-					caretPadding: 10,
-				},
-				legend: {
-					display: false
-				},
-				cutoutPercentage: 70,
-			},
-		});
-	}
+        var ctx = document.getElementById("detectionResultsChart");
+        detectionsResultChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ["Confirmed", "False Positive", "Don't Know"],
+                datasets: [{
+                    data: JSON.parse(datasetJson),
+                    backgroundColor: ['#28a745', '#dc3545', '#17a2b8'],
+                    hoverBackgroundColor: ['#19692c', '#a71d2a', '#0f6674'],
+                    hoverBorderColor: "rgba(234, 236, 244, 1)",
+                }],
+            },
+            options: {
+                maintainAspectRatio: false,
+                tooltips: {
+                    backgroundColor: "rgb(255,255,255)",
+                    bodyFontColor: "#858796",
+                    borderColor: '#dddfeb',
+                    borderWidth: 1,
+                    xPadding: 15,
+                    yPadding: 15,
+                    displayColors: false,
+                    caretPadding: 10,
+                },
+                legend: {
+                    display: false
+                },
+                cutoutPercentage: 70,
+            },
+        });
+    }
 </script>
 
 

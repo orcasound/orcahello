@@ -4,35 +4,35 @@
 <link rel="stylesheet" href="@darkTheme" />
 
 <div id="page-top">
-	<!-- Page Wrapper -->
-	<div id="wrapper">
+    <!-- Page Wrapper -->
+    <div id="wrapper">
 
-		<SideBarComponent />
+        <SideBarComponent />
 
-		<!-- Content Wrapper -->
-		<div id="content-wrapper" class="d-flex flex-column">
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
 
-			<!-- Main Content -->
-			<div id="content">
+            <!-- Main Content -->
+            <div id="content">
 
-				<TopBarComponent ToggleThemeCallback="ActOnToggleThemeCallback" CurrentUrl="@CurrentUrl" />
+                <TopBarComponent ToggleThemeCallback="ActOnToggleThemeCallback" CurrentUrl="@CurrentUrl" />
 
-				<!-- Begin Page Content -->
-				<div class="container-fluid">
-					@Body
-				</div>
-			</div>
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+                    @Body
+                </div>
+            </div>
 
-		</div>
-		<!-- End of Content Wrapper-->
-	</div>
-	<!-- End of Page Wrapper -->
-	<!-- Scroll to Top Button-->
-	<a class="scroll-to-top rounded" href="#page-top">
-		<i class="fas fa-angle-up"></i>
-	</a>
+        </div>
+        <!-- End of Content Wrapper-->
+    </div>
+    <!-- End of Page Wrapper -->
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
 
-	<LogoutComponent />
+    <LogoutComponent />
 </div>
 
 <BlazoredToasts Position="ToastPosition.BottomRight"

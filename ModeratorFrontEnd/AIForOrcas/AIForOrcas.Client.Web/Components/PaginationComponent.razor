@@ -1,12 +1,12 @@
 ﻿<nav>
-	<ul class="pagination">
-		@foreach (var link in links)
-		{
-			<li @onclick="(() => SelectPage(link))"
-				style="cursor: pointer;"
-				class="page-item @(link.Enabled ? null : "disabled") @(link.Active ? "active" : null)">
-				<span class="page-link" href="#">@link.Text</span>
-			</li>
-		}
-	</ul>
+    <ul class="pagination">
+        @foreach (var link in links)
+        {
+            <li @onclick="(() => SelectPage(link))"
+                style="cursor: pointer;"
+                class="page-item @(link.Enabled ? null : "disabled") @(link.Active ? "active" : null)">
+                <span class="page-link" href="#">@link.Text</span>
+            </li>
+        }
+    </ul>
 </nav>

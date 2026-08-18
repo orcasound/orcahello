@@ -4,38 +4,38 @@
 
 <!-- Filter -->
 <ReviewedFilterComponent FilterOptions=@filterOptions
-						 ApplyFilterCallback="ActOnApplyFilterCallback" />
+                         ApplyFilterCallback="ActOnApplyFilterCallback" />
 
 @if (loadStatus != null)
 {
-	<h5 class="mt-5">@loadStatus</h5>
+    <h5 class="mt-5">@loadStatus</h5>
 }
 else
 {
-	<!-- Pagination -->
-	@if (detections != null && detections.Count > 0)
-	{
-		<div class="col-12 text-left px-0">
-			<PaginationComponent PaginationOptions=@paginationOptions
-								PaginationResults="@pagination"
-								SelectPageCallback="ActOnSelectPageCallback" />
-		</div>
-	}
+    <!-- Pagination -->
+    @if (detections != null && detections.Count > 0)
+    {
+        <div class="col-12 text-left px-0">
+            <PaginationComponent PaginationOptions=@paginationOptions
+                                PaginationResults="@pagination"
+                                SelectPageCallback="ActOnSelectPageCallback" />
+        </div>
+    }
 
-	<!-- Cards -->
-	@for (var i = 0; i < detections.Count(); i++)
-	{
-		<DetectionComponent SubmitCallback="ActOnSubmitCallback" Detection=@detections[i] />
-	}
+    <!-- Cards -->
+    @for (var i = 0; i < detections.Count(); i++)
+    {
+        <DetectionComponent SubmitCallback="ActOnSubmitCallback" Detection=@detections[i] />
+    }
 }
 
 
 <!-- Pagination -->
 @if (detections != null && detections.Count > 0)
 {
-	<div class="col-12 text-left px-0">
-		<PaginationComponent PaginationOptions=@paginationOptions
-							 PaginationResults="@pagination"
-							 SelectPageCallback="ActOnSelectPageCallback" />
-	</div>
+    <div class="col-12 text-left px-0">
+        <PaginationComponent PaginationOptions=@paginationOptions
+                             PaginationResults="@pagination"
+                             SelectPageCallback="ActOnSelectPageCallback" />
+    </div>
 }
