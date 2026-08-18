@@ -32,7 +32,6 @@
         public ValueTask<List<Hydrophone>> RetrieveAllHydrophonesAsync() =>
         TryCatch(async () =>
         {
-
             HydrophoneListResponse response = await _apiBroker.GetAllHydrophonesAsync();
 
             ValidateResponse(response);

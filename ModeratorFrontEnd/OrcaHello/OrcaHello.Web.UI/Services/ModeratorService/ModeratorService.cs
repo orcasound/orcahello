@@ -40,7 +40,6 @@
         DateTime? fromDate, DateTime? toDate, int page, int pageSize) =>
         TryCatch(async () =>
         {
-
             Validate(moderator, nameof(moderator));
             ValidateDateRange(fromDate, toDate);
             ValidatePagination(page, pageSize);
@@ -72,7 +71,6 @@
            DateTime? fromDate, DateTime? toDate, int page, int pageSize) =>
         TryCatch(async () =>
         {
-
             Validate(moderator, nameof(moderator));
             ValidateDateRange(fromDate, toDate);
             ValidatePagination(page, pageSize);
@@ -101,7 +99,6 @@
            DateTime? fromDate, DateTime? toDate) =>
         TryCatch(async () =>
         {
-
             Validate(moderator, nameof(moderator));
             ValidateDateRange(fromDate, toDate);
 
@@ -159,7 +156,6 @@
            DateTime? fromDate, DateTime? toDate) =>
         TryCatch(async () =>
         {
-
             Validate(moderator, nameof(moderator));
             ValidateDateRange(fromDate, toDate);
 

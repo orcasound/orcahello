@@ -161,7 +161,6 @@
                             {
                                 claims.Add(new Claim(ClaimTypes.Role, parsedRole));
                             }
-                            ;
                         }
                     }
                     else
