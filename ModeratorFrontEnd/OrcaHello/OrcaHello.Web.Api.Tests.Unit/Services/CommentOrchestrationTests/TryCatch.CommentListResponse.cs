@@ -7,7 +7,7 @@ namespace OrcaHello.Web.Api.Tests.Unit.Services
     public partial class CommentOrchestrationTests
     {
         [TestMethod]
-        public void TryCatch_CommentListResponse_Expect_Exception()
+        public async Task TryCatch_CommentListResponse_Expect_Exception()
         {
             var wrapper = new CommentOrchestrationServiceWrapper();
             var delegateMock = new Mock<ReturningCommentListResponseFunction>();
@@ -25,22 +25,22 @@ namespace OrcaHello.Web.Api.Tests.Unit.Services
 
            .Throws(new Exception());
 
-            Assert.ThrowsExceptionAsync<CommentOrchestrationValidationException>(async () =>
+            await Assert.ThrowsExceptionAsync<CommentOrchestrationValidationException>(async () =>
                 await wrapper.TryCatch(delegateMock.Object));
 
             for (int x = 0; x < 2; x++)
             {
-                Assert.ThrowsExceptionAsync<CommentOrchestrationDependencyValidationException>(async () =>
+                await Assert.ThrowsExceptionAsync<CommentOrchestrationDependencyValidationException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
             }
 
             for (int x = 0; x < 2; x++)
             {
-                Assert.ThrowsExceptionAsync<CommentOrchestrationDependencyException>(async () =>
+                await Assert.ThrowsExceptionAsync<CommentOrchestrationDependencyException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
             }
 
-            Assert.ThrowsExceptionAsync<CommentOrchestrationServiceException>(async () =>
+            await Assert.ThrowsExceptionAsync<CommentOrchestrationServiceException>(async () =>
                 await wrapper.TryCatch(delegateMock.Object));
         }
     }

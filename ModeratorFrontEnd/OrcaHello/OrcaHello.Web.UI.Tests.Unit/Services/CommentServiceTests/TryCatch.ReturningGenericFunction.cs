@@ -5,7 +5,7 @@ namespace OrcaHello.Web.UI.Tests.Unit.Services
     public partial class CommentServiceTests
     {
         [TestMethod]
-        public void TryCatch_ReturningGenericFunction_Expect_Exception()
+        public async Task TryCatch_ReturningGenericFunction_Expect_Exception()
         {
             var wrapper = new CommentServiceWrapper();
             var delegateMock = new Mock<ReturningGenericFunction<CommentListResponse>>();
@@ -29,23 +29,23 @@ namespace OrcaHello.Web.UI.Tests.Unit.Services
 
             for (int x = 0; x < 2; x++)
             {
-                Assert.ThrowsExceptionAsync<CommentValidationException>(async () =>
+                await Assert.ThrowsExceptionAsync<CommentValidationException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
             }
 
             for (int x = 0; x < 2; x++)
             {
-                Assert.ThrowsExceptionAsync<CommentDependencyValidationException>(async () =>
+                await Assert.ThrowsExceptionAsync<CommentDependencyValidationException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
             }
 
             for (int x = 0; x < 5; x++)
             {
-                Assert.ThrowsExceptionAsync<CommentDependencyException>(async () =>
+                await Assert.ThrowsExceptionAsync<CommentDependencyException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
             }
 
-            Assert.ThrowsExceptionAsync<CommentServiceException>(async () =>
+            await Assert.ThrowsExceptionAsync<CommentServiceException>(async () =>
                 await wrapper.TryCatch(delegateMock.Object));
         }
     }

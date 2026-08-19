@@ -34,7 +34,7 @@ public class DetectionsController : ControllerBase
 
         if (queryParameters.DateFrom > queryParameters.DateTo)
         {
-            throw new Exception("From Date should be less than To date");
+            throw new ArgumentOutOfRangeException("DateFrom", "From Date should be less than To date");
         }
 
         if (string.IsNullOrWhiteSpace(queryParameters.SortBy))

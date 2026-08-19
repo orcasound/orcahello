@@ -7,7 +7,7 @@ namespace OrcaHello.Web.Api.Tests.Unit.Services
     public partial class MetricsOrchestrationServiceTests
     {
         [TestMethod]
-        public void TryCatch_MetricsResponse_Expect_Exception()
+        public async Task TryCatch_MetricsResponse_Expect_Exception()
         {
             var wrapper = new MetricsOrchestrationServiceWrapper();
             var delegateMock = new Mock<ReturningMetricsResponseFunction>();
@@ -25,22 +25,22 @@ namespace OrcaHello.Web.Api.Tests.Unit.Services
 
            .Throws(new Exception());
 
-            Assert.ThrowsExceptionAsync<MetricOrchestrationValidationException>(async () =>
+            await Assert.ThrowsExceptionAsync<MetricOrchestrationValidationException>(async () =>
                 await wrapper.TryCatch(delegateMock.Object));
 
             for (int x = 0; x < 2; x++)
             {
-                Assert.ThrowsExceptionAsync<MetricOrchestrationDependencyValidationException>(async () =>
+                await Assert.ThrowsExceptionAsync<MetricOrchestrationDependencyValidationException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
             }
 
             for (int x = 0; x < 2; x++)
             {
-                Assert.ThrowsExceptionAsync<MetricOrchestrationDependencyException>(async () =>
+                await Assert.ThrowsExceptionAsync<MetricOrchestrationDependencyException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
             }
 
-            Assert.ThrowsExceptionAsync<MetricOrchestrationServiceException>(async () =>
+            await Assert.ThrowsExceptionAsync<MetricOrchestrationServiceException>(async () =>
                 await wrapper.TryCatch(delegateMock.Object));
         }
     }

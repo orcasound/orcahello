@@ -5,7 +5,7 @@ namespace OrcaHello.Web.UI.Tests.Unit.Services
     public partial class DetectionViewServiceTests
     {
         [TestMethod]
-        public void TryCatch_ReturningGenericFunction_Expect_Exception()
+        public async Task TryCatch_ReturningGenericFunction_Expect_Exception()
         {
             var wrapper = new DetectionViewServiceWrapper();
             var delegateMock = new Mock<ReturningGenericFunction<DetectionItemViewResponse>>();
@@ -31,23 +31,23 @@ namespace OrcaHello.Web.UI.Tests.Unit.Services
 
             for (int x = 0; x < 3; x++)
             {
-                Assert.ThrowsExceptionAsync<DetectionViewValidationException>(async () =>
+                await Assert.ThrowsExceptionAsync<DetectionViewValidationException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
             }
 
             for (int x = 0; x < 4; x++)
             {
-                Assert.ThrowsExceptionAsync<DetectionViewDependencyValidationException>(async () =>
+                await Assert.ThrowsExceptionAsync<DetectionViewDependencyValidationException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
             }
 
             for (int x = 0; x < 4; x++)
             {
-                Assert.ThrowsExceptionAsync<DetectionViewDependencyException>(async () =>
+                await Assert.ThrowsExceptionAsync<DetectionViewDependencyException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
             }
 
-            Assert.ThrowsExceptionAsync<DetectionViewServiceException>(async () =>
+            await Assert.ThrowsExceptionAsync<DetectionViewServiceException>(async () =>
                 await wrapper.TryCatch(delegateMock.Object));
         }
     }

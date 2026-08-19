@@ -6,7 +6,7 @@ namespace OrcaHello.Web.UI.Tests.Unit.Services
     public partial class DashboardViewServiceTests
     {
         [TestMethod]
-        public void TryCatch_ReturningGenericFunction_Expect_Exception()
+        public async Task TryCatch_ReturningGenericFunction_Expect_Exception()
         {
             var wrapper = new DashboardViewServiceWrapper();
             var delegateMock = new Mock<ReturningGenericFunction<DetectionItemViewResponse>>();
@@ -44,23 +44,23 @@ namespace OrcaHello.Web.UI.Tests.Unit.Services
 
             for (int x = 0; x < 3; x++)
             {
-                Assert.ThrowsExceptionAsync<DashboardViewValidationException>(async () =>
+                await Assert.ThrowsExceptionAsync<DashboardViewValidationException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
             }
 
             for (int x = 0; x < 10; x++)
             {
-                Assert.ThrowsExceptionAsync<DashboardViewDependencyValidationException>(async () =>
+                await Assert.ThrowsExceptionAsync<DashboardViewDependencyValidationException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
             }
 
             for (int x = 0; x < 10; x++)
             {
-                Assert.ThrowsExceptionAsync<DashboardViewDependencyException>(async () =>
+                await Assert.ThrowsExceptionAsync<DashboardViewDependencyException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
             }
 
-            Assert.ThrowsExceptionAsync<DashboardViewServiceException>(async () =>
+            await Assert.ThrowsExceptionAsync<DashboardViewServiceException>(async () =>
                 await wrapper.TryCatch(delegateMock.Object));
         }
     }

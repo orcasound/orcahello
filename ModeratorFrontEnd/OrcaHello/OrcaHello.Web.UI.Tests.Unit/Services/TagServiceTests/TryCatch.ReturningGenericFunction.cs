@@ -5,7 +5,7 @@ namespace OrcaHello.Web.UI.Tests.Unit.Services
     public partial class TagServiceTests
     {
         [TestMethod]
-        public void TryCatch_ReturningGenericFunction_Expect_Exception()
+        public async Task TryCatch_ReturningGenericFunction_Expect_Exception()
         {
             var wrapper = new TagServiceWrapper();
             var delegateMock = new Mock<ReturningGenericFunction<TagReplaceResponse>>();
@@ -30,23 +30,23 @@ namespace OrcaHello.Web.UI.Tests.Unit.Services
 
             for (int x = 0; x < 3; x++)
             {
-                Assert.ThrowsExceptionAsync<TagValidationException>(async () =>
+                await Assert.ThrowsExceptionAsync<TagValidationException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
             }
 
             for (int x = 0; x < 2; x++)
             {
-                Assert.ThrowsExceptionAsync<TagDependencyValidationException>(async () =>
+                await Assert.ThrowsExceptionAsync<TagDependencyValidationException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
             }
 
             for (int x = 0; x < 5; x++)
             {
-                Assert.ThrowsExceptionAsync<TagDependencyException>(async () =>
+                await Assert.ThrowsExceptionAsync<TagDependencyException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
             }
 
-            Assert.ThrowsExceptionAsync<TagServiceException>(async () =>
+            await Assert.ThrowsExceptionAsync<TagServiceException>(async () =>
                 await wrapper.TryCatch(delegateMock.Object));
         }
     }
