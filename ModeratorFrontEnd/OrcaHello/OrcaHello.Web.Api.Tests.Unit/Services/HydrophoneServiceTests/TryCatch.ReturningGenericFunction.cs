@@ -5,7 +5,7 @@ namespace OrcaHello.Web.Api.Tests.Unit.Services
     public partial class HydrophoneServiceTests
     {
         [TestMethod]
-        public void TryCatch_ReturningGenericFunction_Expect_Exception()
+        public async Task TryCatch_ReturningGenericFunction_Expect_Exception()
         {
             var wrapper = new HydrophoneServiceWrapper();
             var delegateMock = new Mock<ReturningGenericFunction<QueryableHydrophoneData>>();
@@ -32,24 +32,24 @@ namespace OrcaHello.Web.Api.Tests.Unit.Services
 
             .Throws(new Exception());
 
-            Assert.ThrowsExceptionAsync<HydrophoneValidationException>(async () =>
+            await Assert.ThrowsExceptionAsync<HydrophoneValidationException>(async () =>
                 await wrapper.TryCatch(delegateMock.Object));
 
             for (int x = 0; x < 2; x++)
             {
-                Assert.ThrowsExceptionAsync<HydrophoneDependencyValidationException>(async () =>
+                await Assert.ThrowsExceptionAsync<HydrophoneDependencyValidationException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
             }
 
             for (int x = 0; x < 9; x++)
             {
-                Assert.ThrowsExceptionAsync<HydrophoneDependencyException>(async () =>
+                await Assert.ThrowsExceptionAsync<HydrophoneDependencyException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
             }
 
             for (int x = 0; x < 2; x++)
             {
-                Assert.ThrowsExceptionAsync<HydrophoneServiceException>(async () =>
+                await Assert.ThrowsExceptionAsync<HydrophoneServiceException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
             }
         }

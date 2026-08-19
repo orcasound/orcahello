@@ -8,7 +8,7 @@ namespace OrcaHello.Web.Api.Tests.Unit.Services
     public partial class ModeratorOrchestrationServiceTests
     {
         [TestMethod]
-        public void TryCatch_GenericResponse_Expect_Exception()
+        public async Task TryCatch_GenericResponse_Expect_Exception()
         {
             var wrapper = new ModeratorOrchestrationServiceWrapper();
             var delegateMock = new Mock<ReturningGenericFunction<MetricsForModeratorResponse>>();
@@ -26,22 +26,22 @@ namespace OrcaHello.Web.Api.Tests.Unit.Services
 
            .Throws(new Exception());
 
-            Assert.ThrowsExceptionAsync<ModeratorOrchestrationValidationException>(async () =>
+            await Assert.ThrowsExceptionAsync<ModeratorOrchestrationValidationException>(async () =>
                 await wrapper.TryCatch(delegateMock.Object));
 
             for (int x = 0; x < 2; x++)
             {
-                Assert.ThrowsExceptionAsync<ModeratorOrchestrationDependencyValidationException>(async () =>
+                await Assert.ThrowsExceptionAsync<ModeratorOrchestrationDependencyValidationException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
             }
 
             for (int x = 0; x < 2; x++)
             {
-                Assert.ThrowsExceptionAsync<ModeratorOrchestrationDependencyException>(async () =>
+                await Assert.ThrowsExceptionAsync<ModeratorOrchestrationDependencyException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
             }
 
-            Assert.ThrowsExceptionAsync<ModeratorOrchestrationServiceException>(async () =>
+            await Assert.ThrowsExceptionAsync<ModeratorOrchestrationServiceException>(async () =>
                 await wrapper.TryCatch(delegateMock.Object));
         }
     }

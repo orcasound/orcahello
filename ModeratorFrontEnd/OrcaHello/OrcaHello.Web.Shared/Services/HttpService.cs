@@ -36,7 +36,7 @@ namespace OrcaHello.Web.Shared.Services
 
         private Uri NormalizeUrl(string url)
         {
-            if (url.ToUpper().StartsWith("HTTP"))
+            if (url.StartsWith("HTTP", StringComparison.OrdinalIgnoreCase))
             {
                 return new Uri(url);
             }

@@ -5,7 +5,7 @@ namespace OrcaHello.Web.Api.Tests.Unit.Services
     public partial class InterestLabelOrchestrationServiceTests
     {
         [TestMethod]
-        public void TryCatch_ReturningGenericFunction_Expect_Exception()
+        public async Task TryCatch_ReturningGenericFunction_Expect_Exception()
         {
             var wrapper = new InterestLabelOrchestrationServiceWrapper();
             var delegateMock = new Mock<ReturningGenericFunction<InterestLabelListResponse>>();
@@ -26,23 +26,23 @@ namespace OrcaHello.Web.Api.Tests.Unit.Services
 
             for (int x = 0; x < 2; x++)
             {
-                Assert.ThrowsExceptionAsync<InterestLabelOrchestrationValidationException>(async () =>
+                await Assert.ThrowsExceptionAsync<InterestLabelOrchestrationValidationException>(async () =>
                 await wrapper.TryCatch(delegateMock.Object));
             }
 
             for (int x = 0; x < 2; x++)
             {
-                Assert.ThrowsExceptionAsync<InterestLabelOrchestrationDependencyValidationException>(async () =>
+                await Assert.ThrowsExceptionAsync<InterestLabelOrchestrationDependencyValidationException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
             }
 
             for (int x = 0; x < 2; x++)
             {
-                Assert.ThrowsExceptionAsync<InterestLabelOrchestrationDependencyException>(async () =>
+                await Assert.ThrowsExceptionAsync<InterestLabelOrchestrationDependencyException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
             }
 
-            Assert.ThrowsExceptionAsync<InterestLabelOrchestrationServiceException>(async () =>
+            await Assert.ThrowsExceptionAsync<InterestLabelOrchestrationServiceException>(async () =>
                 await wrapper.TryCatch(delegateMock.Object));
         }
 

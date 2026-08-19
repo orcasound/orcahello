@@ -5,7 +5,7 @@ namespace OrcaHello.Web.Api.Tests.Unit.Services
     public partial class MetadataServiceTests
     {
         [TestMethod]
-        public void TryCatch_ReturningGenericFunction_Expect_Exception()
+        public async Task TryCatch_ReturningGenericFunction_Expect_Exception()
         {
             var wrapper = new MetadataServiceWrapper();
             var delegateMock = new Mock<ReturningGenericFunction<MetricsSummaryForTimeframe>>();
@@ -40,31 +40,31 @@ namespace OrcaHello.Web.Api.Tests.Unit.Services
 
             .Throws(new Exception());
 
-            Assert.ThrowsExceptionAsync<MetadataValidationException>(async () =>
+            await Assert.ThrowsExceptionAsync<MetadataValidationException>(async () =>
                 await wrapper.TryCatch(delegateMock.Object));
 
             for (int x = 0; x < 2; x++)
             {
-                Assert.ThrowsExceptionAsync<MetadataDependencyValidationException>(async () =>
+                await Assert.ThrowsExceptionAsync<MetadataDependencyValidationException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
             }
 
             for (int x = 0; x < 9; x++)
             {
-                Assert.ThrowsExceptionAsync<MetadataDependencyException>(async () =>
+                await Assert.ThrowsExceptionAsync<MetadataDependencyException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
             }
 
-            Assert.ThrowsExceptionAsync<MetadataServiceException>(async () =>
+            await Assert.ThrowsExceptionAsync<MetadataServiceException>(async () =>
                 await wrapper.TryCatch(delegateMock.Object));
 
             for (int x = 0; x < 5; x++)
             {
-                Assert.ThrowsExceptionAsync<MetadataDependencyException>(async () =>
+                await Assert.ThrowsExceptionAsync<MetadataDependencyException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
             }
 
-            Assert.ThrowsExceptionAsync<MetadataServiceException>(async () =>
+            await Assert.ThrowsExceptionAsync<MetadataServiceException>(async () =>
                 await wrapper.TryCatch(delegateMock.Object));
         }
     }
