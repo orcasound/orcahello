@@ -43,7 +43,9 @@ public class MetricsController : ControllerBase
         try
         {
             if (string.IsNullOrWhiteSpace(queryParameters.Timeframe))
+            {
                 throw new ArgumentNullException("Timeframe");
+            }
 
             var metrics = new Metrics();
 
@@ -119,10 +121,14 @@ public class MetricsController : ControllerBase
         try
         {
             if (string.IsNullOrWhiteSpace(queryParameters.Timeframe))
+            {
                 throw new ArgumentNullException("Timeframe");
+            }
 
             if (string.IsNullOrWhiteSpace(queryParameters.Moderator))
+            {
                 throw new ArgumentNullException("Moderator");
+            }
 
             var metrics = new ModeratorMetrics();
 

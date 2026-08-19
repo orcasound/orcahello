@@ -30,16 +30,22 @@ namespace OrcaHello.Web.UI.Tests.Unit.Services
                 .Throws(new Exception());
 
             for (int x = 0; x < 3; x++)
+            {
                 Assert.ThrowsExceptionAsync<TagViewValidationException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
+            }
 
             for (int x = 0; x < 4; x++)
+            {
                 Assert.ThrowsExceptionAsync<TagViewDependencyValidationException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
+            }
 
             for (int x = 0; x < 4; x++)
+            {
                 Assert.ThrowsExceptionAsync<TagViewDependencyException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
+            }
 
             Assert.ThrowsExceptionAsync<TagViewServiceException>(async () =>
                 await wrapper.TryCatch(delegateMock.Object));

@@ -60,7 +60,9 @@ public partial class Candidates : IDisposable
         pagination.CurrentPage = paginationOptions.Page;
 
         if (paginatedResponse.Response == null)
+        {
             loadStatus = "An unknown error occurred while loading records...";
+        }
         else if (paginatedResponse.Response.Count == 0)
         {
             loadStatus = pagination.TotalNumberOfRecords == 0

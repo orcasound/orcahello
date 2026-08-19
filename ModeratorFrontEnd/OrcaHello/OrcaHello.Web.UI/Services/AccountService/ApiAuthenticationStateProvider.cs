@@ -26,7 +26,9 @@
             var savedToken = await GetToken();
 
             if (string.IsNullOrWhiteSpace(savedToken))
+            {
                 return new AuthenticationState(_anonymous);
+            }
 
             _httpClient.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue(_headerName, savedToken);
@@ -40,7 +42,9 @@
             var memoryToken = _memoryCache.Get<string>(_tokenName);
 
             if (!string.IsNullOrWhiteSpace(memoryToken) && !IsTokenExpired(memoryToken))
+            {
                 return memoryToken;
+            }
 
             if (await IsAppActiveAsync())
             {

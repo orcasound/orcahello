@@ -20,19 +20,25 @@
                 // it as a HydrophoneViewValidationException and log it.
                 if (exception is NullHydrophoneViewResponseException ||
                     exception is InvalidHydrophoneViewException)
+                {
                     throw LoggingUtilities.CreateAndLogException<HydrophoneViewValidationException>(_logger, exception);
+                }
 
                 // If the exception is related to the validation of the hydrophone dependency, rethrow
                 // it as a HydrophoneViewDependencyValidationException and log it.
                 if (exception is HydrophoneValidationException ||
                     exception is HydrophoneDependencyValidationException)
+                {
                     throw LoggingUtilities.CreateAndLogException<HydrophoneViewDependencyValidationException>(_logger, exception);
+                }
 
                 // If the exception is related to the dependency of the hydrophone service, rethrow
                 // it as a HydrophoneViewDependencyException and log it.
                 if (exception is HydrophoneDependencyException ||
                     exception is HydrophoneServiceException)
+                {
                     throw LoggingUtilities.CreateAndLogException<HydrophoneViewDependencyException>(_logger, exception);
+                }
 
                 // If the exception is any other type, rethrow it as a HydrophoneViewServiceException and log it.
                 throw LoggingUtilities.CreateAndLogException<HydrophoneViewServiceException>(_logger, exception);

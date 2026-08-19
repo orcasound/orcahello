@@ -33,15 +33,21 @@
             {
                 if (exception is HydrophoneOrchestrationValidationException &&
                     exception.InnerException is InvalidHydrophoneException)
+                {
                     return NotFound(ValidatorUtilities.GetInnerMessage(exception));
+                }
 
                 if (exception is HydrophoneOrchestrationValidationException ||
                     exception is HydrophoneOrchestrationDependencyValidationException)
+                {
                     return BadRequest(ValidatorUtilities.GetInnerMessage(exception));
+                }
 
                 if (exception is HydrophoneOrchestrationDependencyException ||
                     exception is HydrophoneOrchestrationServiceException)
+                {
                     return Problem(exception.Message);
+                }
 
                 return Problem(exception.Message);
             }

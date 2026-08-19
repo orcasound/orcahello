@@ -30,7 +30,10 @@
 
         protected void OnChangeEnteredTags()
         {
-            if (string.IsNullOrWhiteSpace(EnteredTags)) return;
+            if (string.IsNullOrWhiteSpace(EnteredTags))
+            {
+                return;
+            }
 
             var enteredTagsList = EnteredTags
                 .Split(new char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries)
@@ -47,8 +50,9 @@
         protected async Task OnSubmitClicked()
         {
             if (string.IsNullOrEmpty(State))
+            {
                 StateValidationMessage = "You must indicate whether a whale call was heard, not heard, or undetermined for the selected candidates.";
-
+            }
             else
             {
                 var response = await ViewService.ModerateDetectionsAsync(
@@ -59,12 +63,15 @@
                     string.Join(",", SelectedTags));
 
                 if (response.IdsToUpdate.Count == response.IdsSuccessfullyUpdated.Count)
+                {
                     ReportSuccess("Success",
                         "All records successfully updated (and may disappear from this list).");
-
+                }
                 else
+                {
                     ReportError("Failure",
                         "One or more records were not updated.");
+                }
 
                 await OnCloseClicked.InvokeAsync(true);
             }

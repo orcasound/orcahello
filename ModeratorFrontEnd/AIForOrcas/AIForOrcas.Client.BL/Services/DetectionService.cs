@@ -54,7 +54,9 @@ namespace AIForOrcas.Client.BL.Services
                 var responseString = await httpResponseMessage.Content.ReadAsStringAsync();
 
                 if (string.IsNullOrWhiteSpace(responseString))
+                {
                     return new PaginatedResponseDTO<List<Detection>> { Response = new List<Detection>(), TotalAmountPages = 0, TotalNumberRecords = 0 };
+                }
 
                 // The pagination headers are not guaranteed; a response without
                 // them should not kill the page.

@@ -56,9 +56,13 @@ namespace OrcaHello.Web.UI.Pages.Tags.Components
 
                 // Check if the tag replacement was successful and report accordingly
                 if (response.MatchingTags == response.ProcessedTags)
+                {
                     ReportSuccess("Success", $"'{request.OldTag}' was successfully replaced with '{request.NewTag}' in all detections.");
+                }
                 else
+                {
                     ReportError("Failure", $"'{request.OldTag}' was not replaced in one or more detections.");
+                }
 
                 // Invoke the OnCloseClicked event with a parameter indicating success
                 await OnCloseClicked.InvokeAsync(true);
@@ -68,10 +72,14 @@ namespace OrcaHello.Web.UI.Pages.Tags.Components
                 // Handle data entry validation errors
                 if (exception is TagViewValidationException ||
                     exception is TagViewDependencyValidationException)
+                {
                     ValidationMessage = ValidatorUtilities.GetInnerMessage(exception);
+                }
                 else
+                {
                     // Report any other errors as unknown
                     LogAndReportUnknownException(exception);
+                }
             }
         }
 

@@ -36,9 +36,13 @@
 
                 // Check if the tag deletion was successful and report accordingly
                 if (response.MatchingTags == response.ProcessedTags)
+                {
                     ReportSuccess("Success", $"'{Item.Tag}' was successfully deleted from all detections (and will disappear from this list).");
+                }
                 else
+                {
                     ReportError("Failure", $"'{Item.Tag}' was not deleted from one or more detections.");
+                }
 
                 // Invoke the OnCloseClicked event with a parameter indicating success
                 await OnCloseClicked.InvokeAsync(true);

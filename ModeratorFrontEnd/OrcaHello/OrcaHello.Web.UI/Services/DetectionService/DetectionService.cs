@@ -51,7 +51,9 @@
             queryString += $"&page={page}&pageSize={pageSize}";
 
             if (!string.IsNullOrWhiteSpace(location))
+            {
                 queryString += $"&location={location}";
+            }
 
             DetectionListResponse response = await _apiBroker.GetFilteredDetectionsAsync(queryString);
 

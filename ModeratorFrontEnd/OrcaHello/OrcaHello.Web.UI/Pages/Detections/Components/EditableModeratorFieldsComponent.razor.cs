@@ -24,7 +24,10 @@ namespace OrcaHello.Web.UI.Pages.Detections.Components
 
         protected void OnEnteredTagsChanged()
         {
-            if (string.IsNullOrWhiteSpace(DetectionItemView?.Tags)) return;
+            if (string.IsNullOrWhiteSpace(DetectionItemView?.Tags))
+            {
+                return;
+            }
 
             var enteredTags = DetectionItemView.Tags.Split(new char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries)
                                               .Select(s => s.Trim())
@@ -38,7 +41,9 @@ namespace OrcaHello.Web.UI.Pages.Detections.Components
         protected async Task OnSubmitClicked()
         {
             if (string.IsNullOrEmpty(DetectionItemView.State) || DetectionItemView.State == DetectionState.Unreviewed.ToString())
+            {
                 StateValidationMessage = "You must indicate whether a whale call was heard, not heard, or undetermined for the selected candidates.";
+            }
             else
             {
                 var response = await ViewService.ModerateDetectionsAsync(
@@ -49,11 +54,15 @@ namespace OrcaHello.Web.UI.Pages.Detections.Components
                     DetectionItemView.Tags);
 
                 if (response.IdsToUpdate.Count == response.IdsSuccessfullyUpdated.Count)
+                {
                     ReportSuccess("Success",
                         "Record successfully updated (and may disappear from this list).");
+                }
                 else
+                {
                     ReportError("Failure",
                         "Record was not updated.");
+                }
 
                 await ReloadCurrentView.InvokeAsync();
             }

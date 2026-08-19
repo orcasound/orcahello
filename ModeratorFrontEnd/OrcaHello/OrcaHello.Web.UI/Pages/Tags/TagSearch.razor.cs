@@ -171,7 +171,9 @@
 
             // Now adjust the fromDate if appropriate
             if (SelectedTimeframe != Timeframe.All && SelectedTimeframe != Timeframe.Range)
+            {
                 fromDate = toDate.Adjust(SelectedTimeframe);
+            }
 
             PaginatedDetectionsByTagsAndDateRequest request = new()
             {
@@ -188,7 +190,9 @@
                 var response = await ViewService.RetrieveDetectionsByTagsAsync(request);
 
                 if (response.DetectionItemViews.Any())
+                {
                     DetectionItemViews.AddRange(response.DetectionItemViews);
+                }
 
                 TotalCount = response.Count;
             }
@@ -197,10 +201,14 @@
                 // Handle data entry validation errors
                 if (exception is TagViewValidationException ||
                     exception is TagViewDependencyValidationException)
+                {
                     ValidationMessage = ValidatorUtilities.GetInnerMessage(exception);
+                }
                 else
+                {
                     // Report any other errors as unknown
                     LogAndReportUnknownException(exception);
+                }
             }
 
             IsLoading = false;

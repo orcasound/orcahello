@@ -13,7 +13,9 @@
             catch (Exception exception)
             {
                 if (exception is InvalidHydrophoneException)
+                {
                     throw LoggingUtilities.CreateAndLogException<HydrophoneValidationException>(_logger, exception);
+                }
 
                 if (exception is HttpRequestException exception1)
                 {
@@ -22,7 +24,9 @@
 
                     if (statusCode == HttpStatusCode.BadRequest ||
                         statusCode == HttpStatusCode.NotFound)
+                    {
                         throw LoggingUtilities.CreateAndLogException<HydrophoneDependencyValidationException>(_logger, innerException);
+                    }
 
                     if (statusCode == HttpStatusCode.Unauthorized ||
                         statusCode == HttpStatusCode.Forbidden ||
@@ -33,7 +37,9 @@
                         statusCode == HttpStatusCode.RequestTimeout ||
                         statusCode == HttpStatusCode.ServiceUnavailable ||
                         statusCode == HttpStatusCode.InternalServerError)
+                    {
                         throw LoggingUtilities.CreateAndLogException<HydrophoneDependencyException>(_logger, innerException);
+                    }
 
                     throw LoggingUtilities.CreateAndLogException<HydrophoneServiceException>(_logger, innerException);
 

@@ -28,42 +28,64 @@ public class DetectionsController : ControllerBase
     private static void ValidateQueryParameters(DetectionQueryParameters queryParameters)
     {
         if (string.IsNullOrWhiteSpace(queryParameters.Timeframe))
+        {
             throw new ArgumentNullException("Timeframe");
+        }
 
         if (queryParameters.DateFrom > queryParameters.DateTo)
+        {
             throw new Exception("From Date should be less than To date");
+        }
 
         if (string.IsNullOrWhiteSpace(queryParameters.SortBy))
+        {
             throw new ArgumentNullException("SortBy");
+        }
 
         if (string.IsNullOrWhiteSpace(queryParameters.SortOrder))
+        {
             throw new ArgumentNullException("SortOrder");
+        }
 
         if (string.IsNullOrWhiteSpace(queryParameters.Location))
+        {
             throw new ArgumentNullException("Location");
+        }
 
         if (queryParameters.Page == 0)
+        {
             throw new ArgumentNullException("Page");
+        }
 
         if (queryParameters.RecordsPerPage == 0)
+        {
             throw new ArgumentNullException("RecordsPerPage");
+        }
     }
 
     private static void ApplyOptionalLocationAndHydrophoneFilters(ref IQueryable<Metadata> queryable, DetectionQueryParameters queryParameters)
     {
         if (queryParameters.Location.ToLower() != "all")
+        {
             MetadataFilters.ApplyLocationFilter(ref queryable, queryParameters.Location);
+        }
 
         if (queryParameters.HydrophoneId.ToLower() != "all")
+        {
             MetadataFilters.ApplyHydrophoneIdFilter(ref queryable, queryParameters.HydrophoneId);
+        }
     }
 
     private void ApplySortPaginationAndHeaders(ref List<Detection> results, double recordCount, DetectionQueryParameters queryParameters)
     {
         if (queryParameters.SortBy.ToLower() == "confidence")
+        {
             DetectionFilters.ApplyConfidenceSortFilter(ref results, queryParameters.SortOrder);
+        }
         else if (queryParameters.SortBy.ToLower() == "timestamp")
+        {
             DetectionFilters.ApplyTimestampSortFilter(ref results, queryParameters.SortOrder);
+        }
 
         DetectionFilters.ApplyPaginationFilter(ref results, queryParameters.Page, queryParameters.RecordsPerPage);
 
@@ -151,12 +173,16 @@ public class DetectionsController : ControllerBase
         try
         {
             if (string.IsNullOrWhiteSpace(id))
+            {
                 throw new ArgumentNullException("id");
+            }
 
             var metadata = await _repository.GetByIdAsync(id);
 
             if (metadata == null)
+            {
                 return NotFound();
+            }
 
             return Ok(DetectionProcessors.ToDetection(metadata));
         }
@@ -472,15 +498,21 @@ public class DetectionsController : ControllerBase
         try
         {
             if (string.IsNullOrWhiteSpace(id))
+            {
                 throw new ArgumentNullException("id");
+            }
 
             if (detectionUpdate == null)
+            {
                 throw new ArgumentNullException("postedDetection");
+            }
 
             var metadata = await _repository.GetByIdAsync(id);
 
             if (metadata == null)
+            {
                 return NotFound();
+            }
 
             metadata.comments = detectionUpdate.Comments;
             metadata.moderator = detectionUpdate.Moderator;

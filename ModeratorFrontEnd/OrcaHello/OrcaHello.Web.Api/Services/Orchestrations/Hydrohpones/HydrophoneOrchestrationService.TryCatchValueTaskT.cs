@@ -13,15 +13,21 @@
             catch (Exception exception)
             {
                 if (exception is InvalidHydrophoneOrchestrationException)
+                {
                     throw LoggingUtilities.CreateAndLogException<HydrophoneOrchestrationValidationException>(_logger, exception);
+                }
 
                 if (exception is HydrophoneValidationException ||
                     exception is HydrophoneDependencyValidationException)
+                {
                     throw LoggingUtilities.CreateAndLogException<HydrophoneOrchestrationDependencyValidationException>(_logger, exception);
+                }
 
                 if (exception is HydrophoneDependencyException ||
                     exception is HydrophoneServiceException)
+                {
                     throw LoggingUtilities.CreateAndLogException<HydrophoneOrchestrationDependencyException>(_logger, exception);
+                }
 
                 throw LoggingUtilities.CreateAndLogException<HydrophoneOrchestrationServiceException>(_logger, exception);
             }

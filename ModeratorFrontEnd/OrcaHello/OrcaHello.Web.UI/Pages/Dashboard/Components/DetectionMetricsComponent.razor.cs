@@ -54,10 +54,14 @@ namespace OrcaHello.Web.UI.Pages.Dashboard.Components
                 // Handle data entry validation errors
                 if (exception is DashboardViewValidationException ||
                     exception is DashboardViewDependencyValidationException)
+                {
                     ValidationMessage = ValidatorUtilities.GetInnerMessage(exception);
+                }
                 else
+                {
                     // Report any other errors as unknown
                     LogAndReportUnknownException(exception);
+                }
             }
             finally
             {

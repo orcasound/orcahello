@@ -59,7 +59,9 @@
             DialogService.Close();
 
             if (reload)
+            {
                 await ReloadData();
+            }
         }
 
         #endregion

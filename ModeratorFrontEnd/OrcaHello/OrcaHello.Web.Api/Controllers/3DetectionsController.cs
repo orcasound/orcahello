@@ -32,15 +32,21 @@
             {
                 if (exception is DetectionOrchestrationValidationException &&
                     exception.InnerException is NotFoundMetadataException)
+                {
                     return NotFound(ValidatorUtilities.GetInnerMessage(exception));
+                }
 
                 if (exception is DetectionOrchestrationValidationException ||
                     exception is DetectionOrchestrationDependencyValidationException)
+                {
                     return BadRequest(ValidatorUtilities.GetInnerMessage(exception));
+                }
 
                 if (exception is DetectionOrchestrationDependencyException ||
                     exception is DetectionOrchestrationServiceException)
+                {
                     return Problem(exception.Message);
+                }
 
                 return Problem(exception.Message);
             }
@@ -69,11 +75,15 @@
             {
                 if (exception is DetectionOrchestrationValidationException ||
                     exception is DetectionOrchestrationDependencyValidationException)
+                {
                     return BadRequest(ValidatorUtilities.GetInnerMessage(exception));
+                }
 
                 if (exception is DetectionOrchestrationDependencyException ||
                     exception is DetectionOrchestrationServiceException)
+                {
                     return Problem(exception.Message);
+                }
 
                 return Problem(exception.Message);
             }
@@ -100,11 +110,15 @@
             {
                 if (exception is DetectionOrchestrationValidationException ||
                     exception is DetectionOrchestrationDependencyValidationException)
+                {
                     return BadRequest(ValidatorUtilities.GetInnerMessage(exception));
+                }
 
                 if (exception is DetectionOrchestrationDependencyException ||
                     exception is DetectionOrchestrationServiceException)
+                {
                     return Problem(exception.Message);
+                }
 
                 return Problem(exception.Message);
             }
@@ -137,11 +151,15 @@
             {
                 if (exception is DetectionOrchestrationValidationException ||
                     exception is DetectionOrchestrationDependencyValidationException)
+                {
                     return BadRequest(ValidatorUtilities.GetInnerMessage(exception));
+                }
 
                 if (exception is DetectionOrchestrationDependencyException ||
                     exception is DetectionOrchestrationServiceException)
+                {
                     return Problem(exception.Message);
+                }
 
                 return Problem(exception.Message);
             }
@@ -168,20 +186,28 @@
             {
                 if (exception is DetectionOrchestrationValidationException &&
                     exception.InnerException is NotFoundMetadataException)
+                {
                     return NotFound(ValidatorUtilities.GetInnerMessage(exception));
+                }
 
                 if (exception is DetectionOrchestrationValidationException &&
                     (exception.InnerException is DetectionNotDeletedException ||
                     exception.InnerException is DetectionNotInsertedException))
+                {
                     return UnprocessableEntity(ValidatorUtilities.GetInnerMessage(exception));
+                }
 
                 if (exception is DetectionOrchestrationValidationException ||
                     exception is DetectionOrchestrationDependencyValidationException)
+                {
                     return BadRequest(ValidatorUtilities.GetInnerMessage(exception));
+                }
 
                 if (exception is DetectionOrchestrationDependencyException ||
                     exception is DetectionOrchestrationServiceException)
+                {
                     return Problem(exception.Message);
+                }
 
                 return Problem(exception.Message);
             }

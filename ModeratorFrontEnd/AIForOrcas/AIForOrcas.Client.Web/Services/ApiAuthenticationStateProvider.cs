@@ -145,7 +145,10 @@ public class ApiAuthenticationStateProvider : AuthenticationStateProvider
             var jsonBytes = ParseBase64WithoutPadding(payload);
             var keyValuePairs = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonBytes);
 
-            if (keyValuePairs == null) return claims;
+            if (keyValuePairs == null)
+            {
+                return claims;
+            }
 
             // Handle groups.
             if (keyValuePairs.TryGetValue("groups", out object groups) && groups != null)

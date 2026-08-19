@@ -25,9 +25,13 @@
                 var innerException = exception.InnerException;
 
                 if (innerException is not null)
+                {
                     Log(logger, LogLevel.Warning, exception, innerException.Message);
+                }
                 else
+                {
                     Log(logger, LogLevel.Warning, exception, exception.Message);
+                }
             }
         }
 
@@ -43,9 +47,13 @@
                 var innerException = exception.InnerException;
 
                 if (innerException is not null)
+                {
                     Log(logger, LogLevel.Error, exception, innerException.Message);
+                }
                 else
+                {
                     Log(logger, LogLevel.Error, exception, exception.Message);
+                }
             }
         }
 
@@ -64,7 +72,9 @@
             T exception = (T)Activator.CreateInstance(typeof(T), innerException)!;
 
             if (logger is not null && exception is not null)
+            {
                 LogError(logger, exception as Exception);
+            }
 
             return exception;
         }
@@ -74,7 +84,10 @@
             T exception = (T)Activator.CreateInstance(typeof(T), innerException)!;
 
             if (logger is not null && exception is not null)
+            {
                 LogWarn(logger, exception as Exception);
+            }
+
             return exception;
         }
 

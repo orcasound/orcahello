@@ -93,7 +93,9 @@ namespace AIForOrcas.DTO.API
         public static List<string> GetTagList(string tags)
         {
             if (string.IsNullOrWhiteSpace(tags))
+            {
                 return new List<string>();
+            }
 
             string[] delimiters = new string[] { ";", "," };
             var rawTags = tags.Split(delimiters, StringSplitOptions.RemoveEmptyEntries);
@@ -102,7 +104,9 @@ namespace AIForOrcas.DTO.API
             {
                 var trimmed = rawTag.Trim();
                 if (trimmed.Length > 0)
+                {
                     tagList.Add(trimmed);
+                }
             }
             return tagList;
         }

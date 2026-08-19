@@ -23,7 +23,9 @@
                 if (exception is InvalidDetectionViewException ||
                     exception is NullDetectionViewRequestException ||
                     exception is NullDetectionViewResponseException)
+                {
                     throw LoggingUtilities.CreateAndLogException<DetectionViewValidationException>(_logger, exception);
+                }
 
                 // If the exception is one of the following types, rethrow it as a DetectionViewDependencyValidationException and log it.
                 // These exceptions indicate that there is something wrong with the validation of the Tag entity or its dependencies.
@@ -31,7 +33,9 @@
                     exception is TagValidationException ||
                     exception is DetectionDependencyValidationException ||
                     exception is TagDependencyValidationException)
+                {
                     throw LoggingUtilities.CreateAndLogException<DetectionViewDependencyValidationException>(_logger, exception);
+                }
 
                 // If the exception is one of the following types, rethrow it as a DetectionViewDependencyException and log it.
                 // These exceptions indicate that there is something wrong with the dependency services or the communication with them.
@@ -39,7 +43,9 @@
                     exception is TagDependencyException ||
                     exception is DetectionServiceException ||
                     exception is TagServiceException)
+                {
                     throw LoggingUtilities.CreateAndLogException<DetectionViewDependencyException>(_logger, exception);
+                }
 
                 // If the exception is any other type, rethrow it as a DetectionViewServiceException and log it.
                 // This is a generic exception that indicates that something unexpected happened in the view service.

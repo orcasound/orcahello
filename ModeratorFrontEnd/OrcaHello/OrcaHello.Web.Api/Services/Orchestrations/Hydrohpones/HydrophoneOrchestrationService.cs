@@ -55,7 +55,9 @@
                 return result;
             }
             else
+            {
                 return null!;
+            }
         }
     }
 }

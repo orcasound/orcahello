@@ -30,11 +30,15 @@
             {
                 if (exception is TagOrchestrationValidationException ||
                     exception is TagOrchestrationDependencyValidationException)
+                {
                     return BadRequest(ValidatorUtilities.GetInnerMessage(exception));
+                }
 
                 if (exception is TagOrchestrationDependencyException ||
                     exception is TagOrchestrationServiceException)
+                {
                     return Problem(exception.Message);
+                }
 
                 return Problem(exception.Message);
             }
@@ -60,11 +64,15 @@
             {
                 if (exception is TagOrchestrationValidationException ||
                     exception is TagOrchestrationDependencyValidationException)
+                {
                     return BadRequest(ValidatorUtilities.GetInnerMessage(exception));
+                }
 
                 if (exception is TagOrchestrationDependencyException ||
                     exception is TagOrchestrationServiceException)
+                {
                     return Problem(exception.Message);
+                }
 
                 return Problem(exception.Message);
             }
@@ -89,11 +97,15 @@
             {
                 if (exception is TagOrchestrationValidationException ||
                     exception is TagOrchestrationDependencyValidationException)
+                {
                     return BadRequest(ValidatorUtilities.GetInnerMessage(exception));
+                }
 
                 if (exception is TagOrchestrationDependencyException ||
                     exception is TagOrchestrationServiceException)
+                {
                     return Problem(exception.Message);
+                }
 
                 return Problem(exception.Message);
             }
@@ -118,11 +130,15 @@
             {
                 if (exception is TagOrchestrationValidationException ||
                     exception is TagOrchestrationDependencyValidationException)
+                {
                     return BadRequest(ValidatorUtilities.GetInnerMessage(exception));
+                }
 
                 if (exception is TagOrchestrationDependencyException ||
                     exception is TagOrchestrationServiceException)
+                {
                     return Problem(exception.Message);
+                }
 
                 return Problem(exception.Message);
             }

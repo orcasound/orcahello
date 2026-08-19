@@ -112,7 +112,9 @@ namespace OrcaHello.Web.UI.Pages.Dashboard.Components
 
                 // Update the Data property
                 if (result.DetectionItemViews.Any())
+                {
                     TagDetectionsState.Items.AddRange(result.DetectionItemViews);
+                }
 
                 // Update the count
                 TagDetectionsState.Count = result.Count;

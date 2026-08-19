@@ -31,11 +31,15 @@
             {
                 if (exception is ModeratorOrchestrationValidationException ||
                     exception is ModeratorOrchestrationDependencyValidationException)
+                {
                     return BadRequest(ValidatorUtilities.GetInnerMessage(exception));
+                }
 
                 if (exception is ModeratorOrchestrationDependencyException ||
                     exception is ModeratorOrchestrationServiceException)
+                {
                     return Problem(exception.Message);
+                }
 
                 return Problem(exception.Message);
             }
@@ -65,11 +69,15 @@
             {
                 if (exception is ModeratorOrchestrationValidationException ||
                     exception is ModeratorOrchestrationDependencyValidationException)
+                {
                     return BadRequest(ValidatorUtilities.GetInnerMessage(exception));
+                }
 
                 if (exception is ModeratorOrchestrationDependencyException ||
                     exception is ModeratorOrchestrationServiceException)
+                {
                     return Problem(exception.Message);
+                }
 
                 return Problem(exception.Message);
             }
@@ -99,11 +107,15 @@
             {
                 if (exception is ModeratorOrchestrationValidationException ||
                     exception is ModeratorOrchestrationDependencyValidationException)
+                {
                     return BadRequest(ValidatorUtilities.GetInnerMessage(exception));
+                }
 
                 if (exception is ModeratorOrchestrationDependencyException ||
                     exception is ModeratorOrchestrationServiceException)
+                {
                     return Problem(exception.Message);
+                }
 
                 return Problem(exception.Message);
             }
@@ -134,11 +146,15 @@
             {
                 if (exception is ModeratorOrchestrationValidationException ||
                     exception is ModeratorOrchestrationDependencyValidationException)
+                {
                     return BadRequest(ValidatorUtilities.GetInnerMessage(exception));
+                }
 
                 if (exception is ModeratorOrchestrationDependencyException ||
                     exception is ModeratorOrchestrationServiceException)
+                {
                     return Problem(exception.Message);
+                }
 
                 return Problem(exception.Message);
             }
@@ -166,11 +182,15 @@
             {
                 if (exception is ModeratorOrchestrationValidationException ||
                     exception is ModeratorOrchestrationDependencyValidationException)
+                {
                     return BadRequest(ValidatorUtilities.GetInnerMessage(exception));
+                }
 
                 if (exception is ModeratorOrchestrationDependencyException ||
                     exception is ModeratorOrchestrationServiceException)
+                {
                     return Problem(exception.Message);
+                }
 
                 return Problem(exception.Message);
             }
@@ -198,11 +218,15 @@
             {
                 if (exception is ModeratorOrchestrationValidationException ||
                     exception is ModeratorOrchestrationDependencyValidationException)
+                {
                     return BadRequest(ValidatorUtilities.GetInnerMessage(exception));
+                }
 
                 if (exception is ModeratorOrchestrationDependencyException ||
                     exception is ModeratorOrchestrationServiceException)
+                {
                     return Problem(exception.Message);
+                }
 
                 return Problem(exception.Message);
             }

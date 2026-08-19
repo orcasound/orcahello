@@ -21,7 +21,9 @@
                 if (exception is InvalidDashboardViewException ||
                     exception is NullDashboardViewRequestException ||
                     exception is NullDashboardViewResponseException)
+                {
                     throw LoggingUtilities.CreateAndLogException<DashboardViewValidationException>(_logger, exception);
+                }
 
                 // If the exception is one of the following types, rethrow it as a DashboardViewDependencyValidationException and log it.
                 // These exceptions indicate that there is something wrong with the validation of the entities or their dependencies that are shown in the dashboard.
@@ -35,7 +37,9 @@
                     exception is CommentDependencyValidationException ||
                     exception is ModeratorValidationException ||
                     exception is ModeratorDependencyValidationException)
+                {
                     throw LoggingUtilities.CreateAndLogException<DashboardViewDependencyValidationException>(_logger, exception);
+                }
 
                 // If the exception is one of the following types, rethrow it as a DashboardViewDependencyException and log it.
                 // These exceptions indicate that there is something wrong with the dependency services or the communication with them.
@@ -49,7 +53,9 @@
                     exception is CommentServiceException ||
                     exception is ModeratorDependencyException ||
                     exception is ModeratorServiceException)
+                {
                     throw LoggingUtilities.CreateAndLogException<DashboardViewDependencyException>(_logger, exception);
+                }
 
                 // If the exception is any other type, rethrow it as a DashboardViewServiceException and log it.
                 // This is a generic exception that indicates that something unexpected happened in the view service.

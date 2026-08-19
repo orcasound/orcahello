@@ -140,7 +140,9 @@ namespace OrcaHello.Console.DataMigration.Services
                     var name = item?.location?.name;
 
                     if (name == "Haro Strait")
+                    {
                         name = "Orcasound Lab";
+                    }
 
                     newItem.locationName = name;
                     newItem.location.name = name;
@@ -149,16 +151,24 @@ namespace OrcaHello.Console.DataMigration.Services
                     // item (Unreviewed, Positive, Negative, Unknown)
 
                     if (!item.reviewed)
+                    {
                         newItem.state = "Unreviewed";
+                    }
 
                     if (item.reviewed && item.SRKWFound == "yes")
+                    {
                         newItem.state = "Positive";
+                    }
 
                     if (item.reviewed && item.SRKWFound == "no")
+                    {
                         newItem.state = "Negative";
+                    }
 
                     if (item.reviewed && item.SRKWFound == "don't know")
+                    {
                         newItem.state = "Unknown";
+                    }
 
                     // We are creating a new partition key
                     PartitionKey partitionKey = new PartitionKey(newItem.state); // Adjust property name

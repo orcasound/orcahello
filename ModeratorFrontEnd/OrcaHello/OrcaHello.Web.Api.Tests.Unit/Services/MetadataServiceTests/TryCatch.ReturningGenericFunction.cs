@@ -44,19 +44,25 @@ namespace OrcaHello.Web.Api.Tests.Unit.Services
                 await wrapper.TryCatch(delegateMock.Object));
 
             for (int x = 0; x < 2; x++)
+            {
                 Assert.ThrowsExceptionAsync<MetadataDependencyValidationException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
+            }
 
             for (int x = 0; x < 9; x++)
+            {
                 Assert.ThrowsExceptionAsync<MetadataDependencyException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
+            }
 
             Assert.ThrowsExceptionAsync<MetadataServiceException>(async () =>
                 await wrapper.TryCatch(delegateMock.Object));
 
             for (int x = 0; x < 5; x++)
+            {
                 Assert.ThrowsExceptionAsync<MetadataDependencyException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
+            }
 
             Assert.ThrowsExceptionAsync<MetadataServiceException>(async () =>
                 await wrapper.TryCatch(delegateMock.Object));

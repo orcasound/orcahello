@@ -37,9 +37,13 @@ namespace OrcaHello.Web.Shared.Services
         private Uri NormalizeUrl(string url)
         {
             if (url.ToUpper().StartsWith("HTTP"))
+            {
                 return new Uri(url);
+            }
             else
+            {
                 return new Uri(url, UriKind.Relative);
+            }
         }
 
         public async ValueTask<TResult> PostContentAsync<TContent, TResult>(string url, TContent content)
@@ -54,7 +58,9 @@ namespace OrcaHello.Web.Shared.Services
             await ValidationService.ValidateHttpResponseAsync(responseMessage);
 
             if (ValidationService.OKWithNoContent(responseMessage))
+            {
                 return default(TResult);
+            }
 
             return await Deserialize<TResult>(responseMessage);
         }

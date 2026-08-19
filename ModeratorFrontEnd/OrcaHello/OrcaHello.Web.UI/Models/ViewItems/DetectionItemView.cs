@@ -88,7 +88,9 @@
             get
             {
                 if (Location is null)
+                {
                     return string.Empty;
+                }
 
                 return $"{Location.Name} ({Location.Latitude.ToString("00.##")}, {Location.Longitude.ToString("00.##")})";
             }
@@ -100,7 +102,9 @@
             get
             {
                 if (string.IsNullOrWhiteSpace(Tags))
+                {
                     return new List<string>();
+                }
 
                 return Tags.Split(',')
                     .Select(s => s.Trim())
@@ -109,7 +113,9 @@
             set
             {
                 if (value != null && value.Count > 0)
+                {
                     Tags = string.Join(',', value);
+                }
             }
         }
 
@@ -135,11 +141,15 @@
                     foreach (var tag in enteredTagsList)
                     {
                         if (!workingTagsList.Contains(tag))
+                        {
                             workingTagsList.Add(tag);
+                        }
                     }
 
                     if (workingTagsList.Count > 0)
+                    {
                         Tags = string.Join(",", workingTagsList);
+                    }
                 }
             }
         }

@@ -21,7 +21,9 @@ public partial class PaginationComponent
     private async Task SelectPage(PageLinkDTO link)
     {
         if (link.Page == PaginationResults.CurrentPage || !link.Enabled)
+        {
             return;
+        }
 
         PaginationOptions.Page = link.Page;
         await SelectPageCallback.InvokeAsync(PaginationOptions);

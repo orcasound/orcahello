@@ -16,15 +16,21 @@
                     exception is DetectionNotDeletedException ||
                     exception is DetectionNotInsertedException ||
                     exception is InvalidDetectionOrchestrationException)
+                {
                     throw LoggingUtilities.CreateAndLogException<DetectionOrchestrationValidationException>(_logger, exception);
+                }
 
                 if (exception is MetadataValidationException ||
                     exception is MetadataDependencyValidationException)
+                {
                     throw LoggingUtilities.CreateAndLogException<DetectionOrchestrationDependencyValidationException>(_logger, exception);
+                }
 
                 if (exception is MetadataDependencyException ||
                     exception is MetadataServiceException)
+                {
                     throw LoggingUtilities.CreateAndLogException<DetectionOrchestrationDependencyException>(_logger, exception);
+                }
 
                 throw LoggingUtilities.CreateAndLogException<DetectionOrchestrationServiceException>(_logger, exception);
 

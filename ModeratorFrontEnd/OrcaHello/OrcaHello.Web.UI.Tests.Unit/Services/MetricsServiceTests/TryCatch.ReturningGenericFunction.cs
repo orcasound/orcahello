@@ -28,16 +28,22 @@ namespace OrcaHello.Web.UI.Tests.Unit.Services
             .Throws(new Exception());
 
             for (int x = 0; x < 2; x++)
+            {
                 Assert.ThrowsExceptionAsync<MetricsValidationException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
+            }
 
             for (int x = 0; x < 2; x++)
+            {
                 Assert.ThrowsExceptionAsync<MetricsDependencyValidationException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
+            }
 
             for (int x = 0; x < 5; x++)
+            {
                 Assert.ThrowsExceptionAsync<MetricsDependencyException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
+            }
 
             Assert.ThrowsExceptionAsync<MetricsServiceException>(async () =>
                 await wrapper.TryCatch(delegateMock.Object));

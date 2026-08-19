@@ -34,11 +34,15 @@
             {
                 if (exception is CommentOrchestrationValidationException ||
                     exception is CommentOrchestrationDependencyValidationException)
+                {
                     return BadRequest(ValidatorUtilities.GetInnerMessage(exception));
+                }
 
                 if (exception is CommentOrchestrationDependencyException ||
                     exception is CommentOrchestrationServiceException)
+                {
                     return Problem(exception.Message);
+                }
 
                 return Problem(exception.Message);
             }
@@ -66,11 +70,15 @@
             {
                 if (exception is CommentOrchestrationValidationException ||
                     exception is CommentOrchestrationDependencyValidationException)
+                {
                     return BadRequest(ValidatorUtilities.GetInnerMessage(exception));
+                }
 
                 if (exception is CommentOrchestrationDependencyException ||
                     exception is CommentOrchestrationServiceException)
+                {
                     return Problem(exception.Message);
+                }
 
                 return Problem(exception.Message);
             }

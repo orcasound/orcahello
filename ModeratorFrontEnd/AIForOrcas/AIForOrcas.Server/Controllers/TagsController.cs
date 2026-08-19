@@ -28,7 +28,9 @@ public class TagsController : ControllerBase
             var rawTags = _repository.GetAllTags().ToList();
 
             if (rawTags == null || rawTags.Count() == 0)
+            {
                 return NoContent();
+            }
 
             var uniqueTags = new List<string>();
 
@@ -67,12 +69,16 @@ public class TagsController : ControllerBase
         try
         {
             if (tagUpdate == null)
+            {
                 throw new ArgumentNullException("tagUpdate");
+            }
 
             var detectionsToUpdate = _repository.GetAllWithTag(tagUpdate.OldTag).ToList();
 
             if (detectionsToUpdate.Count() == 0)
+            {
                 return NoContent();
+            }
 
             foreach (var detection in detectionsToUpdate)
             {
@@ -120,12 +126,16 @@ public class TagsController : ControllerBase
         try
         {
             if (string.IsNullOrWhiteSpace(tag))
+            {
                 throw new ArgumentNullException("tag");
+            }
 
             var detectionsToUpdate = _repository.GetAllWithTag(tag).ToList();
 
             if (detectionsToUpdate.Count() == 0)
+            {
                 return NoContent();
+            }
 
             foreach (var detection in detectionsToUpdate)
             {

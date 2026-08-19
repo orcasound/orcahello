@@ -33,7 +33,9 @@ namespace AIForOrcas.Client.BL.Services
                 var responseString = await httpResponseMessage.Content.ReadAsStringAsync();
 
                 if (string.IsNullOrWhiteSpace(responseString))
+                {
                     return new List<string>();
+                }
 
                 return JsonSerializer.Deserialize<List<string>>(responseString, defaultJsonSerializerOptions);
             }
@@ -61,7 +63,9 @@ namespace AIForOrcas.Client.BL.Services
                 var responseString = await httpResponseMessage.Content.ReadAsStringAsync();
 
                 if (string.IsNullOrWhiteSpace(responseString))
+                {
                     return 0;
+                }
 
                 return JsonSerializer.Deserialize<int>(responseString, defaultJsonSerializerOptions);
             }
@@ -88,7 +92,9 @@ namespace AIForOrcas.Client.BL.Services
                 var responseString = await httpResponseMessage.Content.ReadAsStringAsync();
 
                 if (string.IsNullOrWhiteSpace(responseString))
+                {
                     return 0;
+                }
 
                 return JsonSerializer.Deserialize<int>(responseString, defaultJsonSerializerOptions);
             }

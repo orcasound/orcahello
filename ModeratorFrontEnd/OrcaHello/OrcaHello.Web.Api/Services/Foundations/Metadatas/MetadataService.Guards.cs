@@ -7,19 +7,25 @@ namespace OrcaHello.Web.Api.Services
         protected void Validate(DateTime date, string propertyName)
         {
             if (ValidatorUtilities.IsInvalid(date))
+            {
                 throw new InvalidMetadataException(LoggingUtilities.MissingRequiredProperty(propertyName));
+            }
         }
 
         protected void Validate(string propertyValue, string propertyName)
         {
             if (ValidatorUtilities.IsInvalid(propertyValue))
+            {
                 throw new InvalidMetadataException(LoggingUtilities.MissingRequiredProperty(propertyName));
+            }
         }
 
         protected void ValidateDatesAreWithinRange(DateTime fromDate, DateTime toDate)
         {
             if (toDate < fromDate)
+            {
                 throw new InvalidMetadataException("'toDate' must be after 'fromDate'.");
+            }
         }
 
         protected void ValidateMetadataOnCreate(Metadata metadata)
@@ -71,8 +77,9 @@ namespace OrcaHello.Web.Api.Services
         protected void ValidateStateIsAcceptable(string state)
         {
             if (ValidatorUtilities.GetMatchingEnumValue(state, typeof(DetectionState)) == null)
+            {
                 throw new InvalidMetadataException($"'{state}' is not a valid Detection state.");
-
+            }
         }
 
         protected void ValidateTagContainsOnlyValidCharacters(string tag)
@@ -82,11 +89,14 @@ namespace OrcaHello.Web.Api.Services
             bool hasInvalidChars = regex.IsMatch(tag);
 
             if (hasInvalidChars)
+            {
                 throw new InvalidMetadataException($"'{tag}' contains one or more invalid characters (use , for AND and use | for OR).");
+            }
 
             if (tag.Contains(',') && tag.Contains('|'))
+            {
                 throw new InvalidMetadataException($"'{tag}' can only work on a single operator (, or |).");
-
+            }
         }
     }
 }

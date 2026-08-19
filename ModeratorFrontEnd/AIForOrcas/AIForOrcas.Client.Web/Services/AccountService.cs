@@ -60,15 +60,21 @@ public class AccountService : IAccountService
 
             // Fall back to email claim
             if (string.IsNullOrWhiteSpace(username))
+            {
                 username = user.FindFirst(c => c.Type == "email")?.Value;
+            }
 
             // Fall back to name claim
             if (string.IsNullOrWhiteSpace(username))
+            {
                 username = user.FindFirst(c => c.Type == "name")?.Value;
+            }
 
             // Fall back to identity name
             if (string.IsNullOrWhiteSpace(username))
+            {
                 username = user.Identity.Name;
+            }
 
             return username ?? string.Empty;
         }

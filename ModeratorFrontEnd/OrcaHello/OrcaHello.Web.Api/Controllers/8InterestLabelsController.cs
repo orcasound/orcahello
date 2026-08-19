@@ -30,11 +30,15 @@
             {
                 if (exception is InterestLabelOrchestrationValidationException ||
                     exception is InterestLabelOrchestrationDependencyValidationException)
+                {
                     return BadRequest(ValidatorUtilities.GetInnerMessage(exception));
+                }
 
                 if (exception is InterestLabelOrchestrationDependencyException ||
                     exception is InterestLabelOrchestrationServiceException)
+                {
                     return Problem(exception.Message);
+                }
 
                 return Problem(exception.Message);
             }
@@ -61,20 +65,28 @@
             {
                 if (exception is InterestLabelOrchestrationValidationException &&
                     exception.InnerException is NotFoundMetadataException)
+                {
                     return NotFound(ValidatorUtilities.GetInnerMessage(exception));
+                }
 
                 if (exception is InterestLabelOrchestrationValidationException &&
                     (exception.InnerException is DetectionNotDeletedException ||
                     exception.InnerException is DetectionNotInsertedException))
+                {
                     return UnprocessableEntity(ValidatorUtilities.GetInnerMessage(exception));
+                }
 
                 if (exception is InterestLabelOrchestrationValidationException ||
                     exception is InterestLabelOrchestrationDependencyValidationException)
+                {
                     return BadRequest(ValidatorUtilities.GetInnerMessage(exception));
+                }
 
                 if (exception is InterestLabelOrchestrationDependencyException ||
                     exception is InterestLabelOrchestrationServiceException)
+                {
                     return Problem(exception.Message);
+                }
 
                 return Problem(exception.Message);
             }
@@ -101,15 +113,21 @@
             {
                 if (exception is InterestLabelOrchestrationValidationException &&
                     exception.InnerException is NotFoundMetadataException)
+                {
                     return NotFound(ValidatorUtilities.GetInnerMessage(exception));
+                }
 
                 if (exception is InterestLabelOrchestrationValidationException ||
                     exception is InterestLabelOrchestrationDependencyValidationException)
+                {
                     return BadRequest(ValidatorUtilities.GetInnerMessage(exception));
+                }
 
                 if (exception is InterestLabelOrchestrationDependencyException ||
                     exception is InterestLabelOrchestrationServiceException)
+                {
                     return Problem(exception.Message);
+                }
 
                 return Problem(exception.Message);
             }

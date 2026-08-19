@@ -65,7 +65,9 @@
                 bool recordUpdated = await _metadataService.UpdateMetadataAsync(item);
 
                 if (recordUpdated)
+                {
                     totalRemoved++;
+                }
             }
 
             TagRemovalResponse result = new()
@@ -99,7 +101,9 @@
                 bool recordUpdated = await _metadataService.UpdateMetadataAsync(item);
 
                 if (recordUpdated)
+                {
                     totalReplaced++;
+                }
             }
 
             TagReplaceResponse result = new()

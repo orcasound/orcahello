@@ -54,7 +54,9 @@ namespace OrcaHello.Web.UI.Pages.Detections.Components
                 CurrentlySetFilters = Filters;
 
                 if (DetectionDataList?.Data != null)
+                {
                     await DetectionDataList.Reload();
+                }
             }
         }
 
@@ -85,7 +87,9 @@ namespace OrcaHello.Web.UI.Pages.Detections.Components
             var toDate = Filters.EndDateTime.HasValue ? Filters.EndDateTime.Value : DateTime.UtcNow;
 
             if (Filters.Timeframe != Timeframe.All && Filters.Timeframe != Timeframe.Range)
+            {
                 fromDate = toDate.Adjust(Filters.Timeframe);
+            }
 
             int skip = args.Skip.HasValue ? args.Skip.Value : 1;
             int top = args.Top.HasValue ? args.Top.Value : 10;
@@ -122,10 +126,14 @@ namespace OrcaHello.Web.UI.Pages.Detections.Components
                 // Handle data entry validation errors
                 if (exception is DetectionViewValidationException ||
                     exception is DetectionViewDependencyValidationException)
+                {
                     ValidationMessage = ValidatorUtilities.GetInnerMessage(exception);
+                }
                 else
+                {
                     // Report any other errors as unknown
                     LogAndReportUnknownException(exception);
+                }
             }
             finally
             {

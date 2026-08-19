@@ -79,7 +79,9 @@
             var toDate = SelectedEndDateTime.HasValue ? SelectedEndDateTime.Value : DateTime.UtcNow;
 
             if (SelectedTimeframe != Timeframe.All && SelectedTimeframe != Timeframe.Range)
+            {
                 fromDate = toDate.Adjust(SelectedTimeframe);
+            }
 
             // Reset and close all accordions
             MetricsState.Reset(fromDate, toDate);

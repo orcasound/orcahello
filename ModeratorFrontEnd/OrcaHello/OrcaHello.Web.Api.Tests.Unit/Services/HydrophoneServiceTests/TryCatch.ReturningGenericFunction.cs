@@ -36,18 +36,22 @@ namespace OrcaHello.Web.Api.Tests.Unit.Services
                 await wrapper.TryCatch(delegateMock.Object));
 
             for (int x = 0; x < 2; x++)
+            {
                 Assert.ThrowsExceptionAsync<HydrophoneDependencyValidationException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
+            }
 
             for (int x = 0; x < 9; x++)
+            {
                 Assert.ThrowsExceptionAsync<HydrophoneDependencyException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
+            }
 
             for (int x = 0; x < 2; x++)
+            {
                 Assert.ThrowsExceptionAsync<HydrophoneServiceException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
-
-
+            }
         }
     }
 }

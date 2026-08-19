@@ -7,19 +7,25 @@ namespace OrcaHello.Web.Api.Services
         protected void Validate(DateTime? date, string propertyName)
         {
             if (!date.HasValue || ValidatorUtilities.IsInvalid(date.Value))
+            {
                 throw new InvalidDetectionOrchestrationException(LoggingUtilities.MissingRequiredProperty(propertyName));
+            }
         }
 
         protected void Validate(string propertyValue, string propertyName)
         {
             if (ValidatorUtilities.IsInvalid(propertyValue))
+            {
                 throw new InvalidDetectionOrchestrationException(LoggingUtilities.MissingRequiredProperty(propertyName));
+            }
         }
 
         protected void ValidateModerateRequestOnUpdate(ModerateDetectionsRequest request)
         {
             if (request is null)
+            {
                 throw new NullModerateDetectionRequestException();
+            }
 
             switch (request)
             {
@@ -47,19 +53,25 @@ namespace OrcaHello.Web.Api.Services
         protected void ValidatePage(int page)
         {
             if (ValidatorUtilities.IsZeroOrLess(page))
+            {
                 throw new InvalidDetectionOrchestrationException(LoggingUtilities.InvalidProperty("page"));
+            }
         }
 
         protected void ValidatePageSize(int pageSize)
         {
             if (ValidatorUtilities.IsZeroOrLess(pageSize))
+            {
                 throw new InvalidDetectionOrchestrationException(LoggingUtilities.InvalidProperty("pageSize"));
+            }
         }
 
         protected void ValidateStateIsAcceptable(string state)
         {
             if (ValidatorUtilities.GetMatchingEnumValue(state, typeof(DetectionState)) == null)
+            {
                 throw new InvalidDetectionOrchestrationException($"'{state}' is not a valid Detection state.");
+            }
         }
     }
 }

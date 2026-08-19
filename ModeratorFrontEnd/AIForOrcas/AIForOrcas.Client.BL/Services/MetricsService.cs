@@ -30,7 +30,9 @@ namespace AIForOrcas.Client.BL.Services
                 var responseString = await httpResponseMessage.Content.ReadAsStringAsync();
 
                 if (httpResponseMessage.StatusCode == System.Net.HttpStatusCode.NoContent)
+                {
                     return new ModeratorMetrics() { HasContent = false };
+                }
 
                 var response = JsonSerializer.Deserialize<ModeratorMetrics>(responseString, defaultJsonSerializerOptions);
                 response.HasContent = true;
@@ -56,7 +58,9 @@ namespace AIForOrcas.Client.BL.Services
                 var responseString = await httpResponseMessage.Content.ReadAsStringAsync();
 
                 if (httpResponseMessage.StatusCode == System.Net.HttpStatusCode.NoContent)
+                {
                     return new Metrics() { HasContent = false };
+                }
 
                 var response = JsonSerializer.Deserialize<Metrics>(responseString, defaultJsonSerializerOptions);
                 response.HasContent = true;

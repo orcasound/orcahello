@@ -10,16 +10,24 @@
         protected void ValidateDateRange(DateTime? fromDate, DateTime? toDate)
         {
             if (!fromDate.HasValue)
+            {
                 throw new InvalidMetricsException("Property 'fromDate' cannot be null.");
+            }
 
             if (fromDate.Value > DateTime.UtcNow)
+            {
                 throw new InvalidMetricsException("Property 'fromDate' cannot be in the future.");
+            }
 
             if (!toDate.HasValue)
+            {
                 throw new InvalidMetricsException("Property 'toDate' cannot be null.");
+            }
 
             if (toDate.Value < fromDate.Value)
+            {
                 throw new InvalidMetricsException("Property 'toDate' cannot be before the 'fromDate'.");
+            }
         }
 
         // RULE: Response cannot be null.

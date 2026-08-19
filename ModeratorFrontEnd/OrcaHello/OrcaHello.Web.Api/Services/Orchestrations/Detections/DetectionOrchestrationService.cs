@@ -105,7 +105,9 @@
                 Metadata existingRecord = await _metadataService.RetrieveMetadataByIdAsync(id);
 
                 if (existingRecord is null)
+                {
                     response.IdsNotFound.Add(id);
+                }
                 else
                 {
                     var existingState = existingRecord.State;
@@ -121,7 +123,9 @@
                     bool existingRecordDeleted = await _metadataService.RemoveMetadataByIdAndStateAsync(id, existingState);
 
                     if (!existingRecordDeleted)
+                    {
                         response.IdsUnsuccessfullyUpdated.Add(id);
+                    }
                     else
                     {
                         bool newRecordCreated = await _metadataService.AddMetadataAsync(newRecord);

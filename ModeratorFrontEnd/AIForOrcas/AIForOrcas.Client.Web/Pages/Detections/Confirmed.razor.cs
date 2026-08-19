@@ -49,9 +49,13 @@ public partial class Confirmed : IDisposable
         pagination.CurrentPage = paginationOptions.Page;
 
         if (paginatedResponse.Response == null)
+        {
             loadStatus = "An unknown error occurred while loading records...";
+        }
         else if (paginatedResponse.Response.Count == 0)
+        {
             loadStatus = "No records found for the selected filter options. Please select a different set of filter options...";
+        }
         else
         {
             loadStatus = null;

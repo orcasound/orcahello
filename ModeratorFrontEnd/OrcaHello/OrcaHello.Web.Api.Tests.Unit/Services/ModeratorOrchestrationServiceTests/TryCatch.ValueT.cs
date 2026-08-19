@@ -30,12 +30,16 @@ namespace OrcaHello.Web.Api.Tests.Unit.Services
                 await wrapper.TryCatch(delegateMock.Object));
 
             for (int x = 0; x < 2; x++)
+            {
                 Assert.ThrowsExceptionAsync<ModeratorOrchestrationDependencyValidationException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
+            }
 
             for (int x = 0; x < 2; x++)
+            {
                 Assert.ThrowsExceptionAsync<ModeratorOrchestrationDependencyException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
+            }
 
             Assert.ThrowsExceptionAsync<ModeratorOrchestrationServiceException>(async () =>
                 await wrapper.TryCatch(delegateMock.Object));

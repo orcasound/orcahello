@@ -15,11 +15,17 @@ public static class MetadataFilters
                 if (timeframe == "range")
                 {
                     if (dateFrom != null && dateTo != null)
+                    {
                         queryable = queryable.Where(x => x.timestamp >= dateFrom && x.timestamp <= dateTo);
+                    }
                     else if (dateFrom == null && dateTo != null)
+                    {
                         queryable = queryable.Where(x => x.timestamp <= dateTo);
+                    }
                     else if (dateFrom != null && dateTo == null)
+                    {
                         queryable = queryable.Where(x => x.timestamp >= dateFrom);
+                    }
                 }
                 else
                 {

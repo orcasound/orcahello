@@ -72,7 +72,9 @@ namespace OrcaHello.Web.UI.Pages.Dashboard.Components
 
                 // Update the Data property
                 if (response.CommentItemViews.Any())
+                {
                     StateView.Items.AddRange(response.CommentItemViews);
+                }
 
                 // Update the count
                 StateView.Count = response.Count;

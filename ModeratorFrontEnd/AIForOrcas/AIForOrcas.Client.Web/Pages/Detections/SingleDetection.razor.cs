@@ -39,7 +39,9 @@ public partial class SingleDetection : ComponentBase, IDisposable
         detection = await Service.GetDetectionAsync(Id);
         isUnavailable = detection == null;
         if (!isUnavailable && detection.Id == null)
+        {
             isFound = false;
+        }
     }
 
     private async Task ActOnSubmitCallback(DetectionUpdate request)

@@ -43,16 +43,22 @@ namespace OrcaHello.Web.UI.Tests.Unit.Services
                 .Throws(new Exception());
 
             for (int x = 0; x < 3; x++)
+            {
                 Assert.ThrowsExceptionAsync<DashboardViewValidationException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
+            }
 
             for (int x = 0; x < 10; x++)
+            {
                 Assert.ThrowsExceptionAsync<DashboardViewDependencyValidationException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
+            }
 
             for (int x = 0; x < 10; x++)
+            {
                 Assert.ThrowsExceptionAsync<DashboardViewDependencyException>(async () =>
                     await wrapper.TryCatch(delegateMock.Object));
+            }
 
             Assert.ThrowsExceptionAsync<DashboardViewServiceException>(async () =>
                 await wrapper.TryCatch(delegateMock.Object));

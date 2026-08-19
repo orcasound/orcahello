@@ -32,11 +32,15 @@
             {
                 if (exception is MetricOrchestrationValidationException ||
                     exception is MetricOrchestrationDependencyValidationException)
+                {
                     return BadRequest(ValidatorUtilities.GetInnerMessage(exception));
+                }
 
                 if (exception is MetricOrchestrationDependencyException ||
                     exception is MetricOrchestrationServiceException)
+                {
                     return Problem(exception.Message);
+                }
 
                 return Problem(exception.Message);
             }

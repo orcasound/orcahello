@@ -19,15 +19,21 @@
                 // If the exception is related to invalid or null metrics, throw a MetricsValidationException
                 if (exception is InvalidMetricsException ||
                     exception is NullMetricsResponseException)
+                {
                     throw LoggingUtilities.CreateAndLogException<MetricsValidationException>(_logger, exception);
+                }
 
                 // If the exception is related to a conflict in the detection API, throw a MetricsDependencyValidationException with an AlreadyExistsMetricsException
                 if (exception is HttpResponseConflictException)
+                {
                     throw LoggingUtilities.CreateAndLogException<MetricsDependencyValidationException>(_logger, new AlreadyExistsMetricsException(exception));
+                }
 
                 // If the exception is related to a bad request in the detection API, throw a MetricsDependencyValidationException with an InvalidMetricsException
                 if (exception is HttpResponseBadRequestException)
+                {
                     throw LoggingUtilities.CreateAndLogException<MetricsDependencyValidationException>(_logger, new InvalidMetricsException(exception));
+                }
 
                 // If the exception is related to any other HTTP error in the detection API, throw a MetricsDependencyException with a FailedMetricsDependencyException
                 if (exception is HttpRequestException ||
@@ -35,7 +41,9 @@
                     exception is HttpResponseUnauthorizedException ||
                     exception is HttpResponseInternalServerErrorException ||
                     exception is HttpResponseException)
+                {
                     throw LoggingUtilities.CreateAndLogException<MetricsDependencyException>(_logger, new FailedMetricsDependencyException(exception));
+                }
 
                 // If the exception is not handled by any of the above cases, throw a MetricsServiceException with a FailedMetricsServiceException
                 throw LoggingUtilities.CreateAndLogException<MetricsServiceException>(_logger, new FailedMetricsServiceException(exception));

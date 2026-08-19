@@ -9,7 +9,9 @@ namespace AIForOrcas.Client.BL.Services
         {
             var token = provider.GetToken();
             if (!string.IsNullOrWhiteSpace(token))
+            {
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
         }
     }
 }
