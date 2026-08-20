@@ -32,7 +32,7 @@
                 if (exception is TagValidationException ||
                     exception is DetectionValidationException ||
                     exception is TagDependencyValidationException ||
-                    exception is DetectionViewDependencyValidationException)
+                    exception is DetectionDependencyValidationException)
                 {
                     throw LoggingUtilities.CreateAndLogException<TagViewDependencyValidationException>(_logger, exception);
                 }
