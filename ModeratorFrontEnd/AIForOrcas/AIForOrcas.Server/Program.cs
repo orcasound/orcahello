@@ -1,4 +1,4 @@
-var builder    =    WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(args);
 
 var appSettings = new AppSettings();
 builder.Configuration.GetSection("AppSettings").Bind(appSettings);
