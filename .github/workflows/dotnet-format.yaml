@@ -1,0 +1,39 @@
+---
+name: dotnet format check
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - ModeratorFrontEnd/**
+      - .editorconfig
+      - .github/workflows/dotnet-format.yaml
+  workflow_dispatch:  # Allow manual workflow invocation from the Github Actions UI
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - solution: ModeratorFrontEnd/AIForOrcas/AIForOrcas.sln
+            dotnet-version: 6.0.x
+          - solution: ModeratorFrontEnd/OrcaHello/OrcaHello.sln
+            dotnet-version: 8.0.x
+    steps:
+      - uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920  # v2.20.0
+        with:
+          egress-policy: audit
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68  # v6.0.0
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+      - name: Format check
+        run: dotnet format ${{ matrix.solution }} --verify-no-changes
