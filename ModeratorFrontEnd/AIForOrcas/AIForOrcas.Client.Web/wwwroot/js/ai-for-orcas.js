@@ -1,4 +1,87 @@
-﻿/* Sidebar Toggler */
+﻿/* Candidate card layout on small landscape screens */
+
+// Stacked at the card top (evidence first); once the details have scrolled into the
+// top part of the screen the card body splits side by side, spectrogram pinned at
+// half width beside the scrolling details. The distance the details move on a
+// switch is compensated on the scroll position, so the content under the finger
+// stays put. One passive scroll listener, one rAF-throttled pass over the cards.
+var cardLayoutScheduled = false;
+var cardLayoutWatching = false;
+var landscapeSmallScreen = window.matchMedia('(orientation: landscape) and (min-width: 568px) and (max-width: 991.98px)');
+// Of the viewport height, from the top. Two different lines so the layout can
+// never flip back and forth at one scroll position: split when the details come
+// up to 30%, stack again only once the row (the details' top edge in the split
+// state) is back down past 45%.
+var SPLIT_WHEN_DETAILS_WITHIN = 0.3;
+var STACK_WHEN_DETAILS_BELOW = 0.45;
+
+function UpdateCardLayout() {
+
+	cardLayoutScheduled = false;
+
+	document.querySelectorAll('.detection-spectrogram').forEach(function (column) {
+		var card = column.closest('.card');
+		var row = column.parentElement;
+		var details = row.querySelector('.detection-details');
+
+		if (!card || !details) {
+			return;
+		}
+
+		var split = card.classList.contains('detection-split');
+		var wanted = split;
+
+		if (!landscapeSmallScreen.matches) {
+			wanted = false;
+		} else if (!split && details.getBoundingClientRect().top <= window.innerHeight * SPLIT_WHEN_DETAILS_WITHIN) {
+			wanted = true;
+		} else if (split && row.getBoundingClientRect().top > window.innerHeight * STACK_WHEN_DETAILS_BELOW) {
+			wanted = false;
+		}
+
+		if (wanted != split) {
+			// Keep the details where the finger is: compensate the scroll by how far
+			// the details column moved, not by the row height (the narrower column
+			// also gets taller, so the two differ). Exact for the card under the
+			// finger; for cards above it (a rotation, a resize) the error is the
+			// height change of their details column, which is small.
+			var before = details.getBoundingClientRect().top;
+			card.classList.toggle('detection-split', wanted);
+			var after = details.getBoundingClientRect().top;
+			window.scrollBy(0, after - before);
+			ResizeActivePlayer();
+
+			// Lets the css fade the full-width spectrogram back in
+			window.clearTimeout(card.stackingTimer);
+			card.classList.toggle('detection-stacking', !wanted);
+			if (!wanted) {
+				card.stackingTimer = window.setTimeout(function () { card.classList.remove('detection-stacking'); }, 700);
+			}
+		}
+	});
+}
+
+function ScheduleCardLayout() {
+
+	if (!cardLayoutScheduled) {
+		cardLayoutScheduled = true;
+		window.requestAnimationFrame(UpdateCardLayout);
+	}
+}
+
+// Called after every card render; wires the listeners once and refreshes the state.
+function WatchCardLayout() {
+
+	if (!cardLayoutWatching) {
+		cardLayoutWatching = true;
+		window.addEventListener('scroll', ScheduleCardLayout, { passive: true });
+		window.addEventListener('resize', ScheduleCardLayout);
+	}
+
+	ScheduleCardLayout();
+}
+
+/* Sidebar Toggler */
 
 // Below the md breakpoint the topbar hamburger is the way to open the sidebar, so
 // it always starts collapsed there and the content gets the full width. On a larger
@@ -435,6 +518,8 @@ function ScrollCardIntoView(detectionId) {
 	var card = image ? image.closest('.card') : null;
 
 	if (card) {
+		// A landscape card lands stacked, evidence first (class set by UpdateCardLayout).
+		card.classList.remove('detection-split');
 		card.scrollIntoView({ block: 'start' });
 	}
 }

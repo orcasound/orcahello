@@ -177,6 +177,7 @@ public partial class DetectionComponent
         // first render (e.g. while the single detection page is still loading the record);
         // the JS side is idempotent and exits early once the shades exist.
         await JSRuntime.InvokeVoidAsync("DrawRegionShades", _id, Detection.AudioUri, RegionsJson);
+        await JSRuntime.InvokeVoidAsync("WatchCardLayout");
     }
 
     private void SetFoundValue(string found)

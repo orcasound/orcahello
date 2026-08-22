@@ -72,11 +72,11 @@ label {
 	color: red !important;
 }
 
-/* Candidate card on a tall portrait screen: keep the spectrogram (the evidence) in
-   view while the rest of the card, verdict, tags, comments and buttons, scrolls
-   under it; it releases at the end of the card body. Portrait and below the lg
-   breakpoint only, where the column is stacked full width: sideways the image is
-   most of the viewport, and at lg+ the column sits beside the form. */
+/* Candidate card on a small screen: keep the spectrogram (the evidence) in view
+   while the rest of the card, verdict, tags, comments and buttons, scrolls under
+   it; it releases at the end of the card body. Below the lg breakpoint only, where
+   the column is stacked full width; at lg+ it sits beside the form. Portrait pins
+   it full width; landscape splits the card body in two once scrolled down (below). */
 
 /* sb-admin-2 hides horizontal overflow here, which also makes #content-wrapper the
    scroll container that sticky descendants attach to, so they never reach the
@@ -85,7 +85,7 @@ label {
 	overflow-x: clip;
 }
 
-@media (orientation: portrait) and (max-width: 991.98px) {
+@media (max-width: 991.98px) {
 	.detection-spectrogram {
 		position: sticky;
 		top: 0;
@@ -97,6 +97,138 @@ label {
 		padding-bottom: 0.25rem;
 		box-shadow: 0 0.25rem 0.5rem -0.25rem rgba(0, 0, 0, 0.15);
 	}
+}
+
+/* Landscape: a full-width pinned image would be most of the viewport, so the card
+   starts stacked (evidence first, not pinned) and, once the details have scrolled
+   into the top 30% of the screen, the card body splits side by side: spectrogram
+   pinned at the top on the right (a bit over half), details scrolling on the
+   left, footer full width as before. Scrolling back up past 45% stacks it again
+   (two lines, so it cannot flicker at one position). Class set by
+   UpdateCardLayout in ai-for-orcas.js. Gated on a real landscape width: a portrait
+   phone with the soft keyboard open is also wider than tall, and must not split. */
+@media (orientation: landscape) and (min-width: 568px) and (max-width: 991.98px) {
+	.card:not(.detection-split) .detection-spectrogram {
+		position: static;
+		box-shadow: none;
+	}
+
+	.card.detection-split .detection-spectrogram {
+		/* More than half to the evidence, a little air between the two columns on
+		   top of the gutters */
+		flex: 0 0 55%;
+		max-width: 55%;
+		margin-left: 3%;
+		order: 12;
+		/* Content height, not stretched to the row: a sticky box as tall as its
+		   container has no room to stick */
+		align-self: flex-start;
+		padding-bottom: 0;
+		/* Pinned at the top (base rule) while the details scroll; sticky stops it
+		   at the end of the card body on its own */
+	}
+
+	.card.detection-split .detection-details {
+		flex: 0 0 42%;
+		max-width: 42%;
+		order: 0;
+	}
+
+	/* Narrower details read better as one item per line with tighter spacing */
+	.card.detection-split .detection-details .col-md-6 {
+		flex: 0 0 100%;
+		max-width: 100%;
+	}
+
+	.card.detection-split .detection-details p {
+		margin-bottom: 0.25rem;
+	}
+
+	.card.detection-split .detection-section {
+		margin-top: 0.5rem;
+		margin-bottom: 0.5rem;
+	}
+
+	/* Smaller play button and timer in the pinned column, so it is mostly spectrogram */
+	.card.detection-split .detection-spectrogram .fa-3x {
+		font-size: 2em;
+	}
+
+	.card.detection-split .detection-spectrogram .h5 {
+		font-size: 1rem;
+	}
+
+	.card.detection-split .detection-player {
+		margin-top: 0.25rem !important;
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.card.detection-split .detection-spectrogram {
+			animation: detection-split-in 0.65s cubic-bezier(0.22, 0.61, 0.36, 1);
+		}
+
+		.card.detection-split .detection-details {
+			animation: detection-details-in 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
+		}
+
+		.card.detection-stacking .detection-spectrogram {
+			animation: detection-stack-in 0.65s cubic-bezier(0.22, 0.61, 0.36, 1);
+		}
+
+		.card.detection-stacking .detection-details {
+			animation: detection-stack-in 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
+		}
+	}
+}
+
+/* A very short viewport (a phone with the soft keyboard open, or a small phone
+   held sideways) has no room for a pinned column over the field being typed in:
+   let the spectrogram scroll like the rest. The split state keeps its own pin. */
+@media (max-height: 479.98px) {
+	.card:not(.detection-split) .detection-spectrogram {
+		position: static;
+		box-shadow: none;
+	}
+}
+
+@keyframes detection-split-in {
+	from {
+		opacity: 0;
+		transform: translateX(0.75rem);
+	}
+
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+@keyframes detection-details-in {
+	from {
+		opacity: 0;
+		transform: translateX(-0.75rem);
+	}
+
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+@keyframes detection-stack-in {
+	from {
+		opacity: 0;
+	}
+
+	to {
+		opacity: 1;
+	}
+}
+
+/* The back-to-top control shares the right edge with a pinned spectrogram column
+   (landscape split); keep it above (sb-admin leaves it at z-index auto) */
+.scroll-to-top {
+	z-index: 6;
 }
 
 /* Blazored toasts are z-index 1; keep them above anything sticky in the cards,
