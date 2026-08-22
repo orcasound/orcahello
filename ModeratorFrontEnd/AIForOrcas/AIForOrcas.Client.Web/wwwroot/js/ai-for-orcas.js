@@ -1,12 +1,87 @@
 ﻿/* Sidebar Toggler */
 
+// Below the md breakpoint the topbar hamburger is the way to open the sidebar, so
+// it always starts collapsed there and the content gets the full width. On a larger
+// screen the moderator's last choice is remembered instead.
+var smallScreen = window.matchMedia('(max-width: 767.98px)');
+var sidebarPreferenceKey = 'orcahello.sidebar-collapsed';
+
+function ReadSideBarPreference() {
+	try {
+		return window.localStorage.getItem(sidebarPreferenceKey);
+	} catch (e) {
+		return null;   // private mode, or storage blocked
+	}
+}
+
+function WriteSideBarPreference(collapsed) {
+	try {
+		window.localStorage.setItem(sidebarPreferenceKey, collapsed ? '1' : '0');
+	} catch (e) {
+		// nothing to do, the sidebar just will not remember
+	}
+}
+
+// True when the sidebar should be collapsed for the viewport we are in now.
+function SideBarShouldCollapse() {
+	return smallScreen.matches || ReadSideBarPreference() === '1';
+}
+
+function ApplySideBarState(collapsed) {
+	$("body").toggleClass("sidebar-toggled", collapsed);
+	$(".sidebar").toggleClass("toggled", collapsed);
+	if (collapsed) {
+		$('.sidebar .collapse').collapse('hide');
+	}
+}
+
+function CollapseSideBarOnSmallScreens() {
+
+	ApplySideBarState(SideBarShouldCollapse());
+
+	// Crossing the breakpoint re-decides: into the small range it collapses, back
+	// out of it the remembered choice applies again.
+	var onBreakpoint = function () {
+		ApplySideBarState(SideBarShouldCollapse());
+	};
+
+	if (smallScreen.addEventListener) {
+		smallScreen.addEventListener('change', onBreakpoint);
+	} else {
+		smallScreen.addListener(onBreakpoint);   // Safari before 14
+	}
+
+	// On a small screen the open sidebar covers the page, so a tap on a nav item
+	// would navigate behind it. Close it on the way out. Only for links that leave
+	// the page: the accordion togglers (href="#") and the external ones (target)
+	// keep it open. Namespaced and re-bound so repeated renders leave one handler.
+	$(document).off("click.sidebarnav").on("click.sidebarnav", ".sidebar a", function () {
+		var href = $(this).attr("href");
+		if (!smallScreen.matches || !href || href.charAt(0) === "#" || $(this).attr("target")) {
+			return;
+		}
+		ApplySideBarState(true);
+	});
+}
+
+// This script loads before Blazor renders, so the body class goes on now and the
+// sidebar paints in its final state from the first frame (the css rule on
+// body.sidebar-toggled .sidebar); CollapseSideBarOnSmallScreens then puts the
+// sidebar's own class in step after the first render.
+if (SideBarShouldCollapse()) {
+	document.body.classList.add('sidebar-toggled');
+}
+
 function ToggleSideBar() {
 
-	$("body").toggleClass("sidebar-toggled");
-	$(".sidebar").toggleClass("toggled");
-	if ($(".sidebar").hasClass("toggled")) {
-		$('.sidebar .collapse').collapse('hide');
-	};
+	var collapsed = !$(".sidebar").hasClass("toggled");
+	ApplySideBarState(collapsed);
+
+	// The phone is always collapsed on arrival, so only a real screen records a
+	// preference; otherwise a desktop choice would follow the moderator to the phone.
+	if (!smallScreen.matches) {
+		WriteSideBarPreference(collapsed);
+	}
 
 	ResizeActivePlayer();
 }

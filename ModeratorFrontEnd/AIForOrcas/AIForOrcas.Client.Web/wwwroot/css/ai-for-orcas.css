@@ -105,3 +105,64 @@ label {
 body .blazored-toast-container {
 	z-index: 1030;
 }
+
+/* Sidebar on small screens: collapsed from the first paint (body class set by
+   ai-for-orcas.js before Blazor renders), same look as sb-admin's .sidebar.toggled */
+@media (max-width: 767.98px) {
+	body.sidebar-toggled .sidebar {
+		width: 0 !important;
+		overflow: hidden;
+	}
+}
+
+/* Sidebar brand: one block, the same shape wherever it renders (phone or desktop,
+   rail or expanded). Both lines always show and the block grows to hold them;
+   only the scale changes with the room, through the three variables below.
+   sb-admin's own rule is a fixed 4.375rem box with 1.5rem of padding, which clips
+   the title as soon as the sidebar is narrow. */
+.sidebar-brand {
+	--brand-padding: 1rem;
+	--brand-title: 1.5rem;
+	--brand-subtitle: .8rem;
+	height: auto;
+	min-height: 4.375rem;
+	padding: var(--brand-padding);
+	justify-content: center;
+	text-align: center;
+}
+
+.sidebar-brand .card-title {
+	font-size: var(--brand-title);
+	/* line-height and the gap are ratios of the type, so the block keeps the same
+	   proportions at every scale */
+	line-height: 1.2;
+	margin-bottom: .15em;
+	white-space: nowrap;
+}
+
+.sidebar-brand .sidebar-subtitle {
+	font-size: var(--brand-subtitle);
+	line-height: 1.2;
+	/* .card-subtitle pulls itself up by a fixed -.375rem, the same pixels whatever
+	   the type is doing, which is what made the two lines sit differently in each
+	   view. The gap is the title's .15em and nothing else. */
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
+/* Two scales, chosen by the room the sidebar has: the wide one above, and this one
+   wherever it is the 6.5rem rail (sb-admin uses that width for the whole sidebar
+   below md, and for the collapsed sidebar on any screen). */
+@media (max-width: 767.98px) {
+	.sidebar-brand {
+		--brand-padding: .5rem;
+		--brand-title: .85rem;
+		--brand-subtitle: .55rem;
+	}
+}
+
+.sidebar.toggled .sidebar-brand {
+	--brand-padding: .5rem;
+	--brand-title: .85rem;
+	--brand-subtitle: .55rem;
+}
