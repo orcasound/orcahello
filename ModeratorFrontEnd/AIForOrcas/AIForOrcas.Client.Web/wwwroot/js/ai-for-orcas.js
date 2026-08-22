@@ -352,6 +352,18 @@ function DrawRegionShades(detectionId, audioUrl, regionsJson) {
 	});
 }
 
+// After a submit re-renders the list, open the next candidate at its card top,
+// spectrogram first, instead of wherever the previous card left the scroll.
+function ScrollCardIntoView(detectionId) {
+
+	var image = document.getElementById('spectrogram-card-' + detectionId);
+	var card = image ? image.closest('.card') : null;
+
+	if (card) {
+		card.scrollIntoView({ block: 'start' });
+	}
+}
+
 // Touch on a card spectrogram that has no player yet: create the player and
 // start playback at the touched point, like the modal spectrogram does. When
 // this card's player already exists, wavesurfer's own click-to-seek on the
