@@ -71,3 +71,37 @@ label {
 .validation-message {
 	color: red !important;
 }
+
+/* Candidate card on a tall portrait screen: keep the spectrogram (the evidence) in
+   view while the rest of the card, verdict, tags, comments and buttons, scrolls
+   under it; it releases at the end of the card body. Portrait and below the lg
+   breakpoint only, where the column is stacked full width: sideways the image is
+   most of the viewport, and at lg+ the column sits beside the form. */
+
+/* sb-admin-2 hides horizontal overflow here, which also makes #content-wrapper the
+   scroll container that sticky descendants attach to, so they never reach the
+   viewport. clip clips the same way without creating a scroll container. */
+#wrapper #content-wrapper {
+	overflow-x: clip;
+}
+
+@media (orientation: portrait) and (max-width: 991.98px) {
+	.detection-spectrogram {
+		position: sticky;
+		top: 0;
+		/* Above the form controls scrolling under it; the header dropdown (1000)
+		   and modals (1050) stay above */
+		z-index: 5;
+		/* Opaque over the card body (dark theme overrides in sb-admin-2-dark.css) */
+		background-color: #fff;
+		padding-bottom: 0.25rem;
+		box-shadow: 0 0.25rem 0.5rem -0.25rem rgba(0, 0, 0, 0.15);
+	}
+}
+
+/* Blazored toasts are z-index 1; keep them above anything sticky in the cards,
+   below the modal backdrop (1040). Its stylesheet loads after this one, hence
+   the extra specificity. */
+body .blazored-toast-container {
+	z-index: 1030;
+}
