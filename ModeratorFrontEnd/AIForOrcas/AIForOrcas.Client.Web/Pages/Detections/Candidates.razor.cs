@@ -132,6 +132,8 @@ public partial class Candidates : IDisposable
             _scrollToDetectionId = null;
             await JSRuntime.InvokeVoidAsync("ScrollCardIntoView", detectionId);
         }
+
+        await base.OnAfterRenderAsync(firstRender);
     }
 
     void IDisposable.Dispose()

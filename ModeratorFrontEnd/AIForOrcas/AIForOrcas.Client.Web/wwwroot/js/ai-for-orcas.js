@@ -19,6 +19,8 @@ function UpdateCardLayout() {
 
 	cardLayoutScheduled = false;
 
+	var shift = 0;
+
 	document.querySelectorAll('.detection-spectrogram').forEach(function (column) {
 		var card = column.closest('.card');
 		var row = column.parentElement;
@@ -40,15 +42,18 @@ function UpdateCardLayout() {
 		}
 
 		if (wanted != split) {
-			// Keep the details where the finger is: compensate the scroll by how far
+			// Keep the content where the finger is: compensate the scroll by how far
 			// the details column moved, not by the row height (the narrower column
-			// also gets taller, so the two differ). Exact for the card under the
-			// finger; for cards above it (a rotation, a resize) the error is the
-			// height change of their details column, which is small.
+			// also gets taller, so the two differ). A rotation or a resize switches
+			// every card in one pass, so the shifts are summed and applied once at
+			// the end; a card entirely below the fold moves nothing the moderator
+			// can see and is left out of the sum.
 			var before = details.getBoundingClientRect().top;
 			card.classList.toggle('detection-split', wanted);
 			var after = details.getBoundingClientRect().top;
-			window.scrollBy(0, after - before);
+			if (before < window.innerHeight) {
+				shift += after - before;
+			}
 			ResizeActivePlayer();
 
 			// Lets the css fade the full-width spectrogram back in
@@ -59,6 +64,10 @@ function UpdateCardLayout() {
 			}
 		}
 	});
+
+	if (shift) {
+		window.scrollBy(0, shift);
+	}
 }
 
 function ScheduleCardLayout() {
