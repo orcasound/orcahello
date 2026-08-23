@@ -363,7 +363,10 @@ body .blazored-toast-container {
    only the scale changes with the room, through the three variables below.
    sb-admin's own rule is a fixed 4.375rem box with 1.5rem of padding, which clips
    the title as soon as the sidebar is narrow. */
-.sidebar-brand {
+/* Scoped like sb-admin's own rule: a bare .sidebar-brand loses to
+   .sidebar .sidebar-brand, which fixes the height at 4.375rem and the padding at
+   1.5rem, so the box could never grow and the rail kept the vendor padding. */
+.sidebar .sidebar-brand {
 	--brand-padding: 1rem;
 	--brand-title: 1.5rem;
 	--brand-subtitle: .8rem;
@@ -374,7 +377,7 @@ body .blazored-toast-container {
 	text-align: center;
 }
 
-.sidebar-brand .card-title {
+.sidebar .sidebar-brand .card-title {
 	font-size: var(--brand-title);
 	/* line-height and the gap are ratios of the type, so the block keeps the same
 	   proportions at every scale */
@@ -383,7 +386,7 @@ body .blazored-toast-container {
 	white-space: nowrap;
 }
 
-.sidebar-brand .sidebar-subtitle {
+.sidebar .sidebar-brand .sidebar-subtitle {
 	font-size: var(--brand-subtitle);
 	line-height: 1.2;
 	/* .card-subtitle pulls itself up by a fixed -.375rem, the same pixels whatever
@@ -397,7 +400,7 @@ body .blazored-toast-container {
    wherever it is the 6.5rem rail (sb-admin uses that width for the whole sidebar
    below md, and for the collapsed sidebar on any screen). */
 @media (max-width: 767.98px) {
-	.sidebar-brand {
+	.sidebar .sidebar-brand {
 		--brand-padding: .5rem;
 		--brand-title: .85rem;
 		--brand-subtitle: .55rem;

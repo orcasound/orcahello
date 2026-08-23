@@ -21,6 +21,7 @@ function UpdateCardLayout() {
 
 	var shift = 0;
 
+
 	document.querySelectorAll('.detection-spectrogram').forEach(function (column) {
 		var card = column.closest('.card');
 		var row = column.parentElement;
