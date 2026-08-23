@@ -169,6 +169,49 @@ function ToggleSideBar() {
 	ResizeActivePlayer();
 }
 
+/* Back to top */
+
+// sb-admin drives this control with a queued fadeIn/fadeOut per scroll event, so a
+// fast scroll on a phone leaves the queue running behind the finger and the control
+// visible when it should not be (or the other way round). Decide it from the current
+// scroll position on every frame instead; the css keys off the body class.
+(function () {
+
+	var pending = false;
+
+	var update = function () {
+		pending = false;
+		var top = window.pageYOffset || document.documentElement.scrollTop || 0;
+		document.body.classList.toggle('show-scroll-to-top', top > 100);
+	};
+
+	var onScroll = function () {
+		if (!pending) {
+			pending = true;
+			window.requestAnimationFrame(update);
+		}
+	};
+
+	window.addEventListener('scroll', onScroll, { passive: true });
+	window.addEventListener('resize', onScroll, { passive: true });
+	document.addEventListener('DOMContentLoaded', update);
+	update();
+
+	// sb-admin animates the jump with jQuery easing (easeInOutExpo), and that plugin
+	// is not among the scripts this app loads, so its handler throws and the control
+	// does nothing when tapped. Take the click first and scroll natively. Registered
+	// before sb-admin's, so stopping propagation keeps the broken one from running.
+	document.addEventListener('click', function (event) {
+		var control = event.target.closest ? event.target.closest('.scroll-to-top') : null;
+		if (!control) {
+			return;
+		}
+		event.preventDefault();
+		event.stopImmediatePropagation();
+		window.scrollTo({ top: 0, behavior: 'smooth' });
+	});
+})();
+
 /* Modal Map Functionality */
 
 function LoadBingMap(id, latitude, longitude) {

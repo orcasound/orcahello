@@ -316,9 +316,22 @@ label {
 }
 
 /* The back-to-top control shares the right edge with a pinned spectrogram column
-   (landscape split); keep it above (sb-admin leaves it at z-index auto) */
+   (landscape split); keep it above (sb-admin leaves it at z-index auto).
+   sb-admin shows and hides it with queued fadeIn/fadeOut on every scroll event,
+   which on a phone leaves the animation queue behind the finger and the control
+   stuck in the wrong state. ai-for-orcas.js toggles the class below instead, and
+   these rules win over whatever the queue left in the inline style. */
 .scroll-to-top {
 	z-index: 6;
+}
+
+body:not(.show-scroll-to-top) .scroll-to-top {
+	display: none !important;
+}
+
+body.show-scroll-to-top .scroll-to-top {
+	display: block !important;
+	opacity: 1 !important;
 }
 
 /* Blazored toasts are z-index 1; keep them above anything sticky in the cards,
