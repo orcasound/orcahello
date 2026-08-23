@@ -138,6 +138,7 @@
                                         <button type="button"
                                                 class="btn btn-sm btn-outline-primary"
                                                 @key="suggestion"
+                                                title="@suggestion"
                                                 @onclick="(() => AddTag(suggestion))">
                                             + @suggestion
                                         </button>
@@ -155,6 +156,7 @@
                                         <button type="button"
                                                 class="btn btn-sm btn-outline-primary"
                                                 @key="tag"
+                                                title="@tag"
                                                 @onclick="(() => RemoveTag(tag))">
                                             x @tag
                                         </button>

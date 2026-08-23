@@ -164,6 +164,14 @@ label {
 	cursor: pointer;
 }
 
+/* The input carries the focus but cannot show it, since it is transparent and the
+   button styling sits on the label around it. Draw the ring on the label instead,
+   the same one bootstrap gives a focused .btn. */
+.detection-options label:focus-within {
+	box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.5);
+	border-radius: 0.2rem;
+}
+
 /* Tags read as chips: each one as wide as its own text, so the width says something
    about the tag instead of about how many share the row. Floor keeps a small tag
    tappable, ceiling stops a long one taking the whole row, and what does not fit is
