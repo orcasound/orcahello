@@ -377,7 +377,8 @@ public partial class DetectionComponent
         {
             start = annotation.StartTime,
             end = annotation.EndTime,
-            color = "rgba(255, 255, 255, 0.1)"
+            // Outline only (border in ai-for-orcas.css): a fill all but vanished on a small spectrogram
+            color = "rgba(0, 0, 0, 0)"
         }));
 
     private async Task InitializeModalPlayer()

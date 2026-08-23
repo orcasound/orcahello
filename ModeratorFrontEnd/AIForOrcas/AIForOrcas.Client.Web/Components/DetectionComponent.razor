@@ -54,7 +54,7 @@
                 <!-- Spectrogram Button and Timer -->
                 <div class="row d-flex flex-row justify-content-between m-0 col-12 px-0 detection-player">
                     <div class="px-0">
-                        <a class="" @onclick="@((()=>ToggleCardPlayer()))">
+                        <a class="detection-play" @onclick="@((()=>ToggleCardPlayer()))">
                             <i id=@CardPlayButtonId class="fas fa-play-circle fa-3x"></i>
                         </a>
                     </div>
@@ -107,12 +107,12 @@
                     <Authorized Context="Auth">
                         <!-- Detection Confirmed -->
                         <div class="row">
-                            <div class="col-12 form-group">
-                                <label class="mb-0">Was there an SRKW call in this clip?</label>
-                                <div style="display: grid">
+                            <div class="col-12 form-group detection-section">
+                                <label class="detection-section-title">Was there an SRKW call in this clip?</label>
+                                <div class="detection-options">
                                     @foreach (var option in optionList)
                                     {
-                                        <label>
+                                        <label class="btn btn-sm btn-outline-primary @(Detection.Found.ToLower() == option.ToLower() ? "active" : "")">
                                             <input type="radio"
                                                name="found"
                                                value="@option"
@@ -127,20 +127,20 @@
                         </div>
                         <!-- Tags -->
                         <div class="row">
-                            <div class="col-12 form-group">
-                                <label>Tags</label>
+                            <div class="col-12 form-group detection-section">
+                                <label class="detection-section-title">Tags</label>
                                 <div class="row">
                                     @foreach (var suggestion in GetSuggestedTagList(Detection))
                                     {
                                         <button type="button"
-                                                class="btn btn-sm btn-outline-primary mr-1 mb-1"
+                                                class="btn btn-sm btn-outline-primary"
                                                 @onclick="(() => AddTag(suggestion))">
                                             + @suggestion
                                         </button>
                                     }
                                 </div>
                                 <div class="row">
-                                    <InputText class="form-control" placeholder="Add tags separated by commas or semicolons"
+                                    <InputText class="form-control" placeholder="Separated by commas or semicolons"
                                                Value="@Detection.Tags"
                                                ValueChanged="@OnTagsChanged"
                                                ValueExpression="(() => Detection.Tags)" />
@@ -149,7 +149,7 @@
                                     @foreach (var tag in Detection.TagList)
                                     {
                                         <button type="button"
-                                                class="btn btn-sm btn-outline-primary mr-1 mb-1"
+                                                class="btn btn-sm btn-outline-primary"
                                                 @onclick="(() => RemoveTag(tag))">
                                             x @tag
                                         </button>
@@ -159,8 +159,8 @@
                         </div>
                         <!-- Comments -->
                         <div class="row">
-                            <div class="col-12 form-group">
-                                <label>Comments</label>
+                            <div class="col-12 form-group detection-section">
+                                <label class="detection-section-title">Comments</label>
                                 <div>
                                     <InputTextArea class="form-control"
                                                    placeholder="Add comments"
@@ -288,7 +288,7 @@
                 <!-- Spectrogram Button and Timer -->
                 <div class="row d-flex flex-row justify-content-between m-0 mt-2 px-0 clearfix">
                     <div class="px-0 col">
-                        <a class="" @onclick="@(() => ToggleModalPlayer())">
+                        <a class="detection-play" @onclick="@(() => ToggleModalPlayer())">
                             <i id=@ModalPlayButtonId class="fas fa-play-circle fa-3x"></i>
                         </a>
                     </div>

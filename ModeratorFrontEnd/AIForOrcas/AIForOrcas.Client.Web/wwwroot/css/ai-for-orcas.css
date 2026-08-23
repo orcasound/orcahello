@@ -42,10 +42,20 @@
 	}
 }
 
+/* The play control is an <a> with no href, so the browser leaves the arrow cursor
+   on it and it does not read as clickable on a desktop. */
+.detection-play {
+	cursor: pointer;
+}
+
 /* Wavesurfer additions */
 
+/* Detected regions over the spectrogram: outline only, a magenta 2px edge with a
+   thin dark halo so it reads on both the dark and the light parts of the image at
+   any size (the fill colour from the component is transparent) */
 .wavesurfer-region {
-	border: 1px solid white !important;
+	border: 2px solid rgba(214, 51, 132, 0.95) !important;
+	box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3);
 }
 
 /* Not sure if these help or not */
@@ -97,6 +107,86 @@ label {
 		padding-bottom: 0.25rem;
 		box-shadow: 0 0.25rem 0.5rem -0.25rem rgba(0, 0, 0, 0.15);
 	}
+}
+
+/* Card details: one pattern for every section (verdict, tags, comments): a bold
+   title, then its fields at full width, the same space between sections. The tag
+   rows are .row without a column inside, so their gutters are zeroed and the
+   buttons laid out as an even wrapping grid, text-sized but bounded so the rows
+   fill edge to edge; the input keeps air from the button rows around it. */
+.detection-details p {
+	margin-bottom: 0.5rem;
+}
+
+.detection-section {
+	margin-top: 0.75rem;
+	margin-bottom: 0.75rem;
+}
+
+.detection-section-title {
+	display: block;
+	font-weight: 600;
+	margin-bottom: 0.25rem;
+}
+
+.detection-section > .row {
+	margin-left: 0;
+	margin-right: 0;
+}
+
+/* Play button and timer under the spectrogram */
+.detection-player {
+	margin-top: 0.5rem !important;   /* the row's m-0 utility is the one being overridden */
+}
+
+/* Verdict options as buttons on one wrapping line, like the tag rows: the radio
+   input stays inside each button, invisible and covering it, so taps, keyboard
+   and scripts keep driving the radio; the chosen one is filled (.active) */
+.detection-options {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.25rem;
+}
+
+.detection-options label {
+	position: relative;
+	margin-bottom: 0;
+}
+
+.detection-options input[type="radio"] {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	opacity: 0;
+	cursor: pointer;
+}
+
+/* Tags read as chips: each one as wide as its own text, so the width says something
+   about the tag instead of about how many share the row. Floor keeps a small tag
+   tappable, ceiling stops a long one taking the whole row, and what does not fit is
+   cut with an ellipsis rather than wrapped inside the button. */
+.detection-section > .row > .btn {
+	flex: 0 1 auto;
+	min-width: 4.5rem;
+	max-width: 12rem;
+	margin: 0 0.25rem 0.25rem 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.detection-section > .row > .form-control {
+	margin-top: 0.75rem;
+	margin-bottom: 0.75rem;
+	/* Narrow on phones: the placeholder trims with an ellipsis instead of clipping */
+	text-overflow: ellipsis;
+}
+
+.detection-section > .row > .form-control::placeholder {
+	font-size: 0.9rem;
 }
 
 /* Landscape: a full-width pinned image would be most of the viewport, so the card
