@@ -42,6 +42,7 @@ public partial class Confirmed : IDisposable
     private async Task LoadDetections()
     {
         loadStatus = "Loading records...";
+        detections = null;
         var paginatedResponse = await Service.GetConfirmedDetectionsAsync(paginationOptions, filterOptions);
 
         pagination.TotalNumberOfRecords = paginatedResponse.TotalNumberRecords;
@@ -65,7 +66,6 @@ public partial class Confirmed : IDisposable
     private async Task ActOnSelectPageCallback(PaginationOptionsDTO returnedPaginationOptions)
     {
         paginationOptions = returnedPaginationOptions;
-        detections = null;
         await LoadDetections();
         await JSRuntime.InvokeVoidAsync("DestroyActivePlayer");
         StateHasChanged();
@@ -86,7 +86,6 @@ public partial class Confirmed : IDisposable
     private async Task ActOnApplyFilterCallback(ReviewedFilterOptionsDTO returnedFilterOptions)
     {
         filterOptions = returnedFilterOptions;
-        detections = null;
         await LoadDetections();
         await JSRuntime.InvokeVoidAsync("DestroyActivePlayer");
         StateHasChanged();
