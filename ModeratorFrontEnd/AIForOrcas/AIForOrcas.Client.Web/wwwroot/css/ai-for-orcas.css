@@ -96,6 +96,16 @@ label {
 }
 
 @media (max-width: 991.98px) {
+	/* Anything the browser scrolls to (tabbing to the next field, an autofocus, a
+	   restored position) must stop below the pinned column instead of behind it.
+	   ai-for-orcas.js keeps --pinned-height in step with the column. */
+	.detection-details input,
+	.detection-details textarea,
+	.detection-details .btn,
+	.detection-details label {
+		scroll-margin-top: calc(var(--pinned-height, 0px) + 0.5rem);
+	}
+
 	.detection-spectrogram {
 		position: sticky;
 		top: 0;

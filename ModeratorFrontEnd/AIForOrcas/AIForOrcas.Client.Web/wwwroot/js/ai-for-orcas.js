@@ -71,6 +71,32 @@ function UpdateCardLayout() {
 	}
 }
 
+// How much of the screen a pinned column is holding, so anything the browser scrolls
+// to (a tab to the next field, an autofocus, a restored position) can clear it
+// instead of landing underneath. The height only settles once the spectrogram image
+// has loaded, so watch the element rather than measuring once.
+var pinnedHeightObserver = null;
+
+function WatchPinnedHeight() {
+
+	var column = document.querySelector('.detection-spectrogram');
+	if (!column || !window.ResizeObserver) {
+		return;
+	}
+
+	var publish = function () {
+		var height = getComputedStyle(column).position === 'sticky' ? Math.round(column.offsetHeight) : 0;
+		document.documentElement.style.setProperty('--pinned-height', height + 'px');
+	};
+
+	if (pinnedHeightObserver) {
+		pinnedHeightObserver.disconnect();
+	}
+	pinnedHeightObserver = new ResizeObserver(publish);
+	pinnedHeightObserver.observe(column);
+	publish();
+}
+
 function ScheduleCardLayout() {
 
 	if (!cardLayoutScheduled) {
@@ -86,8 +112,10 @@ function WatchCardLayout() {
 		cardLayoutWatching = true;
 		window.addEventListener('scroll', ScheduleCardLayout, { passive: true });
 		window.addEventListener('resize', ScheduleCardLayout);
+		window.addEventListener('resize', WatchPinnedHeight);
 	}
 
+	WatchPinnedHeight();
 	ScheduleCardLayout();
 }
 
