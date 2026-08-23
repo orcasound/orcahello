@@ -132,8 +132,12 @@
                                 <div class="row">
                                     @foreach (var suggestion in GetSuggestedTagList(Detection))
                                     {
+                                        @* Keyed by the tag: without it Blazor matches these buttons by
+                                           position, so adding one leaves the clicked element in place with
+                                           the next tag's text on it, still focused and looking selected. *@
                                         <button type="button"
                                                 class="btn btn-sm btn-outline-primary"
+                                                @key="suggestion"
                                                 @onclick="(() => AddTag(suggestion))">
                                             + @suggestion
                                         </button>
@@ -150,6 +154,7 @@
                                     {
                                         <button type="button"
                                                 class="btn btn-sm btn-outline-primary"
+                                                @key="tag"
                                                 @onclick="(() => RemoveTag(tag))">
                                             x @tag
                                         </button>
