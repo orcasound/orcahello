@@ -47,6 +47,15 @@ public partial class Unknown : IDisposable
 
         pagination.TotalNumberOfRecords = paginatedResponse.TotalNumberRecords;
         pagination.TotalNumberOfPages = paginatedResponse.TotalAmountPages;
+
+        if (pagination.TotalNumberOfPages > 0 && paginationOptions.Page > pagination.TotalNumberOfPages)
+        {
+            paginationOptions.Page = pagination.TotalNumberOfPages;
+            paginatedResponse = await Service.GetUnconfirmedDetectionsAsync(paginationOptions, filterOptions);
+            pagination.TotalNumberOfRecords = paginatedResponse.TotalNumberRecords;
+            pagination.TotalNumberOfPages = paginatedResponse.TotalAmountPages;
+        }
+
         pagination.CurrentPage = paginationOptions.Page;
 
         if (paginatedResponse.Response == null)
