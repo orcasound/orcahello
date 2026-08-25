@@ -43,8 +43,13 @@ public partial class Dashboard
 
         StateHasChanged();
 
-        await JSRuntime.InvokeVoidAsync("DrawDetectionsChart", metrics.DetectionsArray);
-        await JSRuntime.InvokeVoidAsync("DrawDetectionResultsChart", metrics.DetectionResultsArray);
+        // Both charts live inside the section that stays hidden when there is no content,
+        // so drawing them then renders an all-zero doughnut nobody can see.
+        if (metrics.HasContent)
+        {
+            await JSRuntime.InvokeVoidAsync("DrawDetectionsChart", metrics.DetectionsArray);
+            await JSRuntime.InvokeVoidAsync("DrawDetectionResultsChart", metrics.DetectionResultsArray);
+        }
     }
 
     private async Task ActOnApplyFilterCallback(MetricsFilterDTO returnedFilterOptions)
