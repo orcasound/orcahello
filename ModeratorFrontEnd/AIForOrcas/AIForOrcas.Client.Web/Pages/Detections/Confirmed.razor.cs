@@ -42,10 +42,20 @@ public partial class Confirmed : IDisposable
     private async Task LoadDetections()
     {
         loadStatus = "Loading records...";
+        detections = null;
         var paginatedResponse = await Service.GetConfirmedDetectionsAsync(paginationOptions, filterOptions);
 
         pagination.TotalNumberOfRecords = paginatedResponse.TotalNumberRecords;
         pagination.TotalNumberOfPages = paginatedResponse.TotalAmountPages;
+
+        if (pagination.TotalNumberOfPages > 0 && paginationOptions.Page > pagination.TotalNumberOfPages)
+        {
+            paginationOptions.Page = pagination.TotalNumberOfPages;
+            paginatedResponse = await Service.GetConfirmedDetectionsAsync(paginationOptions, filterOptions);
+            pagination.TotalNumberOfRecords = paginatedResponse.TotalNumberRecords;
+            pagination.TotalNumberOfPages = paginatedResponse.TotalAmountPages;
+        }
+
         pagination.CurrentPage = paginationOptions.Page;
 
         if (paginatedResponse.Response == null)
@@ -62,10 +72,10 @@ public partial class Confirmed : IDisposable
             detections = paginatedResponse.Response;
         }
     }
+
     private async Task ActOnSelectPageCallback(PaginationOptionsDTO returnedPaginationOptions)
     {
         paginationOptions = returnedPaginationOptions;
-        detections = null;
         await LoadDetections();
         await JSRuntime.InvokeVoidAsync("DestroyActivePlayer");
         StateHasChanged();
@@ -86,7 +96,7 @@ public partial class Confirmed : IDisposable
     private async Task ActOnApplyFilterCallback(ReviewedFilterOptionsDTO returnedFilterOptions)
     {
         filterOptions = returnedFilterOptions;
-        detections = null;
+        paginationOptions.Page = 1;
         await LoadDetections();
         await JSRuntime.InvokeVoidAsync("DestroyActivePlayer");
         StateHasChanged();
