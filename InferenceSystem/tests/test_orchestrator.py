@@ -138,3 +138,17 @@ def test_livehls_smoke():
     assert any(s in output for s in expected_strings), (
         f"Expected at least one of the expected strings in output: {expected_strings}"
     )
+
+
+def test_livehls_multilocation_smoke():
+    """Smoke test: multi-location LiveHLS processes both locations per iteration."""
+    config = ORCH_CONFIGS_DIR / "LiveHLS" / "LiveHLS_MultiLocation.yml"
+    output, returncode = run_orchestrator(config, max_live_iterations=2)
+    print(output)
+    assert returncode == 0, f"Orchestrator exited with code {returncode}"
+    assert "[iter 1]" in output, "Expected at least two iterations"
+    # All locations should appear in log output
+    for loc in ["rpi_orcasound_lab", "rpi_bush_point", "rpi_north_sjc"]:
+        assert f"[{loc}]" in output, (
+            f"Expected {loc} location prefix in output"
+        )
