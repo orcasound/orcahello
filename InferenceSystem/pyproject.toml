@@ -46,3 +46,10 @@ dev = [
     "pytest==9.0.3",
     "pytest-cov==7.0.0",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "parity: compare outputs against committed FastAI references",
+    "slow: long-running tests",
+]
