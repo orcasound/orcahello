@@ -177,6 +177,13 @@ public partial class DetectionComponent
         // first render (e.g. while the single detection page is still loading the record);
         // the JS side is idempotent and exits early once the shades exist.
         await JSRuntime.InvokeVoidAsync("DrawRegionShades", _id, Detection.AudioUri, RegionsJson);
+
+        // Once per card is enough: the JS wires its listeners on the first call and
+        // re-evaluates every card on each scroll and resize after that.
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("WatchCardLayout");
+        }
     }
 
     private void SetFoundValue(string found)
@@ -376,7 +383,8 @@ public partial class DetectionComponent
         {
             start = annotation.StartTime,
             end = annotation.EndTime,
-            color = "rgba(255, 255, 255, 0.1)"
+            // Outline only (border in ai-for-orcas.css): a fill all but vanished on a small spectrogram
+            color = "rgba(0, 0, 0, 0)"
         }));
 
     private async Task InitializeModalPlayer()

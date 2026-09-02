@@ -42,10 +42,20 @@
 	}
 }
 
+/* The play control is an <a> with no href, so the browser leaves the arrow cursor
+   on it and it does not read as clickable on a desktop. */
+.detection-play {
+	cursor: pointer;
+}
+
 /* Wavesurfer additions */
 
+/* Detected regions over the spectrogram: outline only, a magenta 2px edge with a
+   thin dark halo so it reads on both the dark and the light parts of the image at
+   any size (the fill colour from the component is transparent) */
 .wavesurfer-region {
-	border: 1px solid white !important;
+	border: 2px solid rgba(214, 51, 132, 0.95) !important;
+	box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3);
 }
 
 /* Not sure if these help or not */
@@ -70,4 +80,345 @@ label {
 
 .validation-message {
 	color: red !important;
+}
+
+/* Candidate card on a small screen: keep the spectrogram (the evidence) in view
+   while the rest of the card, verdict, tags, comments and buttons, scrolls under
+   it; it releases at the end of the card body. Below the lg breakpoint only, where
+   the column is stacked full width; at lg+ it sits beside the form. Portrait pins
+   it full width; landscape splits the card body in two once scrolled down (below). */
+
+/* sb-admin-2 hides horizontal overflow here, which also makes #content-wrapper the
+   scroll container that sticky descendants attach to, so they never reach the
+   viewport. clip clips the same way without creating a scroll container. */
+#wrapper #content-wrapper {
+	overflow-x: clip;
+}
+
+@media (max-width: 991.98px) {
+	/* Anything the browser scrolls to (tabbing to the next field, an autofocus, a
+	   restored position) must stop below the pinned column instead of behind it.
+	   ai-for-orcas.js keeps --pinned-height in step with the column. */
+	.detection-details input,
+	.detection-details textarea,
+	.detection-details .btn,
+	.detection-details label {
+		scroll-margin-top: calc(var(--pinned-height, 0px) + 0.5rem);
+	}
+
+	.detection-spectrogram {
+		position: sticky;
+		top: 0;
+		/* Above the form controls scrolling under it; the header dropdown (1000)
+		   and modals (1050) stay above */
+		z-index: 5;
+		/* Opaque over the card body (dark theme overrides in sb-admin-2-dark.css) */
+		background-color: #fff;
+		padding-bottom: 0.25rem;
+		box-shadow: 0 0.25rem 0.5rem -0.25rem rgba(0, 0, 0, 0.15);
+	}
+}
+
+/* Card details: one pattern for every section (verdict, tags, comments): a bold
+   title, then its fields at full width, the same space between sections. The tag
+   rows are .row without a column inside, so their gutters are zeroed and the
+   buttons laid out as an even wrapping grid, text-sized but bounded so the rows
+   fill edge to edge; the input keeps air from the button rows around it. */
+.detection-details p {
+	margin-bottom: 0.5rem;
+}
+
+.detection-section {
+	margin-top: 0.75rem;
+	margin-bottom: 0.75rem;
+}
+
+.detection-section-title {
+	display: block;
+	font-weight: 600;
+	margin-bottom: 0.25rem;
+}
+
+.detection-section > .row {
+	margin-left: 0;
+	margin-right: 0;
+}
+
+/* Play button and timer under the spectrogram */
+.detection-player {
+	margin-top: 0.5rem !important;   /* the row's m-0 utility is the one being overridden */
+}
+
+/* Verdict options as buttons on one wrapping line, like the tag rows: the radio
+   input stays inside each button, invisible and covering it, so taps, keyboard
+   and scripts keep driving the radio; the chosen one is filled (.active) */
+.detection-options {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.25rem;
+}
+
+.detection-options label {
+	position: relative;
+	margin-bottom: 0;
+}
+
+.detection-options input[type="radio"] {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	opacity: 0;
+	cursor: pointer;
+}
+
+/* The input carries the focus but cannot show it, since it is transparent and the
+   button styling sits on the label around it. Draw the ring on the label instead,
+   the same one bootstrap gives a focused .btn. */
+.detection-options label:focus-within {
+	box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.5);
+	border-radius: 0.2rem;
+}
+
+/* Tags read as chips: each one as wide as its own text, so the width says something
+   about the tag instead of about how many share the row. Floor keeps a small tag
+   tappable, ceiling stops a long one taking the whole row, and what does not fit is
+   cut with an ellipsis rather than wrapped inside the button. */
+.detection-section > .row > .btn {
+	flex: 0 1 auto;
+	min-width: 4.5rem;
+	max-width: 12rem;
+	margin: 0 0.25rem 0.25rem 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.detection-section > .row > .form-control {
+	margin-top: 0.75rem;
+	margin-bottom: 0.75rem;
+	/* Narrow on phones: the placeholder trims with an ellipsis instead of clipping */
+	text-overflow: ellipsis;
+}
+
+.detection-section > .row > .form-control::placeholder {
+	font-size: 0.9rem;
+}
+
+/* Landscape: a full-width pinned image would be most of the viewport, so the card
+   starts stacked (evidence first, not pinned) and, once the details have scrolled
+   into the top 30% of the screen, the card body splits side by side: spectrogram
+   pinned at the top on the right (a bit over half), details scrolling on the
+   left, footer full width as before. Scrolling back up past 45% stacks it again
+   (two lines, so it cannot flicker at one position). Class set by
+   UpdateCardLayout in ai-for-orcas.js. Gated on a real landscape width: a portrait
+   phone with the soft keyboard open is also wider than tall, and must not split. */
+@media (orientation: landscape) and (min-width: 568px) and (max-width: 991.98px) {
+	.card:not(.detection-split) .detection-spectrogram {
+		position: static;
+		box-shadow: none;
+	}
+
+	.card.detection-split .detection-spectrogram {
+		/* More than half to the evidence, a little air between the two columns on
+		   top of the gutters */
+		flex: 0 0 55%;
+		max-width: 55%;
+		margin-left: 3%;
+		order: 12;
+		/* Content height, not stretched to the row: a sticky box as tall as its
+		   container has no room to stick */
+		align-self: flex-start;
+		padding-bottom: 0;
+		/* Pinned at the top (base rule) while the details scroll; sticky stops it
+		   at the end of the card body on its own */
+	}
+
+	.card.detection-split .detection-details {
+		flex: 0 0 42%;
+		max-width: 42%;
+		order: 0;
+	}
+
+	/* Narrower details read better as one item per line with tighter spacing */
+	.card.detection-split .detection-details .col-md-6 {
+		flex: 0 0 100%;
+		max-width: 100%;
+	}
+
+	.card.detection-split .detection-details p {
+		margin-bottom: 0.25rem;
+	}
+
+	.card.detection-split .detection-section {
+		margin-top: 0.5rem;
+		margin-bottom: 0.5rem;
+	}
+
+	/* Smaller play button and timer in the pinned column, so it is mostly spectrogram */
+	.card.detection-split .detection-spectrogram .fa-3x {
+		font-size: 2em;
+	}
+
+	.card.detection-split .detection-spectrogram .h5 {
+		font-size: 1rem;
+	}
+
+	.card.detection-split .detection-player {
+		margin-top: 0.25rem !important;
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.card.detection-split .detection-spectrogram {
+			animation: detection-split-in 0.65s cubic-bezier(0.22, 0.61, 0.36, 1);
+		}
+
+		.card.detection-split .detection-details {
+			animation: detection-details-in 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
+		}
+
+		.card.detection-stacking .detection-spectrogram {
+			animation: detection-stack-in 0.65s cubic-bezier(0.22, 0.61, 0.36, 1);
+		}
+
+		.card.detection-stacking .detection-details {
+			animation: detection-stack-in 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
+		}
+	}
+}
+
+/* A very short viewport (a phone with the soft keyboard open, or a small phone
+   held sideways) has no room for a pinned column over the field being typed in:
+   let the spectrogram scroll like the rest. The split state keeps its own pin. */
+@media (max-height: 479.98px) {
+	.card:not(.detection-split) .detection-spectrogram {
+		position: static;
+		box-shadow: none;
+	}
+}
+
+@keyframes detection-split-in {
+	from {
+		opacity: 0;
+		transform: translateX(0.75rem);
+	}
+
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+@keyframes detection-details-in {
+	from {
+		opacity: 0;
+		transform: translateX(-0.75rem);
+	}
+
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+@keyframes detection-stack-in {
+	from {
+		opacity: 0;
+	}
+
+	to {
+		opacity: 1;
+	}
+}
+
+/* The back-to-top control shares the right edge with a pinned spectrogram column
+   (landscape split); keep it above (sb-admin leaves it at z-index auto).
+   sb-admin shows and hides it with queued fadeIn/fadeOut on every scroll event,
+   which on a phone leaves the animation queue behind the finger and the control
+   stuck in the wrong state. ai-for-orcas.js toggles the class below instead, and
+   these rules win over whatever the queue left in the inline style. */
+.scroll-to-top {
+	z-index: 6;
+}
+
+body:not(.show-scroll-to-top) .scroll-to-top {
+	display: none !important;
+}
+
+body.show-scroll-to-top .scroll-to-top {
+	display: block !important;
+	opacity: 1 !important;
+}
+
+/* Blazored toasts are z-index 1; keep them above anything sticky in the cards,
+   below the modal backdrop (1040). Its stylesheet loads after this one, hence
+   the extra specificity. */
+body .blazored-toast-container {
+	z-index: 1030;
+}
+
+/* Sidebar on small screens: collapsed from the first paint (body class set by
+   ai-for-orcas.js before Blazor renders), same look as sb-admin's .sidebar.toggled */
+@media (max-width: 767.98px) {
+	body.sidebar-toggled .sidebar {
+		width: 0 !important;
+		overflow: hidden;
+	}
+}
+
+/* Sidebar brand: one block, the same shape wherever it renders (phone or desktop,
+   rail or expanded). Both lines always show and the block grows to hold them;
+   only the scale changes with the room, through the three variables below.
+   sb-admin's own rule is a fixed 4.375rem box with 1.5rem of padding, which clips
+   the title as soon as the sidebar is narrow. */
+/* Scoped like sb-admin's own rule: a bare .sidebar-brand loses to
+   .sidebar .sidebar-brand, which fixes the height at 4.375rem and the padding at
+   1.5rem, so the box could never grow and the rail kept the vendor padding. */
+.sidebar .sidebar-brand {
+	--brand-padding: 1rem;
+	--brand-title: 1.5rem;
+	--brand-subtitle: .8rem;
+	height: auto;
+	min-height: 4.375rem;
+	padding: var(--brand-padding);
+	justify-content: center;
+	text-align: center;
+}
+
+.sidebar .sidebar-brand .card-title {
+	font-size: var(--brand-title);
+	/* line-height and the gap are ratios of the type, so the block keeps the same
+	   proportions at every scale */
+	line-height: 1.2;
+	margin-bottom: .15em;
+	white-space: nowrap;
+}
+
+.sidebar .sidebar-brand .sidebar-subtitle {
+	font-size: var(--brand-subtitle);
+	line-height: 1.2;
+	/* .card-subtitle pulls itself up by a fixed -.375rem, the same pixels whatever
+	   the type is doing, which is what made the two lines sit differently in each
+	   view. The gap is the title's .15em and nothing else. */
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
+/* Two scales, chosen by the room the sidebar has: the wide one above, and this one
+   wherever it is the 6.5rem rail (sb-admin uses that width for the whole sidebar
+   below md, and for the collapsed sidebar on any screen). */
+@media (max-width: 767.98px) {
+	.sidebar .sidebar-brand {
+		--brand-padding: .5rem;
+		--brand-title: .85rem;
+		--brand-subtitle: .55rem;
+	}
+}
+
+.sidebar.toggled .sidebar-brand {
+	--brand-padding: .5rem;
+	--brand-title: .85rem;
+	--brand-subtitle: .55rem;
 }
