@@ -36,7 +36,7 @@
 
     <div class="card-body container-fluid">
         <div class="row">
-            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-6 order-lg-12">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-6 order-lg-12 detection-spectrogram">
                 <!-- Card Spectrogram Image -->
                 <div class="row">
                     <div class="col-12 px-0">
@@ -52,9 +52,9 @@
                     </div>
                 </div>
                 <!-- Spectrogram Button and Timer -->
-                <div class="row d-flex flex-row justify-content-between m-0 mt-2 col-12 px-0">
+                <div class="row d-flex flex-row justify-content-between m-0 col-12 px-0 detection-player">
                     <div class="px-0">
-                        <a class="" @onclick="@((()=>ToggleCardPlayer()))">
+                        <a class="detection-play" @onclick="@((()=>ToggleCardPlayer()))">
                             <i id=@CardPlayButtonId class="fas fa-play-circle fa-3x"></i>
                         </a>
                     </div>
@@ -65,7 +65,7 @@
                 </div>
 
             </div>
-            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-6 order-lg-0 mt-2 mt-sm-2 mt-md-2">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-6 order-lg-0 mt-2 mt-sm-2 mt-md-2 detection-details">
                 <!-- Datetime & Location -->
                 <div class="row">
                     <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
@@ -107,12 +107,12 @@
                     <Authorized Context="Auth">
                         <!-- Detection Confirmed -->
                         <div class="row">
-                            <div class="col-12 form-group">
-                                <label class="mb-0">Was there an SRKW call in this clip?</label>
-                                <div style="display: grid">
+                            <div class="col-12 form-group detection-section">
+                                <label class="detection-section-title">Was there an SRKW call in this clip?</label>
+                                <div class="detection-options">
                                     @foreach (var option in optionList)
                                     {
-                                        <label>
+                                        <label class="btn btn-sm btn-outline-primary @(Detection.Found.ToLower() == option.ToLower() ? "active" : "")">
                                             <input type="radio"
                                                name="found"
                                                value="@option"
@@ -127,20 +127,25 @@
                         </div>
                         <!-- Tags -->
                         <div class="row">
-                            <div class="col-12 form-group">
-                                <label>Tags</label>
+                            <div class="col-12 form-group detection-section">
+                                <label class="detection-section-title">Tags</label>
                                 <div class="row">
                                     @foreach (var suggestion in GetSuggestedTagList(Detection))
                                     {
+                                        @* Keyed by the tag: without it Blazor matches these buttons by
+                                           position, so adding one leaves the clicked element in place with
+                                           the next tag's text on it, still focused and looking selected. *@
                                         <button type="button"
-                                                class="btn btn-sm btn-outline-primary mr-1 mb-1"
+                                                class="btn btn-sm btn-outline-primary"
+                                                @key="suggestion"
+                                                title="@suggestion"
                                                 @onclick="(() => AddTag(suggestion))">
                                             + @suggestion
                                         </button>
                                     }
                                 </div>
                                 <div class="row">
-                                    <InputText class="form-control" placeholder="Add tags separated by commas or semicolons"
+                                    <InputText class="form-control" placeholder="Separated by commas or semicolons"
                                                Value="@Detection.Tags"
                                                ValueChanged="@OnTagsChanged"
                                                ValueExpression="(() => Detection.Tags)" />
@@ -149,7 +154,9 @@
                                     @foreach (var tag in Detection.TagList)
                                     {
                                         <button type="button"
-                                                class="btn btn-sm btn-outline-primary mr-1 mb-1"
+                                                class="btn btn-sm btn-outline-primary"
+                                                @key="tag"
+                                                title="@tag"
                                                 @onclick="(() => RemoveTag(tag))">
                                             x @tag
                                         </button>
@@ -159,8 +166,8 @@
                         </div>
                         <!-- Comments -->
                         <div class="row">
-                            <div class="col-12 form-group">
-                                <label>Comments</label>
+                            <div class="col-12 form-group detection-section">
+                                <label class="detection-section-title">Comments</label>
                                 <div>
                                     <InputTextArea class="form-control"
                                                    placeholder="Add comments"
@@ -288,7 +295,7 @@
                 <!-- Spectrogram Button and Timer -->
                 <div class="row d-flex flex-row justify-content-between m-0 mt-2 px-0 clearfix">
                     <div class="px-0 col">
-                        <a class="" @onclick="@(() => ToggleModalPlayer())">
+                        <a class="detection-play" @onclick="@(() => ToggleModalPlayer())">
                             <i id=@ModalPlayButtonId class="fas fa-play-circle fa-3x"></i>
                         </a>
                     </div>

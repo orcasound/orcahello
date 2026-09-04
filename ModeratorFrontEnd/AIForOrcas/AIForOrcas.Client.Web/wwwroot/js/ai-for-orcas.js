@@ -1,15 +1,254 @@
-﻿/* Sidebar Toggler */
+﻿/* Candidate card layout on small landscape screens */
+
+// Stacked at the card top (evidence first); once the details have scrolled into the
+// top part of the screen the card body splits side by side, spectrogram pinned at
+// half width beside the scrolling details. The distance the details move on a
+// switch is compensated on the scroll position, so the content under the finger
+// stays put. One passive scroll listener, one rAF-throttled pass over the cards.
+var cardLayoutScheduled = false;
+var cardLayoutWatching = false;
+var landscapeSmallScreen = window.matchMedia('(orientation: landscape) and (min-width: 568px) and (max-width: 991.98px)');
+// Of the viewport height, from the top. Two different lines so the layout can
+// never flip back and forth at one scroll position: split when the details come
+// up to 30%, stack again only once the row (the details' top edge in the split
+// state) is back down past 45%.
+var SPLIT_WHEN_DETAILS_WITHIN = 0.3;
+var STACK_WHEN_DETAILS_BELOW = 0.45;
+
+function UpdateCardLayout() {
+
+	cardLayoutScheduled = false;
+
+	var shift = 0;
+
+
+	document.querySelectorAll('.detection-spectrogram').forEach(function (column) {
+		var card = column.closest('.card');
+		var row = column.parentElement;
+		var details = row.querySelector('.detection-details');
+
+		if (!card || !details) {
+			return;
+		}
+
+		var split = card.classList.contains('detection-split');
+		var wanted = split;
+
+		if (!landscapeSmallScreen.matches) {
+			wanted = false;
+		} else if (!split && details.getBoundingClientRect().top <= window.innerHeight * SPLIT_WHEN_DETAILS_WITHIN) {
+			wanted = true;
+		} else if (split && row.getBoundingClientRect().top > window.innerHeight * STACK_WHEN_DETAILS_BELOW) {
+			wanted = false;
+		}
+
+		if (wanted != split) {
+			// Keep the content where the finger is: compensate the scroll by how far
+			// the details column moved, not by the row height (the narrower column
+			// also gets taller, so the two differ). A rotation or a resize switches
+			// every card in one pass, so the shifts are summed and applied once at
+			// the end; a card entirely below the fold moves nothing the moderator
+			// can see and is left out of the sum.
+			var before = details.getBoundingClientRect().top;
+			card.classList.toggle('detection-split', wanted);
+			var after = details.getBoundingClientRect().top;
+			if (before < window.innerHeight) {
+				shift += after - before;
+			}
+			ResizeActivePlayer();
+
+			// Lets the css fade the full-width spectrogram back in
+			window.clearTimeout(card.stackingTimer);
+			card.classList.toggle('detection-stacking', !wanted);
+			if (!wanted) {
+				card.stackingTimer = window.setTimeout(function () { card.classList.remove('detection-stacking'); }, 700);
+			}
+		}
+	});
+
+	if (shift) {
+		window.scrollBy(0, shift);
+	}
+}
+
+// How much of the screen a pinned column is holding, so anything the browser scrolls
+// to (a tab to the next field, an autofocus, a restored position) can clear it
+// instead of landing underneath. The height only settles once the spectrogram image
+// has loaded, so watch the element rather than measuring once.
+var pinnedHeightObserver = null;
+
+function WatchPinnedHeight() {
+
+	var column = document.querySelector('.detection-spectrogram');
+	if (!column || !window.ResizeObserver) {
+		return;
+	}
+
+	var publish = function () {
+		var height = getComputedStyle(column).position === 'sticky' ? Math.round(column.offsetHeight) : 0;
+		document.documentElement.style.setProperty('--pinned-height', height + 'px');
+	};
+
+	if (pinnedHeightObserver) {
+		pinnedHeightObserver.disconnect();
+	}
+	pinnedHeightObserver = new ResizeObserver(publish);
+	pinnedHeightObserver.observe(column);
+	publish();
+}
+
+function ScheduleCardLayout() {
+
+	if (!cardLayoutScheduled) {
+		cardLayoutScheduled = true;
+		window.requestAnimationFrame(UpdateCardLayout);
+	}
+}
+
+// Called after every card render; wires the listeners once and refreshes the state.
+function WatchCardLayout() {
+
+	if (!cardLayoutWatching) {
+		cardLayoutWatching = true;
+		window.addEventListener('scroll', ScheduleCardLayout, { passive: true });
+		window.addEventListener('resize', ScheduleCardLayout);
+		window.addEventListener('resize', WatchPinnedHeight);
+	}
+
+	WatchPinnedHeight();
+	ScheduleCardLayout();
+}
+
+/* Sidebar Toggler */
+
+// Below the md breakpoint the topbar hamburger is the way to open the sidebar, so
+// it always starts collapsed there and the content gets the full width. On a larger
+// screen the moderator's last choice is remembered instead.
+var smallScreen = window.matchMedia('(max-width: 767.98px)');
+var sidebarPreferenceKey = 'orcahello.sidebar-collapsed';
+
+function ReadSideBarPreference() {
+	try {
+		return window.localStorage.getItem(sidebarPreferenceKey);
+	} catch (e) {
+		return null;   // private mode, or storage blocked
+	}
+}
+
+function WriteSideBarPreference(collapsed) {
+	try {
+		window.localStorage.setItem(sidebarPreferenceKey, collapsed ? '1' : '0');
+	} catch (e) {
+		// nothing to do, the sidebar just will not remember
+	}
+}
+
+// True when the sidebar should be collapsed for the viewport we are in now.
+function SideBarShouldCollapse() {
+	return smallScreen.matches || ReadSideBarPreference() === '1';
+}
+
+function ApplySideBarState(collapsed) {
+	$("body").toggleClass("sidebar-toggled", collapsed);
+	$(".sidebar").toggleClass("toggled", collapsed);
+	if (collapsed) {
+		$('.sidebar .collapse').collapse('hide');
+	}
+}
+
+function CollapseSideBarOnSmallScreens() {
+
+	ApplySideBarState(SideBarShouldCollapse());
+
+	// Crossing the breakpoint re-decides: into the small range it collapses, back
+	// out of it the remembered choice applies again.
+	var onBreakpoint = function () {
+		ApplySideBarState(SideBarShouldCollapse());
+	};
+
+	if (smallScreen.addEventListener) {
+		smallScreen.addEventListener('change', onBreakpoint);
+	} else {
+		smallScreen.addListener(onBreakpoint);   // Safari before 14
+	}
+
+	// On a small screen the open sidebar covers the page, so a tap on a nav item
+	// would navigate behind it. Close it on the way out. Only for links that leave
+	// the page: the accordion togglers (href="#") and the external ones (target)
+	// keep it open. Namespaced and re-bound so repeated renders leave one handler.
+	$(document).off("click.sidebarnav").on("click.sidebarnav", ".sidebar a", function () {
+		var href = $(this).attr("href");
+		if (!smallScreen.matches || !href || href.charAt(0) === "#" || $(this).attr("target")) {
+			return;
+		}
+		ApplySideBarState(true);
+	});
+}
+
+// This script loads before Blazor renders, so the body class goes on now and the
+// sidebar paints in its final state from the first frame (the css rule on
+// body.sidebar-toggled .sidebar); CollapseSideBarOnSmallScreens then puts the
+// sidebar's own class in step after the first render.
+if (SideBarShouldCollapse()) {
+	document.body.classList.add('sidebar-toggled');
+}
 
 function ToggleSideBar() {
 
-	$("body").toggleClass("sidebar-toggled");
-	$(".sidebar").toggleClass("toggled");
-	if ($(".sidebar").hasClass("toggled")) {
-		$('.sidebar .collapse').collapse('hide');
-	};
+	var collapsed = !$(".sidebar").hasClass("toggled");
+	ApplySideBarState(collapsed);
+
+	// The phone is always collapsed on arrival, so only a real screen records a
+	// preference; otherwise a desktop choice would follow the moderator to the phone.
+	if (!smallScreen.matches) {
+		WriteSideBarPreference(collapsed);
+	}
 
 	ResizeActivePlayer();
 }
+
+/* Back to top */
+
+// sb-admin drives this control with a queued fadeIn/fadeOut per scroll event, so a
+// fast scroll on a phone leaves the queue running behind the finger and the control
+// visible when it should not be (or the other way round). Decide it from the current
+// scroll position on every frame instead; the css keys off the body class.
+(function () {
+
+	var pending = false;
+
+	var update = function () {
+		pending = false;
+		var top = window.pageYOffset || document.documentElement.scrollTop || 0;
+		document.body.classList.toggle('show-scroll-to-top', top > 100);
+	};
+
+	var onScroll = function () {
+		if (!pending) {
+			pending = true;
+			window.requestAnimationFrame(update);
+		}
+	};
+
+	window.addEventListener('scroll', onScroll, { passive: true });
+	window.addEventListener('resize', onScroll, { passive: true });
+	document.addEventListener('DOMContentLoaded', update);
+	update();
+
+	// sb-admin animates the jump with jQuery easing (easeInOutExpo), and that plugin
+	// is not among the scripts this app loads, so its handler throws and the control
+	// does nothing when tapped. Take the click first and scroll natively. Registered
+	// before sb-admin's, so stopping propagation keeps the broken one from running.
+	document.addEventListener('click', function (event) {
+		var control = event.target.closest ? event.target.closest('.scroll-to-top') : null;
+		if (!control) {
+			return;
+		}
+		event.preventDefault();
+		event.stopImmediatePropagation();
+		window.scrollTo({ top: 0, behavior: 'smooth' });
+	});
+})();
 
 /* Modal Map Functionality */
 
@@ -350,6 +589,20 @@ function DrawRegionShades(detectionId, audioUrl, regionsJson) {
 	audio.addEventListener('error', function () {
 		drawForDuration(60);
 	});
+}
+
+// After a submit re-renders the list, open the next candidate at its card top,
+// spectrogram first, instead of wherever the previous card left the scroll.
+function ScrollCardIntoView(detectionId) {
+
+	var image = document.getElementById('spectrogram-card-' + detectionId);
+	var card = image ? image.closest('.card') : null;
+
+	if (card) {
+		// A landscape card lands stacked, evidence first (class set by UpdateCardLayout).
+		card.classList.remove('detection-split');
+		card.scrollIntoView({ block: 'start' });
+	}
 }
 
 // Touch on a card spectrogram that has no player yet: create the player and

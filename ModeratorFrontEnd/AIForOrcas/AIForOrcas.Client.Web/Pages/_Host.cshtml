@@ -41,8 +41,9 @@
 		<a class="dismiss">🗙</a>
 	</div>
 
-	<!-- Loaded before blazor.server.js so interop functions exist before the circuit's first render -->
+	<!-- Loaded before blazor.server.js so the interop functions and the chart library exist before the circuit's first render -->
 	<script src="~/js/ai-for-orcas.js" asp-append-version="true"></script>
+	<script src="vendor/chart.js/Chart.min.js"></script>
 
 	<script src="_framework/blazor.server.js"></script>
 

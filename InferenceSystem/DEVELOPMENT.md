@@ -168,6 +168,10 @@ uv run pytest tests/test_model_inference.py::TestParityChecks -v
 
 Tests run via `.github/workflows/InferenceSystem.yaml`.
 
+- **Component tests** (Ubuntu + Windows): `tests/test_audio_preprocessing.py` and `tests/test_model_inference.py`. These are deterministic and use committed fixtures / Hugging Face model weights only.
+- **Integration tests** (Ubuntu + Windows): `tests/test_orchestrator.py` (positive, negative, fail, and Live HLS smoke).
+- **Docker smoke**: builds the inference image and runs a short Live HLS container check.
+
 ## Inference Orchestrator
 
 See [README.md](README.md#quick-start-live-inference-orchestrator) for a quick start on running the orchestrator locally. The entry point is [src/LiveInferenceOrchestrator.py](src/LiveInferenceOrchestrator.py), which streams HLS audio from Orcasound's S3 buckets via the internal `orcasound_hls` module, runs the SRKW detector model on each segment, and uploads positive detections to the OrcaHello Azure backend. 
