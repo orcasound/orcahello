@@ -464,6 +464,82 @@ namespace NotificationSystem.Tests.Unit
             Assert.Null(location);
         }
 
+        /// <summary>
+        /// Tests that GetLocationId returns the id when present.
+        /// </summary>
+        [Fact]
+        public void GetLocationId_ReturnsId_WhenPresent()
+        {
+            // Arrange
+            var message = JObject.FromObject(new
+            {
+                timestamp = DateTime.UtcNow,
+                location = new
+                {
+                    name = "Sunset Bay",
+                    latitude = 47.86497296593844,
+                    longitude = -122.33393605795372,
+                    id = "rpi_sunset_bay"
+                },
+                moderator = "Test Moderator",
+                comments = "Test comments"
+            });
+
+            // Act
+            string locationId = EmailTemplate.GetLocationId(message);
+
+            // Assert
+            Assert.Equal("rpi_sunset_bay", locationId);
+        }
+
+        /// <summary>
+        /// Tests that GetLocationId handles a location with no id field.
+        /// </summary>
+        [Fact]
+        public void GetLocationId_HandlesMissingId()
+        {
+            // Arrange
+            var message = JObject.FromObject(new
+            {
+                timestamp = DateTime.UtcNow,
+                location = new
+                {
+                    name = "Sunset Bay",
+                    latitude = 47.86497296593844,
+                    longitude = -122.33393605795372
+                },
+                moderator = "Test Moderator",
+                comments = "Test comments"
+            });
+
+            // Act
+            string locationId = EmailTemplate.GetLocationId(message);
+
+            // Assert
+            Assert.Null(locationId);
+        }
+
+        /// <summary>
+        /// Tests that GetLocationId handles a message with no location object at all.
+        /// </summary>
+        [Fact]
+        public void GetLocationId_HandlesNullLocation()
+        {
+            // Arrange
+            var message = JObject.FromObject(new
+            {
+                timestamp = DateTime.UtcNow,
+                moderator = "Test Moderator",
+                comments = "Test comments"
+            });
+
+            // Act
+            string locationId = EmailTemplate.GetLocationId(message);
+
+            // Assert
+            Assert.Null(locationId);
+        }
+
         private static string GetExpectedFileName(string locationName)
         {
             string hydrophoneId = HydrophoneLocations.GetIdByLocation(locationName)

@@ -36,19 +36,23 @@ namespace NotificationSystem
             _emailService = emailService;
         }
 
-        private async Task<bool> IsInCoolDownAsync(TableClient tableClient, string location)
+        private async Task<bool> IsInCooldownAsync(TableClient tableClient, string locationKey)
         {
-            int cooldownMinutes = int.TryParse(_configuration["SUBSCRIBER_EMAIL_COOLDOWN_MINUTES"], out var configurationCooldown) ? configurationCooldown : 15;
+            int cooldownMinutes = int.TryParse(_configuration["SUBSCRIBER_EMAIL_COOLDOWN_MINUTES"], out var configurationCooldown) && configurationCooldown > 0
+                ? configurationCooldown
+                : 15;
             try
             {
                 _logger.LogInformation("Retrieving the last notification sent time at the location");
 
-                var respone = await tableClient.GetEntityAsync<SubscriberNotificationCooldownEntity>(
-                    "SubscriberNotificationCooldown", location.ToLowerInvariant());
+                var response = await tableClient.GetEntityAsync<SubscriberNotificationCooldownEntity>(
+                    "SubscriberNotificationCooldown", locationKey.ToLowerInvariant());
 
-                _logger.LogInformation($"IsInCoolDown: {DateTimeOffset.UtcNow - respone.Value.LastSentAt < TimeSpan.FromMinutes(cooldownMinutes)}");
+                var now = DateTimeOffset.UtcNow;
+                bool isInCooldown = now - response.Value.LastSentAt < TimeSpan.FromMinutes(cooldownMinutes);
+                _logger.LogInformation("IsInCooldown: {IsInCooldown}", isInCooldown);
 
-                return DateTimeOffset.UtcNow - respone.Value.LastSentAt < TimeSpan.FromMinutes(cooldownMinutes);
+                return isInCooldown;
             }
             catch (RequestFailedException ex) when (ex.Status == 404)
             {
@@ -67,8 +71,10 @@ namespace NotificationSystem
             foreach (var message in messages)
             {
                 string location = EmailTemplate.GetLocation(message) ?? "Unknown";
+                string locationId = EmailTemplate.GetLocationId(message);
+                string cooldownKey = string.IsNullOrWhiteSpace(locationId) ? "unknown" : locationId;
 
-                if (await IsInCoolDownAsync(tableClient, location))
+                if (await IsInCooldownAsync(tableClient, cooldownKey))
                 {
                     _logger.LogInformation($"Skipping Notification for {location}: within cooldown window");
                     continue;
@@ -90,7 +96,7 @@ namespace NotificationSystem
                     await _emailService.SendEmailAsync(email);
                 }
 
-                await tableClient.UpsertEntityAsync(new SubscriberNotificationCooldownEntity(location)
+                await tableClient.UpsertEntityAsync(new SubscriberNotificationCooldownEntity(cooldownKey)
                 {
                     LastSentAt = DateTimeOffset.UtcNow
                 });
