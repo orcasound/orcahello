@@ -1,0 +1,148 @@
+---
+name: InferenceSystem-deploy-aks
+
+on:
+  workflow_dispatch:
+    inputs:
+      namespace:
+        description: Hydrophone location to deploy
+        required: true
+        type: choice
+        options:
+          - andrews-bay
+          - bush-point
+          - mast-center
+          - north-sjc
+          - orcasound-lab
+          - point-robinson
+          - port-townsend
+          - sunset-bay
+      publish_run_id:
+        description: Successful version-tag image publish run ID
+        required: true
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: inference-system-aks-deployment
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c  # v2.21.0
+        with:
+          egress-policy: audit
+
+      - name: Require main branch
+        run: |
+          if [ "$GITHUB_REF" != refs/heads/main ]; then
+            echo "Run this workflow from main" >&2
+            exit 1
+          fi
+
+      - name: Resolve published image
+        env:
+          PUBLISH_RUN_ID: ${{ inputs.publish_run_id }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          [[ "$PUBLISH_RUN_ID" =~ ^[0-9]+$ ]]
+          run=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$PUBLISH_RUN_ID")
+          jq -e '
+            .event == "push" and
+            .status == "completed" and
+            .conclusion == "success" and
+            .path == ".github/workflows/InferenceSystem-deploy.yaml" and
+            (.head_branch | test("^InferenceSystem\\.v[0-9]+\\.[0-9]+\\.[0-9]+$"))
+          ' <<< "$run" > /dev/null
+          release_ref=$(jq -r '.head_branch' <<< "$run")
+          source_sha=$(jq -r '.head_sha' <<< "$run")
+          comparison=$(gh api "repos/$GITHUB_REPOSITORY/compare/$source_sha...main" --jq '.status')
+          [[ "$comparison" == ahead || "$comparison" == identical ]]
+
+          gh run download "$PUBLISH_RUN_ID" --repo "$GITHUB_REPOSITORY" --name inference-release --dir "$RUNNER_TEMP/inference-release"
+          image=$(cat "$RUNNER_TEMP/inference-release/inference-image.txt")
+          [[ "$image" =~ ^orcaconservancycr\.azurecr\.io/live-inference-system:[0-9]{2}-[0-9]{2}-[0-9]{4}\.v[0-9]+\.[0-9]+\.[0-9]+@sha256:[a-f0-9]{64}$ ]]
+          image_tag=${image%%@*}
+          image_tag=${image_tag##*:}
+          [[ "${image_tag#*.}" == "${release_ref#InferenceSystem.}" ]]
+          printf 'IMAGE=%s\n' "$image" >> "$GITHUB_ENV"
+          printf 'Deploying `%s` from successful publish run `%s`\n' "$image" "$PUBLISH_RUN_ID" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@829323503d1be3d00ca8346e5391ca0b07a9ab0d  # v5.1.0
+
+      - name: Set Kubernetes context
+        uses: azure/k8s-set-context@8698eba2499e9012f0d5085f8798077cce4bc526  # v5.0.1
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBE_CONFIG }}
+
+      - name: Verify published image
+        env:
+          ACR_USERNAME: ${{ secrets.ACR_USERNAME }}
+          ACR_PASSWORD: ${{ secrets.ACR_PASSWORD }}
+        run: |
+          set -euo pipefail
+          test -n "$ACR_USERNAME"
+          test -n "$ACR_PASSWORD"
+          printf '%s' "$ACR_PASSWORD" | docker login orcaconservancycr.azurecr.io -u "$ACR_USERNAME" --password-stdin
+          tagged_image=${IMAGE%@*}
+          docker manifest inspect "${tagged_image%:*}@${IMAGE##*@}" > /dev/null
+
+      - name: Deploy selected hydrophone
+        id: rollout
+        env:
+          NAMESPACE: ${{ inputs.namespace }}
+        run: |
+          set -euo pipefail
+          case "$NAMESPACE" in
+            andrews-bay|bush-point|mast-center|north-sjc|orcasound-lab|point-robinson|port-townsend|sunset-bay) ;;
+            *) echo "Unsupported hydrophone namespace: $NAMESPACE" >&2; exit 1 ;;
+          esac
+          image="$IMAGE"
+          replicas=$(kubectl get deployment/inference-system -n "$NAMESPACE" -o jsonpath='{.spec.replicas}')
+          test "$replicas" = 1
+          previous_image=$(kubectl get deployment/inference-system -n "$NAMESPACE" -o jsonpath='{.spec.template.spec.containers[0].image}')
+          test -n "$previous_image"
+          if [ "$previous_image" = "$image" ]; then
+            echo "The selected hydrophone already uses $image"
+            exit 0
+          fi
+
+          # Restore the prior image and replica if the rollout fails.
+          rollout_complete=0
+          restore_previous() {
+            status=$?
+            if [ "$rollout_complete" = 0 ]; then
+              echo "Rollout failed; restoring $previous_image in $NAMESPACE"
+              kubectl scale deployment/inference-system --replicas=0 -n "$NAMESPACE" || true
+              kubectl set image deployment/inference-system inference-system="$previous_image" -n "$NAMESPACE" || true
+              kubectl scale deployment/inference-system --replicas=1 -n "$NAMESPACE" || true
+              kubectl rollout status deployment/inference-system -n "$NAMESPACE" --timeout=5m || true
+            fi
+            exit "$status"
+          }
+          trap restore_previous EXIT
+          kubectl scale deployment/inference-system --replicas=0 -n "$NAMESPACE"
+          kubectl rollout status deployment/inference-system -n "$NAMESPACE" --timeout=5m
+          kubectl set image deployment/inference-system inference-system="$image" -n "$NAMESPACE"
+          kubectl scale deployment/inference-system --replicas=1 -n "$NAMESPACE"
+          kubectl rollout status deployment/inference-system -n "$NAMESPACE" --timeout=10m
+          rollout_complete=1
+          kubectl get deployment/inference-system -n "$NAMESPACE" -o wide
+
+      - name: Show deployment diagnostics on failure
+        if: failure() && steps.rollout.outcome == 'failure'
+        env:
+          NAMESPACE: ${{ inputs.namespace }}
+        run: |
+          kubectl get deployment/inference-system -n "$NAMESPACE" -o wide || true
+          kubectl get pods -n "$NAMESPACE" -l app=inference-system -o wide || true
+          kubectl describe deployment/inference-system -n "$NAMESPACE" || true

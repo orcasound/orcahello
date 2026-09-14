@@ -72,6 +72,18 @@ global_prediction: 0
 2026-03-20 15:38:02,964 DEBUG Sleeping for 57.0s until 1774046340
 ```
 
+## Releasing the live inference system
+
+### Pushing your image to Azure Container Registry
+
+Tag a release on `main` as `InferenceSystem.v#.#.#`. The [image publish workflow](../.github/workflows/InferenceSystem-deploy.yaml) builds and pushes `orcaconservancycr.azurecr.io/live-inference-system:MM-DD-YYYY.v#.#.#` to ACR and records the image with its immutable `sha256` digest as a release artifact. Wait for that workflow to succeed before deploying.
+
+### Deploying an updated docker build to Azure Kubernetes Service
+
+Run the [AKS deployment workflow](../.github/workflows/InferenceSystem-deploy-aks.yaml) from the Actions tab on `main`. Select one hydrophone namespace and enter the successful image-publish run ID shown in that run's summary. The AKS workflow reads its published image artifact and accepts only successful version-tag runs from `main`. It deploys the digest-pinned image recorded by that run. Deploy one location first, verify it on the [Orcanode monitor](https://orcanodemonitor.azurewebsites.net/OrcaHelloOverview), then run the workflow separately for the other locations. The workflow changes the live deployment; afterward, update the image reference, including `@sha256:...`, in the corresponding `deploy/*.yaml` manifests in a PR so the repository reflects what is running.
+
+See [DEVELOPMENT.md](DEVELOPMENT.md#deployment) for the full release procedure and manual fallback, and [AzurePlaybook.md](AzurePlaybook.md) for AKS troubleshooting and configuration commands.
+
 ## Development
 
 For local scripts, testing, Docker, deployment, and contributing: [DEVELOPMENT.md](DEVELOPMENT.md)
