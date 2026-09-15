@@ -11,6 +11,17 @@ namespace AIForOrcas.DTO
         public string HydrophoneId { get; set; }
         public DateTime? DateFrom { get; set; }
         public DateTime? DateTo { get; set; }
-        public string QueryString { get => $"sortBy={SortBy}&sortOrder={SortOrder}&timeframe={Timeframe}&location=all&hydrophoneId={HydrophoneId ?? "all"}&DateFrom={DateFrom}&DateTo={DateTo}"; }
+        public string QueryString
+        {
+            get
+            {
+                var hydrophoneId = string.IsNullOrWhiteSpace(HydrophoneId) ? "all" : HydrophoneId;
+                var location = hydrophoneId == "all"
+                    ? (string.IsNullOrWhiteSpace(Location) ? "all" : Location)
+                    : "all";
+
+                return $"sortBy={SortBy}&sortOrder={SortOrder}&timeframe={Timeframe}&location={location}&hydrophoneId={hydrophoneId}&DateFrom={DateFrom}&DateTo={DateTo}";
+            }
+        }
     }
 }
