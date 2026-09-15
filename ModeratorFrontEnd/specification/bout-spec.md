@@ -122,7 +122,7 @@ Each detection record SHOULD provide:
 > detection distinguished by `reporter_id`, but they **share** the one
 > `audio_uri`/`spectrogram_uri` for that (timestamp + node). This matches today's
 > databases. Genuine spatial duplication occurs across *adjacent nodes*
-> (e.g. Orcasound Lab + Andrews Bay), which are moderated **independently** but MAY
+> (e.g., Orcasound Lab + Andrews Bay), which are moderated **independently** but MAY
 > be linked (see `coincident_with`).
 
 ## 5. Bout output contract
