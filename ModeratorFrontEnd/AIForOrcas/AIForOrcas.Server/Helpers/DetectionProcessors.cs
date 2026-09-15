@@ -102,8 +102,8 @@ public static class DetectionProcessors
             Moderator = metadata.moderator,
             Location = new DTO.API.Location()
             {
-                Name = metadata.location.name,
                 Id = metadata.location.id,
+                Name = metadata.location.name,
                 Longitude = metadata.location.longitude,
                 Latitude = metadata.location.latitude
             }
