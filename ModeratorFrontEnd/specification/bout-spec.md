@@ -71,7 +71,7 @@ Consequences that the rest of this spec MUST honor:
 Given detections ordered by time on a single node:
 
 - **R1 (automatic boundary):** A bout boundary requires **at least 15 minutes
-  with no human or machine detections** before the start and after the end, for the same location and species.
+  with no human or machine detections** before the start and after the end, for the same location and species/sources.
   Ambient audio need not be silent.
 - **R2 (maximality):** Extend a bout to include every relevant detection within
   15 minutes of its current boundary.
@@ -148,8 +148,8 @@ Each detection record SHOULD provide:
 | ------------ | ------------- | ----- |
 | `id`         | string        | Generated |
 | `node`       | string        | |
-| `start`      | ISO-8601 UTC  | First signal in the cluster |
-| `end`        | ISO-8601 UTC  | Last signal in the cluster |
+| `start`      | ISO-8601 UTC  | Start Time of the first signal in the cluster |
+| `end`        | ISO-8601 UTC  | End time of the last signal in the cluster |
 | `type`       | enum          | Coarse source class: `biophony` \| `geophony` \| `anthrophony`; derived from member tags (§6) and editable by a moderator |
 | `title`      | string        | Descriptive; node location appended |
 | `tags`       | string[]      | Flexible vocabulary (species, pod, call type, `vessel`, etc.); hyphenated |
@@ -169,7 +169,6 @@ later edit (2.1 review #49).
 | `in_progress_by`       | string        | `reporter_id` of the moderator currently working the candidate. Defined in §5.2.2. |
 | `reviewed_by`          | string        | Last moderator to save/confirm. Earlier reviewers remain in `review_history`; verify this last-writer model with Dave Bain (§11). |
 | `algorithm_version`    | string        | Version of the bout-generation code that created this candidate, e.g. `bouts@0.3`; supports reproduction and comparison after the algorithm changes. |
-| `threshold_config`     | object        | Snapshot used to generate the candidate: `{gap_s: 900}` in v1. |
 | `coincident_with`      | string[]      | Bout/candidate ids at adjacent nodes for the same event (#584) |
 | `review_history`       | object[]      | `{who, when, field, from, to}` change log |
 
@@ -331,7 +330,7 @@ remain in object storage; the database stores stable URIs and metadata only.
 | `annotations` | Optional sub-interval evidence: `id`, `detection_id`, `start_offset_s`, `end_offset_s`, `confidence`, `label`; unique on `(detection_id, id)`. |
 | `tags` / `detection_tags` | Existing normalized vocabulary and many-to-many detection assignments; never store a delimited tag string in the target schema. |
 | `detection_reviews` | Append-only moderator decisions: `id`, `detection_id`, `status`, `comment`, `reviewed_by`, `reviewed_at`, `created_at`. The current decision is the newest review, not a set of independently mutable flags. |
-| `candidate_bouts` / `candidate_bout_detections` | Generated grouping, workflow, editable type/title/tags, boundary evidence, algorithm version, and member detections from §5. |
+| `candidate_bouts` / `candidate_bout_detections` | Generated grouping, workflow, editable type/title/tags, algorithm version, and member detections from §5. |
 | `bouts` / `bout_detections` | Moderator-confirmed/published interval and its evidence. Reuse Orcasite `bouts`, `tags`, and feed relationships where compatible. |
 
 Required constraints:
@@ -721,8 +720,8 @@ The authoritative register is **Appendix A**. Remaining themes are:
 5. Detections on different nodes never merge (R4).
 6. Two different species overlapping in time on one node yield **two** distinct
   bouts; two same-species clusters within 15 minutes yield **one**.
-7. Each emitted bout carries member `detections`, `algorithm_version`, and
-  `threshold_config` so its grouping can be reproduced.
+7. Each emitted bout carries member `detections` and `algorithm_version` so its
+  grouping can be reproduced.
 8. Moderator edits overwrite generated type/title/tags, `review_history` preserves
   the prior values, and no code path auto-publishes without confirmation (§1a).
 9. Spectrogram marks and reporter-lane markers share the same time coordinate;
@@ -745,7 +744,7 @@ not repeated here.
 | ID | Open question | Why it matters / proposed direction |
 | -- | ------------- | ----------------------------------- |
 | A | **Mixed-source annotation assignment:** when one 1-minute parent has tags or 3-second annotations for several species/sources, which annotations belong to each overlapping bout, and how are ambiguous untagged intervals handled? (review #12, #13; 2.1 #40) | The parent detection may reference multiple bouts without duplication, but membership needs a deterministic annotation/tag rule and a moderator override. |
-| B | **Boundary evidence persistence:** now that stored `start_evidence_status` / `end_evidence_status` fields are removed, boundary evidence is **recomputed** on demand from detection timestamps plus `threshold_config`/`algorithm_version`. Open: is recomputation always sufficient, or are there cases (e.g. sources without full detection history) where a snapshot must be persisted? (second review #11–#13) | Proposed: retain only `{gap_s: 900}` and `algorithm_version` for reproducibility; recompute the 15-minute boundary status live rather than storing it. |
+| B | **Boundary evidence persistence:** now that stored `start_evidence_status` / `end_evidence_status` fields are removed, boundary evidence is **recomputed** on demand from detection timestamps plus the `algorithm_version`'s fixed 15-minute gap. Open: is recomputation always sufficient, or are there cases (e.g. sources without full detection history) where a snapshot must be persisted? (second review #11–#13) | Proposed: rely on `algorithm_version` for reproducibility and recompute the 15-minute boundary status live rather than storing it. |
 | C | **`SRKWFound` semantics:** does `no` mean no SRKW specifically or no relevant whale sound at all? (second review #23) | Blocks safe mapping of Cosmos `SRKWFound` / API `found` to generic `confirmed` and `false_positive`; another species may still be present. |
 | D | **Confidence aggregation:** how is bout `confidence` calculated across reporters and annotations? | Needed for ranking, moderator display, evaluation, and reproducible API behavior. Do not hide per-detection values behind an average. |
 | E | **Controlled vocabulary:** which tag hierarchy and audience-group taxonomy is canonical, and who governs additions/renames? | Required for interoperable classification, filtering, metrics, and subscriptions while preserving free-form evidence. |
