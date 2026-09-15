@@ -204,7 +204,7 @@ same timeline.
 ```mermaid
 flowchart LR
   R[Reports API<br/>human reports] --> N[Normalizer]
-  O[OrcaHello<br/>model candidates] --> N
+  P[PODS-AI<br/>model candidates] --> N
   C[Community tags<br/>listener comments] --> N
   M[Future models<br/>HALLO, humpback] --> N
   N --> D[(Normalized detections<br/>§4 contract)]
