@@ -22,7 +22,152 @@ This repository contains the implementations for the following components that m
 ## System overview
 The diagram below describes the flow of data through OrcaHello and the technologies used. 
 
-![System Overview](Docs/Images/SystemOverview.png)
+```mermaid
+flowchart LR
+classDef subgraphTitle font-size:40px,font-weight:bold;
+classDef nodeTitle font-size:40px;
+classDef azureNode fill:azure,stroke:#0088aa,stroke-width:2px,font-size:40px;
+classDef awsNode fill:pink,stroke:#0088aa,stroke-width:2px,font-size:40px;
+classDef herokuNode fill:lightgreen,stroke:#0088aa,stroke-width:2px,font-size:40px;
+classDef stepLabel fill:yellow,font-size:40px,stroke:transparent;
+
+RPI["🎤 RaspberryPI"]
+style RPI fill:transparent,stroke:transparent;
+class RPI nodeTitle;
+
+subgraph MOD[" "]
+   OHMOD["🧑 OrcaHello Moderator"]
+   class OHMOD nodeTitle;
+   style OHMOD fill:transparent,stroke:transparent;
+   OSMOD["🧑 Orcasite Moderator"]
+   style OSMOD fill:transparent,stroke:transparent;
+   class OSMOD nodeTitle;
+end
+style MOD fill:transparent,stroke:transparent;
+
+CSUB["🚢⛴️🚤🛳️ Curated Subscribers"]
+style CSUB fill:transparent,stroke:transparent;
+class CSUB nodeTitle;
+PSUB["👥 Public Listeners"]
+style PSUB fill:transparent,stroke:transparent;
+class PSUB nodeTitle;
+
+subgraph AWS["Hydrophone Sound Stream"]
+    S3[("AWS S3")]
+    class S3 awsNode;
+    T1(("1"))
+    class T1 stepLabel;
+end
+class AWS subgraphTitle;
+   
+subgraph IS["OrcaHello Inference System"]
+    OH["OrcaHello App"]
+    class OH azureNode;
+    OHMODEL["OrcaHello Model"]
+    class OHMODEL azureNode;
+    PA["PODS-AI App"]
+    class PA azureNode;
+    PAMODEL["PODS-AI Model"]
+    class PAMODEL azureNode;
+    T2(("2"))
+    class T2 stepLabel;
+    OHDB[("Machine Detection Metadata Store")]
+    class OHDB azureNode;
+end
+class IS subgraphTitle;
+
+subgraph OSNET["Orcasite"]
+    LIVE["live.orcasound.net"]
+    class LIVE herokuNode;
+    FLIST[("Feeds")]
+    class FLIST herokuNode;
+    OSDB[("Detection Metadata Store")]
+    class OSDB herokuNode;
+    PSLIST[("Public Subscriber List")]
+    class PSLIST herokuNode;
+    OSMLIST[("Orcasite Moderator List")]
+    class OSMLIST herokuNode;
+end
+class OSNET subgraphTitle;
+
+subgraph NS["Notification Systems"]
+    PROXY["PostToOrcasite"]
+    class PROXY azureNode;
+    OHMLIST[("Moderators")]
+    class OHMLIST azureNode;
+    MNF["Moderator Function"]
+    class MNF azureNode;
+    CSLIST[("Curated Subscribers")]
+    class CSLIST azureNode;
+    SNF["Subscriber Function"]
+    class SNF azureNode;
+    T4(("4"))
+    class T4 stepLabel;
+end
+class NS subgraphTitle;
+    
+subgraph MS["Moderator System"]
+    OHMUI["OrcaHello Moderator UI"]
+    class OHMUI azureNode;
+    T3(("3"))
+    class T3 stepLabel;
+    OSMUI["Orcasite Moderator UI"]
+    class OSMUI herokuNode;
+end
+class MS subgraphTitle;
+
+RPI -->|10 sec audio samples| S3
+
+FLIST --> LIVE
+PSUB -->|Listen| LIVE
+LIVE -->|Report sound| OSDB
+LIVE -->|Subscribe| PSLIST
+LIVE -->|✉️ Notify| OSMOD
+OSMLIST --> LIVE
+OSMOD -->|Subscribe via admin| OSMLIST
+OSMOD -->|Assess candidates and update as appropriate| OSMUI
+OSMUI -->|Updated call markings| OSDB
+PSLIST --> OSMUI
+OSMUI -->|✉️ Notify| PSUB
+    
+S3 --> LIVE
+S3 -->|1 min audio sample| OH
+S3 -->|1 min audio sample| PA
+    
+FLIST --> OH
+OH --> OHMODEL
+OHMODEL --> OH
+OH -->|Report candidate| OHDB
+
+PA --> PAMODEL
+PAMODEL --> PA
+PA -->|Report candidate| OHDB
+
+OHDB -->|New candidates| PROXY
+PROXY -->|New candidates| OSDB
+    
+OHMOD -->|Subscribe via admin| OHMLIST
+OHDB -->|New candidates| MNF
+OHMLIST --> MNF
+MNF -->|✉️ Notify expert of new sound data| OHMOD
+OHMOD -->|Assess candidates and update as appropriate| OHMUI
+OHMUI -->|Updated call markings| OHDB
+    
+CSUB -->|Subscribe via admin| CSLIST
+OHDB -->|Positive detections| SNF
+CSLIST --> SNF
+SNF -->|✉️ Notify| CSUB
+
+subgraph LEGEND["Legend"]
+    L1["Azure"]
+    class L1 azureNode;
+    L2["Heroku"]
+    class L2 herokuNode;
+    L3["AWS"]
+    class L3 awsNode;
+end
+class LEGEND subgraphTitle;
+```
 
 As of September, 2025, the data flow steps include:
 1. **Live streaming of audio data via AWS** (from Raspberry Pis running [orcanode code](https://github.com/orcasound/orcanode) to [Orcaound's S3 open data registry buckets](https://registry.opendata.aws/orcasound/))

@@ -50,6 +50,7 @@ dev = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = [
+    "integration: tests that exercise the inference orchestrator or external services",
     "parity: compare outputs against committed FastAI references",
     "slow: long-running tests",
 ]

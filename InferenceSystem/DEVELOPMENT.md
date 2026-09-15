@@ -169,7 +169,8 @@ uv run pytest tests/test_model_inference.py::TestParityChecks -v
 Tests run via `.github/workflows/InferenceSystem.yaml`.
 
 - **Component tests** (Ubuntu + Windows): `tests/test_audio_preprocessing.py` and `tests/test_model_inference.py`. These are deterministic and use committed fixtures / Hugging Face model weights only.
-- **Integration tests** (Ubuntu + Windows): `tests/test_orchestrator.py` (positive, negative, fail, and Live HLS smoke).
+- **Integration tests** (Ubuntu + Windows): `tests/test_orchestrator.py` positive, negative, and failure cases.
+- **LiveHLS smoke** (Ubuntu + Windows): the external-stream check runs in its own ten-minute matrix job and does not block pull-request feedback when the public stream is unavailable.
 - **Docker smoke**: builds the inference image and runs a short Live HLS container check.
 
 ## Inference Orchestrator

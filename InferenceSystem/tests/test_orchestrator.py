@@ -16,6 +16,8 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.integration
+
 INFERENCE_DIR = Path(__file__).parent.parent
 ORCHESTRATOR = INFERENCE_DIR / "src" / "LiveInferenceOrchestrator.py"
 ORCH_CONFIGS_DIR = INFERENCE_DIR / "tests" / "orch_configs"
@@ -123,6 +125,7 @@ def test_positive_detection(config_file):
 # -----------------------------------------------------------------------------
 
 
+@pytest.mark.slow
 def test_livehls_smoke():
     """Smoke test: orchestrator runs 2 iterations against live stream without crashing."""
     config = ORCH_CONFIGS_DIR / "LiveHLS" / "LiveHLS_OrcasoundLab.yml"

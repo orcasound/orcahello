@@ -40,6 +40,7 @@ jobs:
   # Perform fast, deterministic component tests (no live HLS).
   inference-component-test:
     name: Component tests (${{ matrix.os }})
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -92,6 +93,7 @@ jobs:
         run: uv run pytest tests/test_model_inference.py -v
 
   inference-test-windows:
+    timeout-minutes: 20
     runs-on: windows-latest
     needs: changes
     if: ${{ needs.changes.outputs.src == 'true' }}
@@ -125,23 +127,12 @@ jobs:
           HF_HUB_OFFLINE: "0"
         run: uv run python -c "from huggingface_hub import snapshot_download; snapshot_download('orcasound/orcahello-srkw-detector-v1')"
 
-      - name: Inference Orchestrator Positive detection tests
+      - name: Inference Orchestrator integration tests
         working-directory: InferenceSystem
-        run: uv run pytest tests/test_orchestrator.py -v -k "positive"
-
-      - name: Inference Orchestrator Negative detection test
-        working-directory: InferenceSystem
-        run: uv run pytest tests/test_orchestrator.py -v -k "negative"
-
-      - name: Inference Orchestrator Fail/edge-case tests
-        working-directory: InferenceSystem
-        run: uv run pytest tests/test_orchestrator.py -v -k "fail"
-
-      - name: Inference Orchestrator LiveHLS Smoke test
-        working-directory: InferenceSystem
-        run: uv run pytest tests/test_orchestrator.py -v -k "livehls"
+        run: uv run pytest tests/test_orchestrator.py -v -m "integration and not slow"
 
   inference-test-ubuntu:
+    timeout-minutes: 20
     runs-on: ubuntu-latest
     needs: changes
     if: ${{ needs.changes.outputs.src == 'true' }}
@@ -177,23 +168,64 @@ jobs:
           HF_HUB_OFFLINE: "0"
         run: uv run python -c "from huggingface_hub import snapshot_download; snapshot_download('orcasound/orcahello-srkw-detector-v1')"
 
-      - name: Inference Orchestrator Positive detection tests
+      - name: Inference Orchestrator integration tests
         working-directory: InferenceSystem
-        run: uv run pytest tests/test_orchestrator.py -v -k "positive"
+        run: uv run pytest tests/test_orchestrator.py -v -m "integration and not slow"
 
-      - name: Inference Orchestrator Negative detection test
-        working-directory: InferenceSystem
-        run: uv run pytest tests/test_orchestrator.py -v -k "negative"
+  inference-livehls:
+    name: LiveHLS smoke test (${{ matrix.os }})
+    timeout-minutes: 10
+    # The public stream is outside the repository's control; keep PR feedback non-blocking.
+    continue-on-error: ${{ github.event_name == 'pull_request' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    needs: changes
+    if: ${{ needs.changes.outputs.src == 'true' }}
+    runs-on: ${{ matrix.os }}
+    env:
+      HF_HUB_OFFLINE: "1"
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
-      - name: Inference Orchestrator Fail/edge-case tests
-        working-directory: InferenceSystem
-        run: uv run pytest tests/test_orchestrator.py -v -k "fail"
+      - name: Set up FFmpeg
+        uses: FedericoCarboni/setup-ffmpeg@37062fbf7149fc5578d6c57e08aed62458b375d6  # v3.1
 
-      - name: Inference Orchestrator LiveHLS Smoke test
+      - name: Install uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d  # v10.0.1
+
+      - name: Cache uv
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: ${{ runner.os == 'Windows' && '~\AppData\Local\uv\cache' || '~/.cache/uv' }}
+          key: ${{ runner.os }}-uv-${{ hashFiles('InferenceSystem/pyproject.toml', 'InferenceSystem/uv.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-uv-
+
+      - name: Install dependencies
         working-directory: InferenceSystem
-        run: uv run pytest tests/test_orchestrator.py -v -k "livehls"
+        run: uv sync --group dev
+
+      - name: Cache Hugging Face models
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: ${{ runner.os == 'Windows' && '~\.cache\huggingface\hub' || '~/.cache/huggingface/hub' }}
+          key: ${{ runner.os }}-hf-orcasound-v1
+
+      - name: Download HuggingFace model to local cache
+        working-directory: InferenceSystem
+        env:
+          HF_HUB_OFFLINE: "0"
+        run: uv run python -c "from huggingface_hub import snapshot_download; snapshot_download('orcasound/orcahello-srkw-detector-v1')"
+
+      - name: Run LiveHLS smoke test
+        working-directory: InferenceSystem
+        run: uv run pytest tests/test_orchestrator.py -v -m "integration and slow"
 
   test-docker:
+    timeout-minutes: 20
     runs-on: ubuntu-latest
     needs: changes
     if: ${{ needs.changes.outputs.src == 'true' }}
