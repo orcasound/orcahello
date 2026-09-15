@@ -93,7 +93,7 @@ Given detections ordered by time on a single node:
 >
 > **Detection vs bout scope (review #12, #13):** R3 constrains a **bout**, not a
 > **detection**. A single 1-minute detection/candidate can legitimately carry
-> **multiple** sources/species at once (e.g. a vessel *and* residents in the same
+> **multiple** sources/species at once (e.g., a vessel *and* residents in the same
 > minute). Such a minute contributes to more than one single-source bout, which is
 > exactly why different-species bouts may overlap (R3). Assignment occurs at the
 > tag or annotation level: the parent minute can be evidence for each applicable
