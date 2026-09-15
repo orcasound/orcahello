@@ -80,7 +80,9 @@ Tag a release on `main` as `InferenceSystem.v#.#.#`. The [image publish workflow
 
 ### Deploying an updated docker build to Azure Kubernetes Service
 
-Run the [AKS deployment workflow](../.github/workflows/InferenceSystem-deploy-aks.yaml) from the Actions tab on `main`. Select one hydrophone namespace and enter the successful image-publish run ID shown in that run's summary. The AKS workflow reads its published image artifact and accepts only successful version-tag runs from `main`. It deploys the digest-pinned image recorded by that run. Deploy one location first, verify it on the [Orcanode monitor](https://orcanodemonitor.azurewebsites.net/OrcaHelloOverview), then run the workflow separately for the other locations. The workflow changes the live deployment; afterward, update the image reference, including `@sha256:...`, in the corresponding `deploy/*.yaml` manifests in a PR so the repository reflects what is running.
+Run [InferenceSystem-deploy-aks](../.github/workflows/InferenceSystem-deploy-aks.yaml) from `main`. Select a hydrophone and enter a successful image-publish run ID; both tag and manual runs are supported. The workflow applies that namespace's ConfigMap and full deployment manifest from `main`, using the published image digest, and performs a stop/start deployment. Failed deployments attempt to restore the saved ConfigMap and full deployment. Image releases and ConfigMap-only updates share a namespace lock to prevent overlapping changes.
+
+Verify the first location on the [Orcanode monitor](https://orcanodemonitor.azurewebsites.net/OrcaHelloOverview) before deploying the others. Afterward, update the image references in `deploy/*.yaml` through a PR to match the published digest.
 
 See [DEVELOPMENT.md](DEVELOPMENT.md#deployment) for the full release procedure and manual fallback, and [AzurePlaybook.md](AzurePlaybook.md) for AKS troubleshooting and configuration commands.
 

@@ -118,12 +118,14 @@ jobs:
 
       - name: Push docker container to ACR
         run: |
-          docker push $IMAGE_TAG
+          set -euo pipefail
+          docker push "$IMAGE_TAG" | tee "$RUNNER_TEMP/inference-push.log"
 
       - name: Record published image
         run: |
           set -euo pipefail
-          digest=$(docker buildx imagetools inspect "$IMAGE_TAG" --format '{{json .Manifest}}' | jq -r '.digest')
+          # Use this push's digest; another publish could overwrite the tag.
+          digest=$(sed -nE 's/^.*: digest: (sha256:[a-f0-9]{64}) size: [0-9]+.*$/\1/p' "$RUNNER_TEMP/inference-push.log")
           [[ "$digest" =~ ^sha256:[a-f0-9]{64}$ ]]
           image="$IMAGE_TAG@$digest"
           printf '%s\n' "$image" > "$RUNNER_TEMP/inference-image.txt"

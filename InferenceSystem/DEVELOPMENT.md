@@ -211,7 +211,7 @@ docker run --rm -it --env-file .env ^
   --max_live_iterations 2
 ```
 
-The [image publish workflow](../.github/workflows/InferenceSystem-deploy.yaml) builds and pushes an image to ACR when a tag matching `InferenceSystem.v#.#.#` is pushed. Tag a commit on `main` for a production release: the AKS workflow checks that the tagged commit is on `main`. Image publishing does not deploy to AKS.
+The [image publish workflow](../.github/workflows/InferenceSystem-deploy.yaml) builds and pushes an image to ACR when a tag matching `InferenceSystem.v#.#.#` is pushed. Tag a commit on `main` for a production release. The AKS workflow must run from `main`, but accepts images published from other source refs. Image publishing does not deploy to AKS.
 
 
 ### Deployment
@@ -228,13 +228,23 @@ AKS deployment is a manual release action. There is no staging environment, so r
    ```
 
 2. Wait for the [image publish workflow](../.github/workflows/InferenceSystem-deploy.yaml) to succeed. It pushes an image tagged like `orcaconservancycr.azurecr.io/live-inference-system:MM-DD-YYYY.v2.2.0` to ACR and uploads an `inference-release` artifact containing the image reference with its immutable `@sha256:` digest. Copy the publish run ID from that run's summary. The artifact is configured for 30-day retention; run the AKS release within that window.
-3. On the Actions tab, run [InferenceSystem-deploy-aks](../.github/workflows/InferenceSystem-deploy-aks.yaml) from `main`. Select one hydrophone namespace and enter the successful publish run ID. The workflow checks that the run was triggered by a version tag on `main`, reads its image artifact, verifies that the digest-pinned image still exists in ACR, scales the deployment down, switches its image, scales it back to one, and waits for rollout. If rollout fails, it attempts to restore the previous image and replica.
+   Alternatively, run the image publish workflow manually with a source `ref` and a `release_tag` such as `v2.2.0`. Successful manual and tag-triggered publish runs are both accepted; the image source commit does not have to be included in `main`.
+3. Run [InferenceSystem-deploy-aks](../.github/workflows/InferenceSystem-deploy-aks.yaml) from the Actions tab on `main`. Select a namespace and enter the successful publish run ID. The workflow verifies the published image, then uses its checkout of `main` to:
+   - Apply the namespace's ConfigMap.
+   - Scale to zero and wait for the old pods to stop.
+   - Apply the full deployment manifest with the published image substituted locally.
+   - Scale to one and wait for rollout.
+
+   Configuration is applied even when the image is unchanged. Before changing anything, the workflow saves the live ConfigMap and deployment. If deployment fails, it stops the pods, restores both saved objects (including the image and deployment settings), restores one replica, and reports whether recovery succeeded.
 4. Check the selected location on the [Orcanode monitor](https://orcanodemonitor.azurewebsites.net/OrcaHelloOverview) and inspect its logs. Once healthy, run the workflow separately for each remaining location.
 5. Make a PR updating the image in each deployed `deploy/*.yaml` manifest to the full image reference in the publish run summary, including its `@sha256:` digest. The workflow changes the live AKS deployment but does not edit repository manifests; a later `kubectl apply -f deploy/<namespace>.yaml` could otherwise restore the old image.
 
 **Deployment Tips** (there is no staging/dev environment):
 - Deployment is not zero-downtime: memory limits require scaling to zero before starting the new image.
 - A successful Kubernetes rollout does not prove that audio inference is healthy; check the monitor before proceeding to another location.
+- Cancellation attempts the same recovery, but GitHub can forcibly terminate the runner before it finishes. After an interrupted run, check the namespace. If recovery did not finish, use the manual AKS procedure below with the last known good image and configuration; verify one replica is running before releasing again.
+- Image releases and the ConfigMap-only workflow share a concurrency group per namespace. Jobs wait without canceling active or already queued jobs; different namespaces can deploy concurrently.
+- Both workflows use `.github/scripts/deploy-inference.sh`. ConfigMap-only updates preserve the live image and deployment settings and use the same stop/start and recovery procedure. Pushes update only namespaces whose ConfigMaps changed; manual ConfigMap runs update all eight locations.
 
 
 ### Monitoring
@@ -312,7 +322,11 @@ kubectl logs -n $NAMESPACE -l app=inference-system
     kubectl apply -f deploy/<namespace>.yaml
     ```
 
-The AKS release workflow currently offers only the eight existing hydrophone namespaces. To release images to a new hydrophone through that workflow, add its namespace to both the workflow's `namespace` choices and its namespace check, then merge that change to `main`.
+The deployment workflows currently support eight hydrophone namespaces. To support a new hydrophone, add its namespace in three places, then merge the changes to `main`:
+
+- The `namespace` choices in [InferenceSystem-deploy-aks.yaml](../.github/workflows/InferenceSystem-deploy-aks.yaml).
+- The namespace check in [deploy-inference.sh](../.github/scripts/deploy-inference.sh).
+- The namespace matrix in [InferenceSystem-deploy-configmaps.yaml](../.github/workflows/InferenceSystem-deploy-configmaps.yaml).
 
 The Docker container image is common across all hydrophones. Each hydrophone's configuration is stored in a namespace-scoped ConfigMap mounted at `/config/`.
 
