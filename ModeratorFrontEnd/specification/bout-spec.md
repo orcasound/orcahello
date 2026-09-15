@@ -108,7 +108,7 @@ Each detection record SHOULD provide:
 | `id`           | string        | yes      | Stable unique id |
 | `node`         | string        | yes      | Hydrophone node id/slug |
 | `timestamp`    | ISO-8601 UTC  | yes      | Start of the 1-minute detection window |
-| `duration_s`   | number        | yes      | Detection window length; `60` in v1 |
+| `duration_s`   | number        | no       | Detection window length; `60` in v1 |
 | `annotations`  | object[]      | no       | Approximately 3-second child intervals: `{id, start_offset_s, end_offset_s, confidence, label, tags}`. Offsets are relative to `timestamp`. |
 | `tags`         | string[]      | yes      | Flexible vocabulary describing the sound(s): species, `vessel`, pod, call type, etc. Replaces the fixed `source_type`/`species`/`pod`/`call_type` enums, matching OrcaHello (review #17, #19, #20). **May contain multiple** entries (e.g. `vessel` + `srkw`) for one minute (review #12, #13). |
 | `confidence`   | number 0..1   | no       | Reporter's confidence (per detection). |
