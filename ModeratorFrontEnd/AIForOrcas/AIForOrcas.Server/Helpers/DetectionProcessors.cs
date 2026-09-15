@@ -103,6 +103,7 @@ public static class DetectionProcessors
             Location = new DTO.API.Location()
             {
                 Name = metadata.location.name,
+                Id = metadata.location.id,
                 Longitude = metadata.location.longitude,
                 Latitude = metadata.location.latitude
             }
