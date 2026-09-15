@@ -58,7 +58,7 @@ Consequences that the rest of this spec MUST honor:
 | --------------- | ---------- |
 | **Detection**   | A timestamped **1-minute** acoustic observation on one node (OrcaHello: *candidate*). It may contain one or more approximately 3-second annotation intervals reported by a model. Human reported detections do not contain any 3-second annotation intervals. |
 | **Signal**      | A tagged annotation or detection a moderator counts as present (OrcaHello: *confirmed detection*). |
-| **Bout**        | A maximal temporal cluster of detections separated by at least 15 minutes with no detections, scoped to one node. Identity is a **(time range + node) pair** — temporal *and* geospatial (review #10). |
+| **Bout**        | A maximal temporal cluster of detections separated by at least 15 minutes with no detections, scoped to one node and species. Identity is a **(time range + node + species) pair** — temporal *and* geospatial (review #10) *and* species. |
 | **Node**        | A hydrophone location (e.g., Orcasound Lab, Sunset Bay). |
 | **Reporter**    | The human listener or machine detector that produced a detection, identified by `reporter_id`. |
 
