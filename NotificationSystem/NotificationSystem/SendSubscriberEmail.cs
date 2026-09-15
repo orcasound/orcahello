@@ -1,3 +1,4 @@
+using Azure;
 using Azure.Data.Tables;
 using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
@@ -35,7 +36,32 @@ namespace NotificationSystem
             _emailService = emailService;
         }
 
+        private async Task<bool> IsInCooldownAsync(TableClient tableClient, string locationKey)
+        {
+            int cooldownMinutes = int.TryParse(_configuration["SUBSCRIBER_EMAIL_COOLDOWN_MINUTES"], out var configurationCooldown) && configurationCooldown > 0
+                ? configurationCooldown
+                : 15;
+            try
+            {
+                _logger.LogInformation("Retrieving the last notification sent time at the location");
+
+                var response = await tableClient.GetEntityAsync<SubscriberNotificationCooldownEntity>(
+                    "SubscriberNotificationCooldown", locationKey.ToLowerInvariant());
+
+                var now = DateTimeOffset.UtcNow;
+                bool isInCooldown = now - response.Value.LastSentAt < TimeSpan.FromMinutes(cooldownMinutes);
+                _logger.LogInformation("IsInCooldown: {IsInCooldown}", isInCooldown);
+
+                return isInCooldown;
+            }
+            catch (RequestFailedException ex) when (ex.Status == 404)
+            {
+                return false;
+            }
+        }
+
         public async Task ProcessMessagesAsync(
+            TableClient tableClient,
             List<JObject> messages,
             IEnumerable<SubscriberEmailEntity> emailEntities)
         {
@@ -44,7 +70,18 @@ namespace NotificationSystem
             _logger.LogInformation("Retrieving email list and sending notifications");
             foreach (var message in messages)
             {
-                string location = EmailTemplate.GetLocation(message);
+                string location = EmailTemplate.GetLocation(message) ?? "Unknown";
+                string locationId = EmailTemplate.GetLocationId(message);
+                string cooldownKey = string.IsNullOrWhiteSpace(locationId) ? "unknown" : locationId;
+
+                if (await IsInCooldownAsync(tableClient, cooldownKey))
+                {
+                    _logger.LogInformation($"Skipping Notification for {location}: within cooldown window");
+                    continue;
+                }
+
+                _logger.LogInformation($"Sending Notification for {location}: outside cooldown window");
+
                 string category = "Southern Resident Killer Whale";
                 string emailSubject = EmailTemplate.GetSubscriberEmailSubject(category, location);
                 string body = CreateBody(message, category);
@@ -58,6 +95,11 @@ namespace NotificationSystem
                         body);
                     await _emailService.SendEmailAsync(email);
                 }
+
+                await tableClient.UpsertEntityAsync(new SubscriberNotificationCooldownEntity(cooldownKey)
+                {
+                    LastSentAt = DateTimeOffset.UtcNow
+                });
             }
         }
 
@@ -86,7 +128,7 @@ namespace NotificationSystem
             List<JObject> messages = await GetMessages(queueClient);
 
             var emailEntities = await EmailHelpers.GetEmailEntitiesAsync<SubscriberEmailEntity>(tableClient, "Subscriber");
-            await ProcessMessagesAsync(messages, emailEntities);
+            await ProcessMessagesAsync(tableClient, messages, emailEntities);
         }
 
         private async Task<List<JObject>> GetMessages(QueueClient queueClient)

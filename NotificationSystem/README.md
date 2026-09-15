@@ -139,6 +139,7 @@ Create local.settings.json in the current directory (NotificationSystem) using t
         "AWS_ACCESS_KEY_ID": "<AWS Access Key>",
         "AWS_SECRET_ACCESS_KEY": "<AWS Secret Key>",
         "SenderEmail": "<email address>",
+        "SUBSCRIBER_EMAIL_COOLDOWN_MINUTES": "<minutes to wait before re-notifying subscribers for the same location; defaults to 15 if unset>",
         "FUNCTIONS_WORKER_RUNTIME": "dotnet",
         "FUNCTIONS_INPROC_NET8_ENABLED": "1"
         "ORCASITE_HOSTNAME": "live.orcasound.net",

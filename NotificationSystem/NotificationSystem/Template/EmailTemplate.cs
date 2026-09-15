@@ -32,6 +32,18 @@ namespace NotificationSystem.Template
             return "Southern Resident Killer Whale";
         }
 
+        public static string GetLocationId(JObject message)
+        {
+            try
+            {
+                return message["location"]?["id"]?.ToString();
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         public static string GetLocation(JObject message)
         {
             // Extract location from first message
