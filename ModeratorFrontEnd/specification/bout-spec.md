@@ -373,7 +373,7 @@ while the .NET API can map its current PascalCase properties at the boundary.
 | `reviewed_by` | Moderator user relation where available | `Moderator` | Reporter/user FK where resolvable; retain original identity for audit. |
 | `reviewed_at` | Audit timestamp where available | `Moderated` | UTC review event time. |
 | `annotations[]` | None | `Annotations` | Child rows using `start_offset_s`, `end_offset_s`, `confidence`, `label`. |
-| `source_system` | Constant `orcasite` | Constant `orcahello` | Explicit provenance; not a substitute for `reporter_id`. |
+| `source_system` | Constant `orcasite` | Constant `orcahello` | Ingestion provenance: the upstream store a row was imported from, paired with `source_record_id` as the idempotent `(source_system, source_record_id)` dedup key (§6b.2). Orthogonal to `reporter_id` (authorship), not derivable from it: Orcasite's own `source` already carries both `human` and `machine`, and after cutover one model's `reporter_id` can appear under different `source_system` values. Not a substitute for `reporter_id`. |
 
 Moderator text is `review_comment`; API responses may temporarily return
 deprecated `comment` and `comments` aliases. Keep `playlist_timestamp` and
@@ -557,22 +557,26 @@ Principles for the combined experience:
 
 ### 8.1 Panels
 
-The workbench is a single screen divided into four panels. Read left to right,
-they follow the moderator's natural flow: **pick** work, **inspect** the evidence,
-**set** the boundaries, then **decide and publish**.
+The workbench is a single screen divided into four panels. On the desktop layout
+they read left to right, following the moderator's natural flow: **pick** work,
+**inspect** the evidence, **set** the boundaries, then **decide and publish**. The
+phone layout stacks the same four panels top to bottom in that order (§8.2).
 
 **1. Bout queue (left) — pick the next candidate.**
 A prioritized worklist of candidate bouts. Each item is one candidate, tagged with
 its workflow `status` (§5.2: `new`, `claimed`, `needs_review`, `ready`,
 `published`, `rejected`) so a moderator can see at a glance what still needs
 attention. Candidates can be grouped by node, type, and time so related activity
-sits together, and filtered by node, type, species, confidence, or age. The queue
-surfaces the most uncertain work first — conflicting classifications and
+sits together, and filtered by node, type, species, confidence, age, or assignee.
+The queue surfaces the most uncertain work first — conflicting classifications and
 low-confidence boundaries rise to the top. An explicit **Claim bout** action sets
 the bout-level `in_progress_by` hint; opening a candidate does not claim it. The
 claim is advisory, not an exclusive lock, and another moderator may take over with
-confirmation. Detection-level claiming is only a compatibility workaround and is
-not part of the target model (2.1 review #30, #43).
+confirmation. A candidate claimed by someone else **remains in the queue** (so
+takeover stays possible), shown as `claimed` with the holder from `in_progress_by`;
+the assignee filter lets a moderator hide claimed work to focus on unclaimed
+candidates without removing it for others. Detection-level claiming is only a
+compatibility workaround and is not part of the target model (2.1 review #30, #43).
 
 **2. Evidence timeline (center) — inspect what was detected.**
 A single continuous spectrogram with synchronized audio playback, so the moderator
@@ -591,8 +595,12 @@ reveals its tags, reporter, source, and annotation interval.
 **3. Boundary verification (center, below the timeline) — set the start and end.**
 This is where the moderator confirms exactly where the bout begins and ends. The
 start and end are draggable handles on the shared time axis. For each boundary,
-the panel shows whether the available data contains **15 minutes with no earlier
-or later detection** and marks it `verified`, `unresolved`, or `contradicted`.
+the moderator must be able to tell which of three conditions holds: the 15-minute
+no-detection gap is **satisfied**, **unknown** (the loaded window does not reach far
+enough to tell — extend it), or **violated** (a detection exists within 15 minutes,
+so the boundary should move). Keeping these three distinct matters because "unknown"
+and "violated" call for different actions; a simple met/not-met toggle would hide
+that. How this is surfaced (a badge, a warning, disabling publish) is a UI choice.
 This is evidence about detection timestamps, not a claim that ambient audio is
 silent. "Jump to next / previous detection" controls move quickly between records,
 and extending the window with `+15 min` **keeps the current zoom level**. Audio
