@@ -137,7 +137,6 @@ Each detection record SHOULD provide:
 | `end`        | ISO-8601 UTC  | Last signal in the cluster |
 | `title`      | string        | Descriptive; node location appended |
 | `tags`       | string[]      | Flexible vocabulary (species, pod, call type, `vessel`, etc.); hyphenated |
-| `detections` | string[]      | Member detection ids |
 | `confidence` | number 0..1   | Aggregate confidence (TBD method) |
 | `created_by` | enum          | `model` \| `human` |
 
