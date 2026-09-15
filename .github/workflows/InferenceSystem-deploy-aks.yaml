@@ -18,7 +18,7 @@ on:
           - port-townsend
           - sunset-bay
       publish_run_id:
-        description: Successful version-tag image publish run ID
+        description: 'Open Actions > InferenceSystem-deploy > successful release run. Copy the number after /actions/runs/ in its URL.'
         required: true
         type: string
 
