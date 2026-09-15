@@ -41,16 +41,24 @@ jobs:
           ref: ${{ github.event.inputs.ref || github.ref }}
 
       - name: Resolve release tag suffix
+        env:
+          INPUT_RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
+          set -euo pipefail
           if [ "${{ github.event_name }}" = "push" ]; then
-            echo "RELEASE_TAG=${GITHUB_REF_NAME#InferenceSystem.}" >> $GITHUB_ENV
+            release_tag=${GITHUB_REF_NAME#InferenceSystem.}
           else
-            echo "RELEASE_TAG=${{ github.event.inputs.release_tag }}" >> $GITHUB_ENV
+            release_tag=$INPUT_RELEASE_TAG
           fi
+          [[ "$release_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          printf 'RELEASE_TAG=%s\n' "$release_tag" >> "$GITHUB_ENV"
 
       - name: Check if ACR secrets are set
+        env:
+          ACR_USERNAME: ${{ secrets.ACR_USERNAME }}
+          ACR_PASSWORD: ${{ secrets.ACR_PASSWORD }}
         run: |
-          if [ -z "${{ secrets.ACR_USERNAME }}" ] || [ -z "${{ secrets.ACR_PASSWORD }}" ]; then
+          if [ -z "$ACR_USERNAME" ] || [ -z "$ACR_PASSWORD" ]; then
             echo "ACR credentials are missing"
             exit 1
           else
@@ -102,9 +110,33 @@ jobs:
           docker tag $IMAGE_NAME $IMAGE_TAG
 
       - name: Docker login to ACR
+        env:
+          ACR_USERNAME: ${{ secrets.ACR_USERNAME }}
+          ACR_PASSWORD: ${{ secrets.ACR_PASSWORD }}
         run: |
-          echo ${{ secrets.ACR_PASSWORD }} | docker login ${{ env.ACR_REGISTRY }} -u ${{ secrets.ACR_USERNAME }} --password-stdin
+          printf '%s' "$ACR_PASSWORD" | docker login "$ACR_REGISTRY" -u "$ACR_USERNAME" --password-stdin
 
       - name: Push docker container to ACR
         run: |
-          docker push $IMAGE_TAG
+          set -euo pipefail
+          docker push "$IMAGE_TAG" | tee "$RUNNER_TEMP/inference-push.log"
+
+      - name: Record published image
+        run: |
+          set -euo pipefail
+          # Use this push's digest; another publish could overwrite the tag.
+          digest=$(sed -nE 's/^.*: digest: (sha256:[a-f0-9]{64}) size: [0-9]+.*$/\1/p' "$RUNNER_TEMP/inference-push.log")
+          [[ "$digest" =~ ^sha256:[a-f0-9]{64}$ ]]
+          image="$IMAGE_TAG@$digest"
+          printf '%s\n' "$image" > "$RUNNER_TEMP/inference-image.txt"
+          printf 'Published image: `%s`\n' "$image" >> "$GITHUB_STEP_SUMMARY"
+          printf 'Publish run ID for the AKS release workflow: `%s`\n' "$GITHUB_RUN_ID" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload release metadata
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: inference-release
+          path: ${{ runner.temp }}/inference-image.txt
+          retention-days: 30
+          if-no-files-found: error
+          overwrite: true

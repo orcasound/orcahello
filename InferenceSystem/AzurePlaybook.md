@@ -6,6 +6,11 @@ The intended audience is a user relatively new to Kubernetes
 who wants a quick reference list of useful commands for various
 purposes.
 
+For a new container image, follow the [release procedure](DEVELOPMENT.md#deployment):
+publish a version tag, then run the manual AKS workflow for one hydrophone at a
+time. The commands below are for troubleshooting and manual configuration work.
+Run commands referencing `deploy/` from the `InferenceSystem/` directory.
+
 - [Inference Script Logs](#inference-script-logs)
   - [Q: How do I watch the log of a pod in AKS?](#q-how-do-i-watch-the-log-of-a-pod-in-aks)
 - [Pods](#pods)
@@ -67,11 +72,24 @@ kubectl get pods --all-namespaces | grep infer
 
 ### Q: How do I deploy a pod configuration update?
 
-Use the following commands, replacing `$NAMESPACE` with the appropriate namespace (e.g., `andrews-bay`).
+For a new image, use the [AKS release workflow](DEVELOPMENT.md#deployment). Do not
+apply an older `deploy/<namespace>.yaml` after a workflow release: doing so can
+restore the image recorded in that file instead of the live image.
+
+For a manual change to the deployment manifest (such as resource limits), first
+check that its image matches the live deployment. Update the manifest's image to
+the live value if necessary, then apply it one namespace at a time. Replace
+`$NAMESPACE` with the appropriate namespace (e.g., `andrews-bay`). The replica
+is scaled to zero first because these deployments have limited memory.
 
 ```bash
+NAMESPACE=andrews-bay
+kubectl get deployment/inference-system -n "$NAMESPACE" -o jsonpath='{.spec.template.spec.containers[0].image}'
+# Confirm deploy/$NAMESPACE.yaml specifies this image before continuing.
+kubectl scale deployment/inference-system -n "$NAMESPACE" --replicas=0
 kubectl apply -f deploy/$NAMESPACE.yaml
-kubectl rollout restart deployment inference-system -n $NAMESPACE
+kubectl scale deployment/inference-system -n "$NAMESPACE" --replicas=1
+kubectl rollout status deployment/inference-system -n "$NAMESPACE" --timeout=10m
 ```
 
 ### Q: How do I see platform version details under a pod?
@@ -184,7 +202,9 @@ In the above example, the CPU is pegged because 0.994/1 = 99.4% CPU
 
 ### Q: How do I deploy a new configmap?
 
-Using (say) `north-sjc` as the namespace:
+ConfigMap changes merged to `main` trigger the
+[configmap workflow](../.github/workflows/InferenceSystem-deploy-configmaps.yaml).
+For a manual update, using (say) `north-sjc` as the namespace:
 
 ```
 kubectl describe configmap hydrophone-configs -n north-sjc
@@ -337,11 +357,15 @@ To see why a node is utilized:
 kubectl describe node aks-f4sv2pool-22767839-vmss000000
 ```
 
-To change the limits, edit the `deploy/andrews-bay.yaml` file
+To change the limits, edit `deploy/andrews-bay.yaml`. Before applying it, check
+that its image matches the live image as described in
+[pod configuration updates](#q-how-do-i-deploy-a-pod-configuration-update).
 
 ```cmd
 kubectl scale deployment inference-system -n andrews-bay --replicas=0
 kubectl apply -f deploy\andrews-bay.yaml
+kubectl scale deployment inference-system -n andrews-bay --replicas=1
+kubectl rollout status deployment inference-system -n andrews-bay --timeout=10m
 kubectl describe node aks-f4sv2pool-22767839-vmss000001 | findstr memory
 ```
 

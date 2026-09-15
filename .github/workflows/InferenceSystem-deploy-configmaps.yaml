@@ -9,18 +9,31 @@ on:
       - 'InferenceSystem/deploy/*-configmap.yaml'
   workflow_dispatch:  # Allow manual workflow invocation from the Github Actions UI
 
-concurrency:
-  # Cancel any CI/CD workflow currently in progress for the same PR.
-  # Allow running concurrently with any other commits.
-  group: InferenceSystem-deploy-configmaps-${{ github.event.pull_request.number || github.sha }}
-  cancel-in-progress: true
-
 permissions:  # added using https://github.com/step-security/secure-repo
   contents: read
 
 jobs:
   deploy-configmaps:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        namespace:
+          - andrews-bay
+          - bush-point
+          - mast-center
+          - north-sjc
+          - orcasound-lab
+          - point-robinson
+          - port-townsend
+          - sunset-bay
+    concurrency:
+      group: inference-system-aks-deployment-${{ matrix.namespace }}
+      cancel-in-progress: false
+      queue: max
+    env:
+      NAMESPACE: ${{ matrix.namespace }}
     steps:
       - uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c  # v2.21.0
         with:
@@ -29,40 +42,44 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
-          fetch-depth: 2
+          fetch-depth: 0
+
+      - name: Check for ConfigMap changes
+        id: changes
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          file="InferenceSystem/deploy/$NAMESPACE-configmap.yaml"
+          if [ "$EVENT_NAME" = workflow_dispatch ]; then
+            changed=true
+          else
+            # Compare the whole push, including pushes containing multiple commits.
+            files=$(git diff --name-only "$BEFORE_SHA" "$GITHUB_SHA" -- "$file")
+            if [ -n "$files" ]; then changed=true; else changed=false; fi
+          fi
+          echo "changed=$changed" >> "$GITHUB_OUTPUT"
 
       - name: Set up kubectl
+        if: steps.changes.outputs.changed == 'true'
         uses: azure/setup-kubectl@829323503d1be3d00ca8346e5391ca0b07a9ab0d  # v5.1.0
 
       - name: Set Kubernetes context
+        if: steps.changes.outputs.changed == 'true'
         uses: azure/k8s-set-context@8698eba2499e9012f0d5085f8798077cce4bc526  # v5.0.1
         with:
           method: kubeconfig
           kubeconfig: ${{ secrets.KUBE_CONFIG }}
 
-      - name: Get configmap files to apply
-        id: changed-files
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            # For manual triggers, apply all configmap files
-            CHANGED=$(ls InferenceSystem/deploy/*-configmap.yaml 2>/dev/null || true)
-          else
-            CHANGED=$(git diff --name-only HEAD~1 HEAD -- 'InferenceSystem/deploy/*-configmap.yaml')
-          fi
-          echo "files=$CHANGED" >> $GITHUB_OUTPUT
+      - name: Apply ConfigMap and restart deployment
+        id: rollout
+        if: steps.changes.outputs.changed == 'true'
+        run: bash .github/scripts/deploy-inference.sh
 
-      - name: Apply configmaps and restart deployments
+      - name: Show deployment diagnostics on failure
+        if: failure() && steps.rollout.outcome == 'failure'
         run: |
-          CHANGED="${{ steps.changed-files.outputs.files }}"
-          if [ -z "$CHANGED" ]; then
-            echo "No configmap files to apply."
-            exit 0
-          fi
-          for FILE in $CHANGED; do
-            echo "Applying $FILE"
-            kubectl apply -f "$FILE"
-            # Derive namespace from filename, e.g. InferenceSystem/deploy/bush-point-configmap.yaml -> bush-point
-            NAMESPACE=$(basename "$FILE" -configmap.yaml)
-            echo "Restarting deployment/inference-system in namespace $NAMESPACE"
-            kubectl rollout restart deployment/inference-system -n "$NAMESPACE"
-          done
+          kubectl get deployment/inference-system -n "$NAMESPACE" -o wide || true
+          kubectl get pods -n "$NAMESPACE" -l app=inference-system -o wide || true
+          kubectl describe deployment/inference-system -n "$NAMESPACE" || true

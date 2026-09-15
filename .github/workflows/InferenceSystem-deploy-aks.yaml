@@ -1,0 +1,107 @@
+---
+name: InferenceSystem-deploy-aks
+
+on:
+  workflow_dispatch:
+    inputs:
+      namespace:
+        description: Hydrophone location to deploy
+        required: true
+        type: choice
+        options:
+          - andrews-bay
+          - bush-point
+          - mast-center
+          - north-sjc
+          - orcasound-lab
+          - point-robinson
+          - port-townsend
+          - sunset-bay
+      publish_run_id:
+        description: 'Open Actions > InferenceSystem-deploy > successful release run. Copy the number after /actions/runs/ in its URL.'
+        required: true
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: inference-system-aks-deployment-${{ inputs.namespace }}
+  cancel-in-progress: false
+  queue: max
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c  # v2.21.0
+        with:
+          egress-policy: audit
+
+      - name: Require main branch
+        run: |
+          if [ "$GITHUB_REF" != refs/heads/main ]; then
+            echo "Run this workflow from main" >&2
+            exit 1
+          fi
+
+      - name: Resolve published image
+        env:
+          PUBLISH_RUN_ID: ${{ inputs.publish_run_id }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          [[ "$PUBLISH_RUN_ID" =~ ^[0-9]+$ ]] || { echo "Enter the numeric publish run ID from the Actions run URL" >&2; exit 1; }
+          run=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$PUBLISH_RUN_ID")
+          jq -e '
+            .status == "completed" and
+            .conclusion == "success" and
+            .path == ".github/workflows/InferenceSystem-deploy.yaml"
+          ' <<< "$run" > /dev/null || { echo "Select a successful InferenceSystem-deploy run (tag push or manual)" >&2; exit 1; }
+
+          gh run download "$PUBLISH_RUN_ID" --repo "$GITHUB_REPOSITORY" --name inference-release --dir "$RUNNER_TEMP/inference-release"
+          image=$(cat "$RUNNER_TEMP/inference-release/inference-image.txt")
+          [[ "$image" =~ ^orcaconservancycr\.azurecr\.io/live-inference-system:[a-zA-Z0-9_][a-zA-Z0-9_.-]*@sha256:[a-f0-9]{64}$ ]] || { echo "The publish artifact must contain the expected ACR image with a SHA-256 digest" >&2; exit 1; }
+          printf 'IMAGE=%s\n' "$image" >> "$GITHUB_ENV"
+          printf 'Deploying `%s` from successful publish run `%s`\n' "$image" "$PUBLISH_RUN_ID" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Checkout deployment manifests
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@829323503d1be3d00ca8346e5391ca0b07a9ab0d  # v5.1.0
+
+      - name: Set Kubernetes context
+        uses: azure/k8s-set-context@8698eba2499e9012f0d5085f8798077cce4bc526  # v5.0.1
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBE_CONFIG }}
+
+      - name: Verify published image
+        env:
+          ACR_USERNAME: ${{ secrets.ACR_USERNAME }}
+          ACR_PASSWORD: ${{ secrets.ACR_PASSWORD }}
+        run: |
+          set -euo pipefail
+          test -n "$ACR_USERNAME"
+          test -n "$ACR_PASSWORD"
+          printf '%s' "$ACR_PASSWORD" | docker login orcaconservancycr.azurecr.io -u "$ACR_USERNAME" --password-stdin
+          tagged_image=${IMAGE%@*}
+          docker manifest inspect "${tagged_image%:*}@${IMAGE##*@}" > /dev/null
+
+      - name: Deploy selected hydrophone
+        id: rollout
+        env:
+          NAMESPACE: ${{ inputs.namespace }}
+        run: bash .github/scripts/deploy-inference.sh
+
+      - name: Show deployment diagnostics on failure
+        if: failure() && steps.rollout.outcome == 'failure'
+        env:
+          NAMESPACE: ${{ inputs.namespace }}
+        run: |
+          kubectl get deployment/inference-system -n "$NAMESPACE" -o wide || true
+          kubectl get pods -n "$NAMESPACE" -l app=inference-system -o wide || true
+          kubectl describe deployment/inference-system -n "$NAMESPACE" || true
