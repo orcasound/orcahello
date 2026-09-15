@@ -360,7 +360,7 @@ while the .NET API can map its current PascalCase properties at the boundary.
 | Canonical field | Orcasite source | OrcaHello source | Decision |
 | --------------- | --------------- | ---------------- | -------- |
 | `id` | `id` | `Id` | Preserve source ids where globally unique; otherwise generate UUID and retain `source_record_id`. |
-| `feed_id` | `feed_id` | `HydrophoneId` or mapped `Location.Name` | Keep the existing FK. Expose the related feed `slug` as §4 `node`. Never join on display name after migration. |
+| `feed_id` | `feed_id` | `HydrophoneId` or mapped `Location.Id` | Keep the existing FK. Expose the related feed `slug` as §4 `node`. Never join on display name after migration. |
 | `timestamp` | `timestamp` | `Timestamp` | Keep; convert to UTC on ingest. |
 | `duration_s` | Derived from report/media window | Clip duration | Canonical seconds; do not infer it from annotation span. |
 | `reporter_id` | Map `user_id` or machine actor | Derive from `AIModel` / `GlobalPredictionLabel` | Use a reporter FK per §1a; retain legacy `source` only during compatibility rollout. |
