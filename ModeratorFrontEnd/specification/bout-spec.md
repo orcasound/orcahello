@@ -75,7 +75,7 @@ Given detections ordered by time on a single node:
   (`biophony` | `geophony` | `anthrophony`) and, where identifiable, a single
   **species/source**. Two bouts of the **same** species on the same node do **not**
   overlap in time (they are one bout, per R1–R2). Two bouts of **different**
-  species/sources (e.g. an SRKW bout and a humpback bout, or a whale bout and a
+  species/sources (e.g., an SRKW bout and a humpback bout, or a whale bout and a
   vessel bout) **MAY overlap** in time on the same node. This is confirmed behavior,
   not provisional (2.1 review #41).
 - **R4 (node scope):** A bout belongs to exactly one node.
