@@ -28,7 +28,8 @@ Moderators are authoritative. Human listeners and machine detectors are both
 
 1. **Moderators — authoritative.** A moderator's confirmed bout (its boundaries,
    type, tags) is the **highest-quality source** and the ground truth for this
-   system. Moderator decisions define bouts; everything else only proposes them.
+   system. Moderator decisions define bouts; everything else only supplies
+   evidence for them.
 2. **Reporters — candidate evidence.** A detection may come from a human listener
   or machine detector, each identified by `reporter_id`. Treat all non-moderator
   input as candidate evidence of comparable standing in v1. Per-reporter
@@ -36,8 +37,11 @@ Moderators are authoritative. Human listeners and machine detectors are both
 
 Consequences that the rest of this spec MUST honor:
 
-- Any reporter may **propose** a candidate bout; only a moderator can
-  **confirm/publish** one. Auto-publishing is out of scope.
+- Reporters **report sounds (detections), not bouts.** A reporter never creates,
+  proposes, or sees a candidate bout directly. A candidate bout is a
+  **system-generated side effect** of grouping those detections under the boundary
+  rules (§3). Only a moderator can **confirm/publish** a bout; auto-publishing is
+  out of scope.
 - Generated type, title, and tags are editable starting values. A moderator saves
   the authoritative value back to the same field; `review_history` preserves what
   changed, so parallel `suggested_*` and `moderator_*` columns are unnecessary.
@@ -91,6 +95,17 @@ Given detections ordered by time on a single node:
 > activity is R3: overlap is only possible *between different*
 > species/sources, never within one.
 >
+> **Persistent / non-biophony sources (v1 vs. future).** The 15-minute gap is
+> tuned for biophony, where absence of sound is the only available evidence that a
+> source has left. For persistent anthrophony sources such as `vessel`, external
+> data (e.g. AIS vessel tracks) can give exact location and prove when the source is
+> no longer in the area, so a no-detection gap is a weak boundary signal. v1 keeps
+> the single 15-minute threshold for all sources for simplicity, and MAY also choose
+> to **not generate bouts** for such persistent sources. Future versions SHOULD
+> consider a different boundary rule for non-biophony sources — either a different
+> gap threshold or an external-data (AIS) presence/absence signal instead of the
+> no-detection gap.
+>
 > **Detection vs bout scope (review #12, #13):** R3 constrains a **bout**, not a
 > **detection**. A single 1-minute detection/candidate can legitimately carry
 > **multiple** sources/species at once (e.g., a vessel *and* residents in the same
@@ -135,6 +150,7 @@ Each detection record SHOULD provide:
 | `node`       | string        | |
 | `start`      | ISO-8601 UTC  | First signal in the cluster |
 | `end`        | ISO-8601 UTC  | Last signal in the cluster |
+| `type`       | enum          | Coarse source class: `biophony` \| `geophony` \| `anthrophony`; derived from member tags (§6) and editable by a moderator |
 | `title`      | string        | Descriptive; node location appended |
 | `tags`       | string[]      | Flexible vocabulary (species, pod, call type, `vessel`, etc.); hyphenated |
 | `confidence` | number 0..1   | Aggregate confidence (TBD method) |
@@ -149,15 +165,43 @@ later edit (2.1 review #49).
 
 | Field                  | Type          | Notes |
 | ---------------------- | ------------- | ----- |
-| `status`               | enum          | `new` \| `claimed` \| `needs_review` \| `ready` \| `published` \| `rejected` |
-| `in_progress_by`       | string        | Soft hint that a moderator is working on it (not an exclusive lock; review #26, #41) |
+| `status`               | enum          | Workflow state of the candidate. Values defined in §5.2.1. |
+| `in_progress_by`       | string        | `reporter_id` of the moderator currently working the candidate. Defined in §5.2.2. |
 | `reviewed_by`          | string        | Last moderator to save/confirm. Earlier reviewers remain in `review_history`; verify this last-writer model with Dave Bain (§11). |
 | `algorithm_version`    | string        | Version of the bout-generation code that created this candidate, e.g. `bouts@0.3`; supports reproduction and comparison after the algorithm changes. |
 | `threshold_config`     | object        | Snapshot used to generate the candidate: `{gap_s: 900}` in v1. |
-| `start_evidence_status`| enum          | Whether the available window establishes 15 minutes with no earlier detection: `verified` \| `unresolved` \| `contradicted`. |
-| `end_evidence_status`  | enum          | Whether the available window establishes 15 minutes with no later detection: `verified` \| `unresolved` \| `contradicted`. |
 | `coincident_with`      | string[]      | Bout/candidate ids at adjacent nodes for the same event (#584) |
 | `review_history`       | object[]      | `{who, when, field, from, to}` change log |
+
+#### 5.2.1 `status` values (normative)
+
+`status` is the single source of truth for where a candidate sits in the workflow.
+Exactly one value applies at a time; transitions follow the lifecycle in §8.3.
+
+| Value | Meaning |
+| ----- | ------- |
+| `new` | Freshly generated candidate; no moderator has picked it up. |
+| `claimed` | A moderator has taken the candidate (set `in_progress_by`) and is reviewing it; boundaries/metadata not yet finalized. |
+| `needs_review` | Boundaries or metadata were adjusted but at least one boundary still lacks 15 minutes of verified no-detection evidence, or another moderator's attention is requested. |
+| `ready` | Fully reviewed and confirmed by a moderator — boundaries, type, and tags are final — but **not yet published**. Subscribers have **not** been notified. This is a confirmed draft awaiting publication. |
+| `published` | The bout is live and public. Publication has made it eligible for notification, and subscribers matching the audience have been (or are being) notified (§5.2 audience subscriptions, §9). |
+| `rejected` | A moderator determined the candidate is not a real bout. Final tags are saved for retraining; it is removed from the active queue and never notified. |
+
+> `ready` vs `published`: `ready` means a human has confirmed the bout but the
+> event is still internal — no subscriber has been notified. `published` means the
+> bout is public and notification of matching subscribers has been triggered.
+> Publishing is the only transition that can generate notifications.
+
+#### 5.2.2 `in_progress_by` (normative)
+
+`in_progress_by` holds the `reporter_id` of the moderator who has **claimed** the
+candidate (via the explicit **Claim bout** action, §8.1). It is an **advisory soft
+hint**, not an exclusive lock: it tells other moderators "someone is already
+looking at this" so work is not duplicated, but another moderator MAY take over
+(with confirmation), which reassigns the field. Merely opening a candidate does not
+set it; only claiming does. It is cleared when the candidate reaches a terminal
+state (`published` or `rejected`). Detection-level claiming is not part of the
+target model (review #26, #41).
 
 > Preserve `detections` (member ids) always: it is what makes an automatically
 > generated boundary **explainable** to the moderator.
@@ -184,7 +228,7 @@ single-source candidate bouts:
 - tags implying human activity (e.g. `vessel`, `sonar`, `pile-driving`) → `anthrophony`
 - tags implying natural phenomena (e.g. `storm`, `earthquake`) → `geophony`
 - ambiguous / mixed → needs classification or moderator choice (a minute may carry
-  tags of more than one class; see R4 detection-vs-bout note in §3)
+  tags of more than one class; see R3 detection-vs-bout note in §3)
 
 ## 6a. Data normalization across sources (normative)
 
@@ -211,7 +255,7 @@ flowchart LR
   D --> G[Bout generator]
   G --> B[(Candidate bouts<br/>§5 contract)]
   B --> W[Moderator Workbench §8]
-  W --> P[(Confirmed / published bouts)]
+  W --> PB[(Confirmed / published bouts)]
 ```
 
 ### 6a.1 Required normalization steps
@@ -620,7 +664,7 @@ stateDiagram-v2
 
 | KPI | Lever in this spec | Realistic near-term target |
 | --- | ------------------ | -------------------------- |
-| **1. Time-to-notification** | Pre-computed candidate + one-click `Confirm & notify` | Cut confirm\u2192notify to minutes; halve current median |
+| **1. Time-to-notification** | Pre-computed candidate + one-click `Confirm & notify` | Cut confirm→notify to minutes; halve current median |
 | **2. % historical detections moderated** | Keyboard-driven queue, batch actions, node grouping | Measurable weekly throughput lift on backlog |
 | **3. Prediction accuracy** | Moderator tags on 3-second samples feed retraining | Every reviewed sample retains usable final tags |
 | **4. Labeling granularity** | Flexible **tags** (species, pod, call type, `vessel`) + audience subscriptions | Enable audience-specific notifications (residents, PIGU) |
@@ -701,7 +745,7 @@ not repeated here.
 | ID | Open question | Why it matters / proposed direction |
 | -- | ------------- | ----------------------------------- |
 | A | **Mixed-source annotation assignment:** when one 1-minute parent has tags or 3-second annotations for several species/sources, which annotations belong to each overlapping bout, and how are ambiguous untagged intervals handled? (review #12, #13; 2.1 #40) | The parent detection may reference multiple bouts without duplication, but membership needs a deterministic annotation/tag rule and a moderator override. |
-| B | **Boundary evidence persistence:** store `threshold_config` and start/end evidence states, or recompute them? (second review #11–#13) | Proposed: retain `{gap_s: 900}` and status snapshots for reproducibility; remove any field proven deterministic from immutable inputs plus `algorithm_version`. |
+| B | **Boundary evidence persistence:** now that stored `start_evidence_status` / `end_evidence_status` fields are removed, boundary evidence is **recomputed** on demand from detection timestamps plus `threshold_config`/`algorithm_version`. Open: is recomputation always sufficient, or are there cases (e.g. sources without full detection history) where a snapshot must be persisted? (second review #11–#13) | Proposed: retain only `{gap_s: 900}` and `algorithm_version` for reproducibility; recompute the 15-minute boundary status live rather than storing it. |
 | C | **`SRKWFound` semantics:** does `no` mean no SRKW specifically or no relevant whale sound at all? (second review #23) | Blocks safe mapping of Cosmos `SRKWFound` / API `found` to generic `confirmed` and `false_positive`; another species may still be present. |
 | D | **Confidence aggregation:** how is bout `confidence` calculated across reporters and annotations? | Needed for ranking, moderator display, evaluation, and reproducible API behavior. Do not hide per-detection values behind an average. |
 | E | **Controlled vocabulary:** which tag hierarchy and audience-group taxonomy is canonical, and who governs additions/renames? | Required for interoperable classification, filtering, metrics, and subscriptions while preserving free-form evidence. |
