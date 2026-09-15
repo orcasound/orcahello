@@ -9,14 +9,7 @@ on:
         required: true
         type: choice
         options:
-          - andrews-bay
-          - bush-point
           - mast-center
-          - north-sjc
-          - orcasound-lab
-          - point-robinson
-          - port-townsend
-          - sunset-bay
       publish_run_id:
         description: 'Open Actions > InferenceSystem-deploy > successful release run. Copy the number after /actions/runs/ in its URL.'
         required: true
@@ -40,10 +33,16 @@ jobs:
         with:
           egress-policy: audit
 
-      - name: Require main branch
+      - name: Require test branch and mast-center namespace
+        env:
+          NAMESPACE: ${{ inputs.namespace }}
         run: |
-          if [ "$GITHUB_REF" != refs/heads/main ]; then
-            echo "Run this workflow from main" >&2
+          if [ "$GITHUB_REF" != refs/heads/test/322-mast-center ]; then
+            echo "Run this workflow from test/322-mast-center" >&2
+            exit 1
+          fi
+          if [ "$NAMESPACE" != mast-center ]; then
+            echo "This test workflow only permits mast-center" >&2
             exit 1
           fi
 
