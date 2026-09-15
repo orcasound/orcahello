@@ -27,7 +27,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: inference-system-aks-deployment
+  group: inference-system-aks-deployment-${{ inputs.namespace }}
   cancel-in-progress: false
 
 jobs:
