@@ -20,7 +20,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: inference-system-aks-deployment-${{ inputs.namespace }}
+  group: inference-system-aks-deployment-mast-center
   cancel-in-progress: false
   queue: max
 
@@ -28,6 +28,8 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    env:
+      NAMESPACE: mast-center
     steps:
       - uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c  # v2.21.0
         with:
@@ -35,13 +37,13 @@ jobs:
 
       - name: Require test branch and mast-center namespace
         env:
-          NAMESPACE: ${{ inputs.namespace }}
+          REQUESTED_NAMESPACE: ${{ inputs.namespace }}
         run: |
           if [ "$GITHUB_REF" != refs/heads/test/322-mast-center ]; then
             echo "Run this workflow from test/322-mast-center" >&2
             exit 1
           fi
-          if [ "$NAMESPACE" != mast-center ]; then
+          if [ "$REQUESTED_NAMESPACE" != mast-center ] || [ "$NAMESPACE" != mast-center ]; then
             echo "This test workflow only permits mast-center" >&2
             exit 1
           fi
@@ -92,14 +94,10 @@ jobs:
 
       - name: Deploy selected hydrophone
         id: rollout
-        env:
-          NAMESPACE: ${{ inputs.namespace }}
         run: bash .github/scripts/deploy-inference.sh
 
       - name: Show deployment diagnostics on failure
         if: failure() && steps.rollout.outcome == 'failure'
-        env:
-          NAMESPACE: ${{ inputs.namespace }}
         run: |
           kubectl get deployment/inference-system -n "$NAMESPACE" -o wide || true
           kubectl get pods -n "$NAMESPACE" -l app=inference-system -o wide || true
