@@ -16,9 +16,10 @@ on:
         required: true
 
 concurrency:
-  # A second tag on the same commit must not cancel a release already publishing.
-  group: InferenceSystem-publish-${{ github.ref }}
-  cancel-in-progress: false
+  # Cancel any CI/CD workflow currently in progress for the same PR.
+  # Allow running concurrently with any other commits.
+  group: InferenceSystem-deploy-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
 
 permissions:  # added using https://github.com/step-security/secure-repo
   contents: read
