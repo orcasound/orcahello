@@ -2,30 +2,40 @@
 name: InferenceSystem-deploy
 
 on:
-  push:
-    tags:
-      - 'InferenceSystem.v[0-9]+.[0-9]+.[0-9]+'
   workflow_dispatch:
     inputs:
+      operation:
+        description: 'Publish an image or deploy an existing release to mast-center'
+        required: true
+        type: choice
+        default: publish
+        options:
+          - publish
+          - deploy-mast-center
       ref:
-        description: 'Branch or tag to deploy from'
-        required: true
-        default: 'main'
+        description: 'Source branch or tag (publish only)'
+        required: false
+        default: 'test/322-mast-center'
       release_tag:
-        description: 'Container release tag (e.g., v1.2.3)'
-        required: true
+        description: 'Container release tag, e.g. v0.0.0 (required for publish only)'
+        required: false
+      publish_run_id:
+        description: 'Successful image-publish run ID (required for deploy-mast-center only)'
+        required: false
+        type: string
 
 concurrency:
-  # Cancel any CI/CD workflow currently in progress for the same PR.
-  # Allow running concurrently with any other commits.
-  group: InferenceSystem-deploy-${{ github.event.pull_request.number || github.sha }}
-  cancel-in-progress: true
+  group: inference-system-test-${{ inputs.operation }}-${{ github.ref }}
+  cancel-in-progress: false
+  queue: max
 
 permissions:  # added using https://github.com/step-security/secure-repo
   contents: read
 
 jobs:
   deploy:
+    name: Publish image
+    if: inputs.operation == 'publish'
     runs-on: ubuntu-latest
     env:
       IMAGE_NAME: live-inference-system
@@ -45,11 +55,7 @@ jobs:
           INPUT_RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
           set -euo pipefail
-          if [ "${{ github.event_name }}" = "push" ]; then
-            release_tag=${GITHUB_REF_NAME#InferenceSystem.}
-          else
-            release_tag=$INPUT_RELEASE_TAG
-          fi
+          release_tag=$INPUT_RELEASE_TAG
           [[ "$release_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
           printf 'RELEASE_TAG=%s\n' "$release_tag" >> "$GITHUB_ENV"
 
@@ -140,3 +146,17 @@ jobs:
           retention-days: 30
           if-no-files-found: error
           overwrite: true
+
+  deploy-mast-center:
+    if: inputs.operation == 'deploy-mast-center'
+    permissions:
+      actions: read
+      contents: read
+    uses: ./.github/workflows/InferenceSystem-deploy-aks.yaml
+    with:
+      namespace: mast-center
+      publish_run_id: ${{ inputs.publish_run_id }}
+    secrets:
+      KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+      ACR_USERNAME: ${{ secrets.ACR_USERNAME }}
+      ACR_PASSWORD: ${{ secrets.ACR_PASSWORD }}
