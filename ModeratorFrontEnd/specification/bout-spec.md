@@ -110,7 +110,7 @@ Each detection record SHOULD provide:
 | `timestamp`    | ISO-8601 UTC  | yes      | Start of the 1-minute detection window |
 | `duration_s`   | number        | no       | Detection window length; `60` in v1 |
 | `annotations`  | object[]      | no       | Approximately 3-second child intervals: `{id, start_offset_s, end_offset_s, confidence, label, tags}`. Offsets are relative to `timestamp`. |
-| `tags`         | string[]      | yes      | Flexible vocabulary describing the sound(s): species, `vessel`, pod, call type, etc. Replaces the fixed `source_type`/`species`/`pod`/`call_type` enums, matching OrcaHello (review #17, #19, #20). **May contain multiple** entries (e.g. `vessel` + `srkw`) for one minute (review #12, #13). |
+| `tags`         | string[]      | no       | Flexible vocabulary describing the sound(s): species, `vessel`, pod, call type, etc. Replaces the fixed `source_type`/`species`/`pod`/`call_type` enums, matching OrcaHello (review #17, #19, #20). **May contain multiple** entries (e.g., `vessel` + `srkw`) for one minute (review #12, #13). |
 | `confidence`   | number 0..1   | no       | Reporter's confidence (per detection). |
 | `reporter_id`  | string        | yes      | Id of the human **or** model that reported it (review #21). Replaces `source` + `model_id`. Multiple reporters for the same minute yield multiple detections that share `audio_uri`/`spectrogram_uri`. |
 | `audio_uri`    | string        | no       | Pointer to clip/segment. **Keyed by (timestamp + node), not by reporter** (review #22); shared across co-timed reporters. |
