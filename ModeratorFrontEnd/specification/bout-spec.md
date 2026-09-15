@@ -67,7 +67,7 @@ Consequences that the rest of this spec MUST honor:
 Given detections ordered by time on a single node:
 
 - **R1 (automatic boundary):** A bout boundary requires **at least 15 minutes
-  with no human or machine detections** before the start and after the end.
+  with no human or machine detections** before the start and after the end, for the same location and species.
   Ambient audio need not be silent.
 - **R2 (maximality):** Extend a bout to include every relevant detection within
   15 minutes of its current boundary.
