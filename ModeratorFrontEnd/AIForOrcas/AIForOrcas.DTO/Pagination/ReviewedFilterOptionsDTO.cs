@@ -11,6 +11,6 @@ namespace AIForOrcas.DTO
         public string HydrophoneId { get; set; }
         public DateTime? DateFrom { get; set; }
         public DateTime? DateTo { get; set; }
-        public string QueryString { get => $"sortBy={SortBy}&sortOrder={SortOrder}&timeframe={Timeframe}&location={Location}&hydrophoneId={HydrophoneId}&DateFrom={DateFrom}&DateTo={DateTo}"; }
+        public string QueryString { get => $"sortBy={SortBy}&sortOrder={SortOrder}&timeframe={Timeframe}&location=all&hydrophoneId={HydrophoneId ?? "all"}&DateFrom={DateFrom}&DateTo={DateTo}"; }
     }
 }

@@ -20,13 +20,11 @@ public partial class ReviewedFilterComponent
             .Where(location => location.Value != null)
             .ToList();
 
-        FilterOptions.Location = "all";
         FilterOptions.HydrophoneId ??= "all";
     }
 
     private async Task ApplyFilter()
     {
-        FilterOptions.Location = "all";
         FilterOptions.HydrophoneId ??= "all";
         await ApplyFilterCallback.InvokeAsync(FilterOptions);
     }
