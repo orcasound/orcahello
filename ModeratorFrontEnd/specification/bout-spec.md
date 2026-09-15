@@ -133,7 +133,6 @@ Each detection record SHOULD provide:
 | ------------ | ------------- | ----- |
 | `id`         | string        | Generated |
 | `node`       | string        | |
-| `type`       | enum          | `biophony` \| `geophony` \| `anthrophony` |
 | `start`      | ISO-8601 UTC  | First signal in the cluster |
 | `end`        | ISO-8601 UTC  | Last signal in the cluster |
 | `title`      | string        | Descriptive; node location appended |
