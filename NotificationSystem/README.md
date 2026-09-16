@@ -22,8 +22,8 @@ One Azure Function is used to notify the [Orcasite JSON API](https://live.orcaso
 
 There are two Azure Functions that update the email list.
 
-- ModeratorEmail is a REST API that writes to the email list
-- SenderEmail is a REST API that writes to the email list
+- SubscribeToModeratorEmail is a REST API that writes to the email list
+- SubscribeToSubscriberEmail is a REST API that writes to the email list
 - Email list is implemented using Azure Tables, using either "Moderator" or "Subscriber" as the partition key
 
 #### Sample REST calls
@@ -98,11 +98,10 @@ curl -X GET '<ModeratorEmailEndpoint>'
 ## Prerequisites
 
 - Access to the Orca Conservancy Azure subscription
-- Install the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
-- Azure Function Tools
-    - If using Visual Studio, include "Azure development" workload in installation
-    - If using Visual Studio Code, add the "Azure Functions" extension
-    - If using CLI, install [Azure Functions Core Tools v4](https://learn.microsoft.com/azure/azure-functions/functions-run-local)
+- Development tools
+    - If using Visual Studio, install Visual Studio 2026 (18.0 or later) with .NET 10 tooling, the "Azure development" workload, and [Azure Functions Core Tools v4](https://learn.microsoft.com/azure/azure-functions/functions-run-local)
+    - If using Visual Studio Code, install the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0), [Azure Functions Core Tools v4](https://learn.microsoft.com/azure/azure-functions/functions-run-local), and the C# and "Azure Functions" extensions
+    - If using CLI, install the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) and [Azure Functions Core Tools v4](https://learn.microsoft.com/azure/azure-functions/functions-run-local)
 - If running locally, install and start the [Azurite storage emulator](https://learn.microsoft.com/azure/storage/common/storage-use-azurite)
 
 ## Build
@@ -123,7 +122,7 @@ To build the functions locally:
     dotnet test NotificationSystem.Tests.Integration/NotificationSystem.Tests.Integration.csproj
     ```
 
-4. If using Visual Studio, open `NotificationSystem.slnx` and build as normal.
+4. If using Visual Studio 2026, open `NotificationSystem.slnx` and build as normal.
 
 ## Azure Resource Dependencies
 
@@ -164,7 +163,7 @@ Start Azurite, then run the Functions host from `NotificationSystem/Notification
 dotnet run
 ```
 
-Confirm that the host starts and discovers the eight functions listed in the next section. Use a valid test Cosmos DB connection for the Cosmos-triggered functions; listener errors caused by missing test services or credentials must be resolved before confirming runtime discovery for deployment.
+Confirm that the host starts and discovers the eight functions described in the Architecture and Get email list sections above. Use a valid test Cosmos DB connection for the Cosmos-triggered functions; listener errors caused by missing test services or credentials must be resolved before confirming runtime discovery for deployment.
 
 ## Run on Azure
 
