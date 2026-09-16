@@ -557,6 +557,54 @@ Design:
 4. **Watchers** (`bout_watch.reason = worked`) get an inbox/notification badge:
    "A bout you reviewed changed," linking to a diff of before/after.
 
+### 8.1 Existing-bout correction: orca signal → seal
+
+A reviewer opens an existing orca bout from the Bouts page or from an "A bout you
+reviewed changed" alert. The Workbench opens in **review existing bout** mode and
+keeps the bout boundary visible while the species overlay shows each member
+signal. The reviewer selects the misidentified orca signal and listens to its
+exact interval; the details panel shows its current `orca` identification,
+reporter/model provenance, confidence, moderation state, and review history.
+
+The reviewer chooses **Change**, selects `seal`, and sees an inline preview before
+confirming:
+
+- the signal moves from the orca lane to the seal lane;
+- the signal leaves the orca bout and joins or seeds the applicable seal bout;
+- every affected bout is listed with its current and proposed boundaries; and
+- any title, type, tag, split, or merge consequence is called out explicitly.
+
+Confirming writes a `signal_reviews` entry (`orca` → `seal`), keeps the signal
+locked against reporter/model overwrites, records model feedback, and emits one
+`change_events` row naming all affected bouts. Those bouts become
+`boundary_dirty`; the reviewer accepts or adjusts each proposed boundary change
+rather than the system silently applying it. Correcting the signal does not by
+itself publish a bout or notify subscribers (see U-7).
+
+### 8.2 Existing-bout correction: unidentified opening signals → ship
+
+A reviewer opens an existing bout and zooms to the small unidentified signals at
+its beginning. They drag a marquee over the run, then add or remove individual
+signals by Shift-click on desktop or checkboxes on phone. The selection summary
+shows the count, total time span, current tags and lock states. **Listen to
+selection** plays the intervals in sequence so the reviewer can verify that the
+whole group has the same ship source before changing it.
+
+The reviewer chooses **Change selection**, identifies the source as **ship**
+(canonical tag `vessel`), and receives one confirmation screen for the batch. The
+screen lists every signal that will change and flags any item that cannot be
+revised under the moderator-override policy (U-3); an ineligible item is never
+silently skipped. The preview moves the selected signals into a vessel lane and
+shows the resulting anthrophony/vessel bout. If those signals anchored the
+original bout's start, it also proposes moving that boundary to the first
+remaining signal and displays both bouts before and after the change.
+
+Confirming creates one append-only `signal_reviews` record per selected signal,
+corresponding `change_events` and model-feedback records, and an audit link that
+groups them as one batch action. The reviewer then accepts or adjusts the proposed
+bout changes. The batch update never silently republishes a bout or sends a
+subscriber notification.
+
 ```mermaid
 stateDiagram-v2
   [*] --> proposed
