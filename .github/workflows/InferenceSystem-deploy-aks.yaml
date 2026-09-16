@@ -38,10 +38,10 @@ jobs:
         with:
           egress-policy: audit
 
-      - name: Require test branch
+      - name: Require main branch
         run: |
-          if [ "$GITHUB_REF" != refs/heads/test/322-mast-center ]; then
-            echo "Run this workflow from test/322-mast-center" >&2
+          if [ "$GITHUB_REF" != refs/heads/main ]; then
+            echo "Run this workflow from main" >&2
             exit 1
           fi
 
