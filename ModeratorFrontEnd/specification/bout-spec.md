@@ -182,13 +182,9 @@ Exactly one value applies at a time; transitions follow the lifecycle in §8.3.
 | `new` | Freshly generated candidate; no moderator has picked it up. |
 | `claimed` | A moderator has taken the candidate (set `in_progress_by`) and is reviewing it; boundaries/metadata not yet finalized. |
 | `needs_review` | Boundaries or metadata were adjusted but at least one boundary still lacks 15 minutes of verified no-detection evidence, or another moderator's attention is requested. |
-| `ready` | Fully reviewed and confirmed by a moderator — boundaries, type, and tags are final — but **not yet published**. Subscribers have **not** been notified. This is a confirmed draft awaiting publication. |
 | `published` | The bout is live and public. Publication has made it eligible for notification, and subscribers matching the audience have been (or are being) notified (§5.2 audience subscriptions, §9). |
 | `rejected` | A moderator determined the candidate is not a real bout. Final tags are saved for retraining; it is removed from the active queue and never notified. |
 
-> `ready` vs `published`: `ready` means a human has confirmed the bout but the
-> event is still internal — no subscriber has been notified. `published` means the
-> bout is public and notification of matching subscribers has been triggered.
 > Publishing is the only transition that can generate notifications.
 
 #### 5.2.2 `in_progress_by` (normative)
@@ -564,8 +560,8 @@ phone layout stacks the same four panels top to bottom in that order (§8.2).
 
 **1. Bout queue (left) — pick the next candidate.**
 A prioritized worklist of candidate bouts. Each item is one candidate, tagged with
-its workflow `status` (§5.2: `new`, `claimed`, `needs_review`, `ready`,
-`published`, `rejected`) so a moderator can see at a glance what still needs
+its workflow `status` (§5.2: `new`, `claimed`, `needs_review`, `published`,
+`rejected`) so a moderator can see at a glance what still needs
 attention. Candidates can be grouped by node, type, and time so related activity
 sits together, and filtered by node, type, species, confidence, age, or assignee.
 The queue surfaces the most uncertain work first — conflicting classifications and
@@ -649,8 +645,7 @@ stateDiagram-v2
   [*] --> new
   new --> claimed: Claim bout
   claimed --> needs_review: boundaries adjusted
-  needs_review --> ready: 15-min gaps verified
-  ready --> published: Publish / Confirm & notify
+  needs_review --> published: Verify 15-min gaps / Publish / Confirm & notify
   claimed --> rejected: final tags saved
   needs_review --> rejected
   published --> [*]
