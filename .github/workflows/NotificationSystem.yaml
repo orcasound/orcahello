@@ -62,11 +62,11 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
       - name: Dependencies
         run: |
-          dotnet restore ../NotificationSystem.sln
+          dotnet restore ../NotificationSystem.slnx
           dotnet restore -r ${{ env.DOTNET_RUNTIME }}
       - name: Build
         run: |
-          dotnet build ../NotificationSystem.sln --no-restore -c Release
+          dotnet build ../NotificationSystem.slnx --no-restore -c Release
           dotnet build --no-restore -c Release -r ${{ env.DOTNET_RUNTIME }} --self-contained
       - name: Unit Tests
         working-directory: NotificationSystem/NotificationSystem.Tests.Unit
@@ -96,11 +96,11 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
       - name: Dependencies
         run: |
-          dotnet restore ../NotificationSystem.sln
+          dotnet restore ../NotificationSystem.slnx
           dotnet restore -r ${{ env.DOTNET_RUNTIME }}
       - name: Build
         run: |
-          dotnet build ../NotificationSystem.sln --no-restore -c Release
+          dotnet build ../NotificationSystem.slnx --no-restore -c Release
           dotnet build --no-restore -c Release -r ${{ env.DOTNET_RUNTIME }} --self-contained
       - name: Unit Tests
         working-directory: NotificationSystem/NotificationSystem.Tests.Unit

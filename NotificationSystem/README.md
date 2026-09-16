@@ -123,7 +123,7 @@ To build the functions locally:
     dotnet test NotificationSystem.Tests.Integration/NotificationSystem.Tests.Integration.csproj
     ```
 
-4. If using Visual Studio, open `NotificationSystem.sln` and build as normal.
+4. If using Visual Studio, open `NotificationSystem.slnx` and build as normal.
 
 ## Azure Resource Dependencies
 
