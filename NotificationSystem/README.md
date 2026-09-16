@@ -98,24 +98,35 @@ curl -X GET '<ModeratorEmailEndpoint>'
 ## Prerequisites
 
 - Access to the Orca Conservancy Azure subscription
-- Install the [.NET Core 3.1 SDK](https://dotnet.microsoft.com/download/dotnet-core/3.1)
+- Install the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 - Azure Function Tools
     - If using Visual Studio, include "Azure development" workload in installation
     - If using Visual Studio Code, add the "Azure Functions" extension
-    - If using CLI, install the [Azure Functions Core Tools](https://docs.microsoft.com/en-us/azure/azure-functions/functions-run-local?tabs=linux%2Ccsharp%2Cbash#v2)
-- If running locally - [Azure storage emulator](https://docs.microsoft.com/en-us/azure/storage/common/storage-use-emulator)
+    - If using CLI, install [Azure Functions Core Tools v4](https://learn.microsoft.com/azure/azure-functions/functions-run-local)
+- If running locally, install and start the [Azurite storage emulator](https://learn.microsoft.com/azure/storage/common/storage-use-azurite)
 
-## Build 
+## Build
+
 To build the functions locally:
 
-1. Go to /NotificationSystem directory (if not already)
-2. If building from the command line, run 
-    ```
+1. Go to the `NotificationSystem/NotificationSystem` directory.
+2. If building from the command line, run:
+
+    ```bash
     dotnet build NotificationSystem.csproj
     ```
-3. If building from visual studio, simply open .csproj and build as normal
+
+3. To run the existing test suites, return to the parent `NotificationSystem` directory and run:
+
+    ```bash
+    dotnet test NotificationSystem.Tests.Unit/NotificationSystem.Tests.Unit.csproj
+    dotnet test NotificationSystem.Tests.Integration/NotificationSystem.Tests.Integration.csproj
+    ```
+
+4. If using Visual Studio, open `NotificationSystem.sln` and build as normal.
 
 ## Azure Resource Dependencies
+
 All resources are located in resource group **LiveSRKWNotificationSystem**.
 
 1. Storage account with queues, email template images and moderator/subscriber list: orcanotificationstorage
@@ -123,31 +134,37 @@ All resources are located in resource group **LiveSRKWNotificationSystem**.
 3. Azure function app: orcanotification
 
 ## Run Locally
-It is recommended to go to the "orcanotification" function app, then Settings > Configuration to find the app settings used. 
 
-Create local.settings.json in the current directory (NotificationSystem) using the below template. Fill in with valid configuration strings.
+Go to the `orcanotification` Function App, then **Settings > Configuration** to identify the required app settings. Use test resources where a function can send email, change an email list, post to Orcasite, or process queue/Cosmos events.
+
+Create an ignored `local.settings.json` in `NotificationSystem/NotificationSystem` using the template below. Fill in valid local or test configuration values. Never commit or publish real credentials.
 
 ```json
 {
     "IsEncrypted": false,
     "Values": {
         "AzureWebJobsStorage": "UseDevelopmentStorage=true",
-        "FUNCTIONS_WORKER_RUNTIME": "dotnet",
-
+        "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
         "OrcaNotificationStorageSetting": "<storage account connection string>",
         "aifororcasmetadatastore_DOCUMENTDB": "<cosmos db connection string>",
         "AWS_ACCESS_KEY_ID": "<AWS Access Key>",
         "AWS_SECRET_ACCESS_KEY": "<AWS Secret Key>",
         "SenderEmail": "<email address>",
         "SUBSCRIBER_EMAIL_COOLDOWN_MINUTES": "<minutes to wait before re-notifying subscribers for the same location; defaults to 15 if unset>",
-        "FUNCTIONS_WORKER_RUNTIME": "dotnet",
-        "FUNCTIONS_INPROC_NET8_ENABLED": "1"
         "ORCASITE_HOSTNAME": "live.orcasound.net",
         "ORCASITE_APIKEY": "<orcasite API key>",
         "CURRENT_EPOCH_START": "<timestamp of current epoch>"
     }
 }
 ```
+
+Start Azurite, then run the Functions host from `NotificationSystem/NotificationSystem`:
+
+```bash
+dotnet run
+```
+
+Confirm that the host starts and discovers the eight functions listed in the next section. Use a valid test Cosmos DB connection for the Cosmos-triggered functions; listener errors caused by missing test services or credentials must be resolved before confirming runtime discovery for deployment.
 
 ## Run on Azure
 
