@@ -21,9 +21,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - solution: ModeratorFrontEnd/AIForOrcas/AIForOrcas.sln
+          - solution: ModeratorFrontEnd/AIForOrcas/AIForOrcas.slnx
             dotnet-version: 6.0.x
-          - solution: ModeratorFrontEnd/OrcaHello/OrcaHello.sln
+          - solution: ModeratorFrontEnd/OrcaHello/OrcaHello.slnx
             dotnet-version: 8.0.x
     steps:
       - uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c  # v2.21.0
@@ -34,6 +34,10 @@ jobs:
       - name: Set up .NET Core
         uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68  # v6.0.0
         with:
-          dotnet-version: ${{ matrix.dotnet-version }}
+          # .slnx solution files require the .NET SDK 9.0.200 or later, so install
+          # a 9.0.x SDK in addition to the project's target-framework SDK.
+          dotnet-version: |
+            ${{ matrix.dotnet-version }}
+            9.0.x
       - name: Format check
         run: dotnet format ${{ matrix.solution }} --verify-no-changes
