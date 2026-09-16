@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="390" height="844" viewBox="0 0 390 844" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <style>
+      .panel{fill:#fff;stroke:#c9d3dc;stroke-width:1.2}.navy{fill:#0c4968}.title{fill:#fff;font-size:15px;font-weight:700}.heading{fill:#263847;font-size:18px;font-weight:700}.label{fill:#263847;font-size:12px}.small{fill:#607483;font-size:10px}.tiny{fill:#718493;font-size:9px}.outline{fill:#fff;stroke:#aebdc9}.gold{fill:#fff5d6;stroke:#c88b16}.goldText{fill:#8a5b00;font-size:10px;font-weight:700}.button{fill:#087c8c}
+    </style>
+    <linearGradient id="spec" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#09131c"/><stop offset=".55" stop-color="#183744"/><stop offset="1" stop-color="#081018"/></linearGradient>
+  </defs>
+  <rect width="390" height="844" fill="#eef3f6"/><rect width="390" height="52" class="navy"/>
+  <text x="16" y="32" class="title">Recent bouts</text><text x="302" y="31" class="title" font-size="11">12 results</text>
+  <text x="16" y="82" class="heading">Quality examples</text>
+  <text x="16" y="101" class="small">Moderator-confirmed bouts for listening and review</text>
+  <rect x="16" y="118" width="172" height="44" rx="5" class="outline"/><text x="30" y="145" class="label">High value first</text><text x="168" y="145" class="small">&#9662;</text>
+  <rect x="198" y="118" width="176" height="44" rx="5" class="outline"/><text x="212" y="145" class="label">Filters (2)</text><text x="352" y="145" class="small">&#9662;</text>
+
+  <rect x="16" y="178" width="358" height="220" rx="6" fill="#fffdf7" stroke="#c88b16" stroke-width="2"/>
+  <rect x="16" y="178" width="6" height="220" rx="3" fill="#c88b16"/>
+  <rect x="34" y="194" width="102" height="22" rx="11" class="gold"/><text x="45" y="209" class="goldText">&#9733; HIGH VALUE</text>
+  <text x="34" y="239" class="label" font-weight="700">Southern Residents calling</text><text x="34" y="257" class="small">Sunset Bay &#183; Today 09:42</text>
+  <rect x="34" y="272" width="214" height="58" rx="3" fill="url(#spec)"/><g fill="#d8f2fb"><rect x="70" y="282" width="4" height="38"/><rect x="112" y="290" width="4" height="27"/><rect x="164" y="279" width="5" height="44"/><rect x="218" y="287" width="4" height="32"/></g>
+  <circle cx="278" cy="301" r="22" class="button"/><path d="M272 290l17 11-17 11z" fill="#fff"/>
+  <text x="34" y="351" class="small">srkw &#183; J-pod &#183; S04 &#183; 12 signals</text>
+  <text x="34" y="370" class="label">"Clear calls with low vessel noise"</text>
+  <text x="310" y="370" class="small">Review &#8250;</text>
+
+  <rect x="16" y="414" width="358" height="220" rx="6" fill="#fffdf7" stroke="#c88b16" stroke-width="2"/>
+  <rect x="16" y="414" width="6" height="220" rx="3" fill="#c88b16"/>
+  <rect x="34" y="430" width="102" height="22" rx="11" class="gold"/><text x="45" y="445" class="goldText">&#9733; HIGH VALUE</text>
+  <text x="34" y="475" class="label" font-weight="700">Harbor seal calls</text><text x="34" y="493" class="small">Orcasound Lab &#183; Yesterday 18:16</text>
+  <rect x="34" y="508" width="214" height="58" rx="3" fill="url(#spec)"/><g fill="#d8f2fb"><rect x="82" y="524" width="4" height="30"/><rect x="132" y="516" width="5" height="42"/><rect x="192" y="522" width="4" height="33"/></g>
+  <circle cx="278" cy="537" r="22" class="button"/><path d="M272 526l17 11-17 11z" fill="#fff"/>
+  <text x="34" y="587" class="small">seal &#183; corrected identification &#183; 4 signals</text>
+  <text x="34" y="606" class="label">"Orca-to-seal correction example"</text>
+  <text x="310" y="606" class="small">Review &#8250;</text>
+
+  <rect x="16" y="650" width="358" height="146" rx="6" class="panel"/>
+  <text x="34" y="680" class="label" font-weight="700">Humpback calls</text><text x="34" y="698" class="small">Bush Point &#183; Sep 13 14:08</text>
+  <rect x="34" y="714" width="214" height="52" rx="3" fill="url(#spec)"/><g fill="#d8f2fb"><rect x="80" y="724" width="4" height="34"/><rect x="142" y="731" width="4" height="24"/><rect x="206" y="721" width="5" height="38"/></g>
+  <circle cx="278" cy="740" r="22" class="button"/><path d="M272 729l17 11-17 11z" fill="#fff"/>
+  <text x="316" y="744" class="small">Review &#8250;</text>
+  <rect x="0" y="810" width="390" height="34" fill="#fff" stroke="#c9d3dc"/><text x="195" y="831" class="tiny" text-anchor="middle">High value first &#183; newest first within each group</text>
+</svg>

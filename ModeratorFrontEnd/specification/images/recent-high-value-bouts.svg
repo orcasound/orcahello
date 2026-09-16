@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <style>
+      .panel{fill:#fff;stroke:#c9d3dc;stroke-width:1.5}.navy{fill:#0c4968}.title{fill:#fff;font-size:15px;font-weight:700}.heading{fill:#263847;font-size:18px;font-weight:700}.label{fill:#263847;font-size:13px}.small{fill:#607483;font-size:11px}.tiny{fill:#718493;font-size:10px}.outline{fill:#fff;stroke:#aebdc9}.chip{fill:#e8f4f8;stroke:#91bed0}.gold{fill:#fff5d6;stroke:#c88b16}.goldText{fill:#8a5b00;font-size:11px;font-weight:700}.button{fill:#087c8c}.callout{fill:#fff3e0;stroke:#c25a2b;stroke-width:1.2}.calloutText{fill:#8a3c15;font-size:11px;font-weight:600}.leader{stroke:#c25a2b;stroke-width:1.2;stroke-dasharray:3 2;fill:none}
+    </style>
+    <linearGradient id="spec" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#09131c"/><stop offset=".55" stop-color="#183744"/><stop offset="1" stop-color="#081018"/></linearGradient>
+  </defs>
+  <rect width="1200" height="760" fill="#eef3f6"/>
+  <rect width="1200" height="44" class="navy"/>
+  <text x="18" y="28" class="title" font-size="17">Orcasound Moderator Portal</text>
+  <text x="1008" y="27" class="title" font-size="12">Recent bouts</text>
+
+  <rect x="20" y="60" width="1160" height="680" rx="6" class="panel"/>
+  <text x="40" y="94" class="heading">Recent bouts</text>
+  <text x="40" y="116" class="small">Listen to moderator-confirmed examples and calibrate signal quality.</text>
+
+  <rect x="40" y="136" width="178" height="32" rx="4" class="outline"/>
+  <text x="52" y="157" class="label">High value first</text><text x="198" y="157" class="small">&#9662;</text>
+  <rect x="230" y="136" width="148" height="32" rx="4" class="outline"/>
+  <text x="242" y="157" class="label">All species</text><text x="358" y="157" class="small">&#9662;</text>
+  <rect x="390" y="136" width="138" height="32" rx="4" class="outline"/>
+  <text x="402" y="157" class="label">All nodes</text><text x="508" y="157" class="small">&#9662;</text>
+  <rect x="540" y="136" width="138" height="32" rx="4" class="outline"/>
+  <text x="552" y="157" class="label">Past 30 days</text><text x="658" y="157" class="small">&#9662;</text>
+  <rect x="970" y="136" width="190" height="32" rx="4" fill="#f5f8fa" stroke="#c9d3dc"/>
+  <text x="986" y="157" class="small">12 bouts &#183; 4 high value</text>
+
+  <!-- Ranked result 1 -->
+  <rect x="40" y="190" width="1120" height="142" rx="6" fill="#fffdf7" stroke="#c88b16" stroke-width="2"/>
+  <rect x="40" y="190" width="8" height="142" rx="4" fill="#c88b16"/>
+  <rect x="64" y="207" width="108" height="24" rx="12" class="gold"/>
+  <text x="76" y="223" class="goldText">&#9733; HIGH VALUE</text>
+  <text x="188" y="224" class="label" font-weight="700">Southern Residents calling &#183; Sunset Bay</text>
+  <text x="1084" y="224" class="small">Today 09:42</text>
+  <rect x="64" y="243" width="392" height="62" rx="3" fill="url(#spec)"/>
+  <g fill="#d8f2fb"><rect x="104" y="255" width="5" height="40"/><rect x="156" y="264" width="4" height="29"/><rect x="238" y="251" width="6" height="46"/><rect x="318" y="260" width="5" height="34"/><rect x="404" y="253" width="5" height="43"/></g>
+  <circle cx="480" cy="274" r="18" class="button"/><path d="M475 265l14 9-14 9z" fill="#fff"/>
+  <text x="514" y="258" class="small">srkw &#183; J-pod &#183; S04</text>
+  <text x="514" y="279" class="label">12 confirmed signals &#183; reviewed by Kai</text>
+  <text x="514" y="300" class="small">Quality note: Clear calls with low vessel noise</text>
+  <rect x="1010" y="252" width="126" height="34" rx="4" class="button"/>
+  <text x="1073" y="274" fill="#fff" font-size="12" font-weight="700" text-anchor="middle">Review bout</text>
+
+  <!-- Ranked result 2 -->
+  <rect x="40" y="346" width="1120" height="142" rx="6" fill="#fffdf7" stroke="#c88b16" stroke-width="2"/>
+  <rect x="40" y="346" width="8" height="142" rx="4" fill="#c88b16"/>
+  <rect x="64" y="363" width="108" height="24" rx="12" class="gold"/>
+  <text x="76" y="379" class="goldText">&#9733; HIGH VALUE</text>
+  <text x="188" y="380" class="label" font-weight="700">Harbor seal calls &#183; Orcasound Lab</text>
+  <text x="1062" y="380" class="small">Yesterday 18:16</text>
+  <rect x="64" y="399" width="392" height="62" rx="3" fill="url(#spec)"/>
+  <g fill="#d8f2fb"><rect x="124" y="419" width="4" height="29"/><rect x="196" y="407" width="5" height="45"/><rect x="300" y="416" width="4" height="33"/><rect x="382" y="410" width="5" height="40"/></g>
+  <circle cx="480" cy="430" r="18" class="button"/><path d="M475 421l14 9-14 9z" fill="#fff"/>
+  <text x="514" y="414" class="small">seal &#183; corrected-identification</text>
+  <text x="514" y="435" class="label">4 confirmed signals &#183; reviewed by Mina</text>
+  <text x="514" y="456" class="small">Quality note: Useful orca-to-seal correction example</text>
+  <rect x="1010" y="408" width="126" height="34" rx="4" class="button"/>
+  <text x="1073" y="430" fill="#fff" font-size="12" font-weight="700" text-anchor="middle">Review bout</text>
+
+  <!-- Standard recent result -->
+  <rect x="40" y="502" width="1120" height="118" rx="6" class="outline"/>
+  <text x="64" y="530" class="label" font-weight="700">Humpback calls &#183; Bush Point</text>
+  <text x="1082" y="530" class="small">Sep 13 14:08</text>
+  <rect x="64" y="544" width="300" height="52" rx="3" fill="url(#spec)"/>
+  <g fill="#d8f2fb"><rect x="116" y="554" width="5" height="34"/><rect x="188" y="562" width="4" height="24"/><rect x="280" y="550" width="5" height="40"/></g>
+  <circle cx="388" cy="570" r="16" class="button"/><path d="M384 562l12 8-12 8z" fill="#fff"/>
+  <text x="420" y="560" class="small">humpback</text><text x="420" y="583" class="label">7 confirmed signals &#183; reviewed by Dave</text>
+  <rect x="1010" y="544" width="126" height="34" rx="4" class="outline"/>
+  <text x="1073" y="566" class="label" font-weight="700" text-anchor="middle">Review bout</text>
+
+  <!-- Ranking explanation -->
+  <path class="leader" d="M172 207 C250 184 250 176 250 168"/>
+  <rect x="40" y="648" width="650" height="66" rx="5" class="callout"/>
+  <text x="54" y="670" class="calloutText">Ranking is visible and predictable: moderator-tagged high-value bouts first,</text>
+  <text x="54" y="688" class="calloutText">newest first within each group. Model confidence never creates a hidden quality score.</text>
+  <text x="54" y="704" class="small">Select a row to listen and inspect; editing remains an explicit moderator action.</text>
+</svg>

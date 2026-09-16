@@ -619,7 +619,72 @@ stateDiagram-v2
 
 ---
 
-## 9. Open issues
+## 9. Recent high-value bouts
+
+Moderators need a quick way to revisit strong examples so they can calibrate what
+clear, useful signals look and sound like. Add a **Recent bouts** view that uses
+the same bout cards, timeline, audio player, and species/source overlays as the
+Workbench. It is a review and learning surface, not another moderation queue.
+
+### 9.1 Ranking and filters
+
+The default **High value first** order is deterministic and transparent:
+
+1. Bouts carrying the moderator-assigned `high-value` tag appear first.
+2. Within the high-value group, bouts are ordered newest first.
+3. Remaining bouts follow, also newest first.
+
+Model confidence does not automatically make a bout high value and is not folded
+into a hidden quality score. Moderators can switch to **Newest first** and filter
+by node, species/source, date, moderator, and `high-value` status. Each result
+shows the bout title, node, time, tags, contributing signal count, reviewer, and a
+compact spectrogram with a play action.
+
+![Recent bouts desktop view with high-value-first ranking, filters, spectrogram previews, playback, quality notes, and transparent ordering](images/recent-high-value-bouts.svg)
+
+### 9.2 Mark high value while reviewing
+
+While creating or updating a bout, a moderator can toggle a star action labeled
+**High Value** in the bout details panel. Turning it on adds the canonical
+`high-value` bout tag; turning it off removes that tag. The change autosaves with
+the other bout metadata and appends `{who, when, field: tags, from, to}` to the
+bout's `review_history`. Reporters and models may see the tag but cannot set or
+remove it.
+
+The control includes a short optional note for why the example is valuable, such
+as clear signal-to-noise ratio, representative call type, unusual species, or a
+useful correction example. The note is displayed in the Recent bouts view but is
+not part of ranking. Applying or removing `high-value` does not publish the bout
+or notify subscribers.
+
+![Moderator Workbench editing an existing bout with the High Value star enabled, an optional quality note, autosave history, and publish-independent behavior](images/mark-bout-high-value.svg)
+
+### 9.3 Sample recent-bouts view
+
+```text
+Recent bouts                    Order: [High value first ▾]  Filter: [All species ▾]
+
+★ HIGH VALUE  Southern Residents calling · Sunset Bay        Today 09:42
+  srkw · J-pod · S04                    12 signals · reviewed by Kai
+  [spectrogram preview]  [Play]  "Clear calls with low vessel noise"
+
+★ HIGH VALUE  Harbor seal calls · Orcasound Lab              Yesterday 18:16
+  seal · corrected-identification         4 signals · reviewed by Mina
+  [spectrogram preview]  [Play]  "Useful orca-to-seal correction example"
+
+  Humpback calls · Bush Point                              Sep 13 14:08
+  humpback                                  7 signals · reviewed by Dave
+  [spectrogram preview]  [Play]
+```
+
+Selecting a row opens the existing bout in read-only review mode by default.
+Moderators can choose **Edit bout** to enter the correction workflow in §8.1–§8.2,
+while other viewers can inspect and play the confirmed signals without changing
+them.
+
+![Recent high-value bouts mobile view with stable card dimensions, large playback controls, filters, and the same explicit ranking](images/recent-high-value-bouts-mobile.svg)
+
+## 10. Open issues
 
 Add these to bout-spec **Appendix A** if adopted.
 
@@ -634,7 +699,7 @@ Add these to bout-spec **Appendix A** if adopted.
 | U-7 | **Does approving a signal outside a bout ever notify subscribers,** or is notification still exclusively a bout-publish action (bout-spec §9)? | Prevents double-notification and keeps the publish gate authoritative. Proposed: approval never notifies; only bout publish does. |
 | U-8 | **Reporter correction as new signal vs edit:** when a reporter re-tags a likely-incorrect but unconfirmed signal, is that a new proposed signal under their `reporter_id` (preferred — preserves provenance) or an edit to the existing one? How are competing reporter tags for the same interval shown before a moderator confirms? | Proposed: always create a new proposed signal; stack competing proposals on the same interval; a moderator confirms exactly one, which then locks. |
 
-## 10. Recommendation summary
+## 11. Recommendation summary
 
 - **Moderator overlay:** make the **Reporter ⇄ Species pivot toggle** (§4.0) a
   baseline control in the main interface; default to the **species pivot / M2
@@ -653,3 +718,6 @@ Add these to bout-spec **Appendix A** if adopted.
   extending bout-spec §6b.2.
 - **Loop safety:** changes suggest (never silently apply) new boundaries, alert
   active editors and prior watchers, and feed a clean supervised set back to models.
+- **Quality calibration:** add a Recent bouts view ordered by moderator-assigned
+  `high-value` first, with newest-first ordering inside each group and no opaque
+  confidence-derived quality score.
