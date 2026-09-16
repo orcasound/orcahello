@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="OrcaHello.Console.DataMigration/OrcaHello.Console.DataMigration.csproj" />
+  <Project Path="OrcaHello.Web.Api.Tests.Unit/OrcaHello.Web.Api.Tests.Unit.csproj" />
+  <Project Path="OrcaHello.Web.Api/OrcaHello.Web.Api.csproj" />
+  <Project Path="OrcaHello.Web.Shared/OrcaHello.Web.Shared.csproj" />
+  <Project Path="OrcaHello.Web.UI.Tests.Unit/OrcaHello.Web.UI.Tests.Unit.csproj" />
+  <Project Path="OrcaHello.Web.UI/OrcaHello.Web.UI.csproj" />
+</Solution>

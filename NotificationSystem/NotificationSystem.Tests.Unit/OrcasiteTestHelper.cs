@@ -27,7 +27,7 @@ namespace NotificationSystem.Tests.Common
             string? currentDirectory = AppDomain.CurrentDomain.BaseDirectory;
             while (currentDirectory != null)
             {
-                string path = Path.Combine(currentDirectory, "NotificationSystem.sln");
+                string path = Path.Combine(currentDirectory, "NotificationSystem.slnx");
                 if (File.Exists(path))
                 {
                     _solutionDirectory = currentDirectory;

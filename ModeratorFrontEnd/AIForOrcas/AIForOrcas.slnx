@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="AIForOrcas.Client.BL/AIForOrcas.Client.BL.csproj" />
+  <Project Path="AIForOrcas.Client.Web/AIForOrcas.Client.Web.csproj" />
+  <Project Path="AIForOrcas.DTO/AIForOrcas.DTO.csproj" />
+  <Project Path="AIForOrcas.Server.BL/AIForOrcas.Server.BL.csproj" />
+  <Project Path="AIForOrcas.Server/AIForOrcas.Server.csproj" />
+</Solution>

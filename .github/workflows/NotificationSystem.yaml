@@ -11,7 +11,7 @@ on:
   workflow_dispatch:  # Allow manual workflow invocation from the Github Actions UI
 
 env:
-  DOTNET_VERSION: 8.0.x
+  DOTNET_VERSION: 10.0.x
   DOTNET_RUNTIME: win-x86
   WORKING_DIR: NotificationSystem/NotificationSystem
   PUBLISH_DIR: output
@@ -61,12 +61,16 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
       - name: Dependencies
-        run: dotnet restore -r ${{ env.DOTNET_RUNTIME }}
+        run: |
+          dotnet restore ../NotificationSystem.slnx
+          dotnet restore -r ${{ env.DOTNET_RUNTIME }}
       - name: Build
-        run: dotnet build --no-restore -c Release -r ${{ env.DOTNET_RUNTIME }} --self-contained
+        run: |
+          dotnet build ../NotificationSystem.slnx --no-restore -c Release
+          dotnet build --no-restore -c Release -r ${{ env.DOTNET_RUNTIME }} --self-contained
       - name: Unit Tests
         working-directory: NotificationSystem/NotificationSystem.Tests.Unit
-        run: dotnet test
+        run: dotnet test -c Release --no-build
       - name: Publish
         run: dotnet publish --no-restore -c Release -o './${{ env.PUBLISH_DIR }}'
       - name: Artifacts cache
@@ -91,15 +95,19 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
       - name: Dependencies
-        run: dotnet restore -r ${{ env.DOTNET_RUNTIME }}
+        run: |
+          dotnet restore ../NotificationSystem.slnx
+          dotnet restore -r ${{ env.DOTNET_RUNTIME }}
       - name: Build
-        run: dotnet build --no-restore -c Release -r ${{ env.DOTNET_RUNTIME }} --self-contained
+        run: |
+          dotnet build ../NotificationSystem.slnx --no-restore -c Release
+          dotnet build --no-restore -c Release -r ${{ env.DOTNET_RUNTIME }} --self-contained
       - name: Unit Tests
         working-directory: NotificationSystem/NotificationSystem.Tests.Unit
-        run: dotnet test
+        run: dotnet test -c Release --no-build
       - name: Integration Tests
         working-directory: NotificationSystem/NotificationSystem.Tests.Integration
-        run: dotnet test
+        run: dotnet test -c Release --no-build
   deploy:
     if: github.ref == 'refs/heads/main' && needs.changes.outputs.src == 'true'
     runs-on: ubuntu-latest

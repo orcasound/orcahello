@@ -22,8 +22,8 @@ One Azure Function is used to notify the [Orcasite JSON API](https://live.orcaso
 
 There are two Azure Functions that update the email list.
 
-- ModeratorEmail is a REST API that writes to the email list
-- SenderEmail is a REST API that writes to the email list
+- SubscribeToModeratorEmail is a REST API that writes to the email list
+- SubscribeToSubscriberEmail is a REST API that writes to the email list
 - Email list is implemented using Azure Tables, using either "Moderator" or "Subscriber" as the partition key
 
 #### Sample REST calls
@@ -98,24 +98,34 @@ curl -X GET '<ModeratorEmailEndpoint>'
 ## Prerequisites
 
 - Access to the Orca Conservancy Azure subscription
-- Install the [.NET Core 3.1 SDK](https://dotnet.microsoft.com/download/dotnet-core/3.1)
-- Azure Function Tools
-    - If using Visual Studio, include "Azure development" workload in installation
-    - If using Visual Studio Code, add the "Azure Functions" extension
-    - If using CLI, install the [Azure Functions Core Tools](https://docs.microsoft.com/en-us/azure/azure-functions/functions-run-local?tabs=linux%2Ccsharp%2Cbash#v2)
-- If running locally - [Azure storage emulator](https://docs.microsoft.com/en-us/azure/storage/common/storage-use-emulator)
+- Development tools
+    - If using Visual Studio, install Visual Studio 2026 (18.0 or later) with .NET 10 tooling, the "Azure development" workload, and [Azure Functions Core Tools v4](https://learn.microsoft.com/azure/azure-functions/functions-run-local)
+    - If using Visual Studio Code, install the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0), [Azure Functions Core Tools v4](https://learn.microsoft.com/azure/azure-functions/functions-run-local), and the C# and "Azure Functions" extensions
+    - If using CLI, install the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) and [Azure Functions Core Tools v4](https://learn.microsoft.com/azure/azure-functions/functions-run-local)
+- If running locally, install and start the [Azurite storage emulator](https://learn.microsoft.com/azure/storage/common/storage-use-azurite)
 
-## Build 
+## Build
+
 To build the functions locally:
 
-1. Go to /NotificationSystem directory (if not already)
-2. If building from the command line, run 
-    ```
+1. Go to the `NotificationSystem/NotificationSystem` directory.
+2. If building from the command line, run:
+
+    ```bash
     dotnet build NotificationSystem.csproj
     ```
-3. If building from visual studio, simply open .csproj and build as normal
+
+3. To run the existing test suites, return to the parent `NotificationSystem` directory and run:
+
+    ```bash
+    dotnet test NotificationSystem.Tests.Unit/NotificationSystem.Tests.Unit.csproj
+    dotnet test NotificationSystem.Tests.Integration/NotificationSystem.Tests.Integration.csproj
+    ```
+
+4. If using Visual Studio 2026, open `NotificationSystem.slnx` and build as normal.
 
 ## Azure Resource Dependencies
+
 All resources are located in resource group **LiveSRKWNotificationSystem**.
 
 1. Storage account with queues, email template images and moderator/subscriber list: orcanotificationstorage
@@ -123,25 +133,23 @@ All resources are located in resource group **LiveSRKWNotificationSystem**.
 3. Azure function app: orcanotification
 
 ## Run Locally
-It is recommended to go to the "orcanotification" function app, then Settings > Configuration to find the app settings used. 
 
-Create local.settings.json in the current directory (NotificationSystem) using the below template. Fill in with valid configuration strings.
+Go to the `orcanotification` Function App, then **Settings > Configuration** to identify the required app settings. Use test resources where a function can send email, change an email list, post to Orcasite, or process queue/Cosmos events.
+
+Create an ignored `local.settings.json` in `NotificationSystem/NotificationSystem` using the template below. Fill in valid local or test configuration values. Never commit or publish real credentials.
 
 ```json
 {
     "IsEncrypted": false,
     "Values": {
         "AzureWebJobsStorage": "UseDevelopmentStorage=true",
-        "FUNCTIONS_WORKER_RUNTIME": "dotnet",
-
+        "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
         "OrcaNotificationStorageSetting": "<storage account connection string>",
         "aifororcasmetadatastore_DOCUMENTDB": "<cosmos db connection string>",
         "AWS_ACCESS_KEY_ID": "<AWS Access Key>",
         "AWS_SECRET_ACCESS_KEY": "<AWS Secret Key>",
         "SenderEmail": "<email address>",
         "SUBSCRIBER_EMAIL_COOLDOWN_MINUTES": "<minutes to wait before re-notifying subscribers for the same location; defaults to 15 if unset>",
-        "FUNCTIONS_WORKER_RUNTIME": "dotnet",
-        "FUNCTIONS_INPROC_NET8_ENABLED": "1"
         "ORCASITE_HOSTNAME": "live.orcasound.net",
         "ORCASITE_APIKEY": "<orcasite API key>",
         "CURRENT_EPOCH_START": "<timestamp of current epoch>"
@@ -149,11 +157,23 @@ Create local.settings.json in the current directory (NotificationSystem) using t
 }
 ```
 
+Start Azurite, then run the Functions host from `NotificationSystem/NotificationSystem`:
+
+```bash
+dotnet run
+```
+
+Confirm that the host starts and discovers the eight functions described in the Architecture and Get email list sections above. Use a valid test Cosmos DB connection for the Cosmos-triggered functions; listener errors caused by missing test services or credentials must be resolved before confirming runtime discovery for deployment.
+
 ## Run on Azure
 
-1. Go to the "orcanotification" function app (link 3 above). 
-2. On the "Overview" tab, make sure the status of the function shows running.
-3. On the "Functions" tab, you should see all the functions of the notification system. Enable/Disable as needed.
+1. Go to the `orcanotification` Function App.
+2. On the **Overview** tab, confirm that the Function App is in the **Running** state.
+3. On the **Functions** tab, confirm that all eight functions are listed and check the logs to verify that their listeners start without errors.
+
+### Updating the .NET version
+
+Merges to `main` automatically deploy the NotificationSystem package through the GitHub Actions workflow, but updating the Function App's .NET stack is currently a manual Azure portal step for `orcanotification`. Follow Microsoft's [Update Language Versions in Azure Functions](https://learn.microsoft.com/azure/azure-functions/update-language-versions?tabs=azure-portal%2Cwindows&pivots=programming-language-csharp) guidance: deploy the updated application package before changing the stack.
 
 ## Directory structure
 
