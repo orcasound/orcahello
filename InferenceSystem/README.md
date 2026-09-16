@@ -74,7 +74,7 @@ global_prediction: 0
 
 ## Releasing the live inference system
 
-Run [InferenceSystem-deploy](../.github/workflows/InferenceSystem-deploy.yaml) manually from `main`. Enter the source `ref`, an unused release version such as `v2.2.0`, and check every hydrophone location you want to deploy. The workflow publishes the image and records its immutable digest, then waits for approval before deploying that same image to all selected locations in the same run.
+Run [InferenceSystem-deploy](../.github/workflows/InferenceSystem-deploy.yaml) manually. Select a branch or tag in **Use workflow from** (normally `main`), enter an unused release version such as `v2.2.0`, and check every hydrophone location you want to deploy. The build uses the exact commit selected for the run; no separate source argument is needed. The workflow publishes the image and records its immutable digest, then waits for approval before deploying that same image to all selected locations in the same run.
 
 A repository administrator must first configure required reviewers on the **inference-production** environment. Without that protection rule, the deployment job will not pause. After publishing, review the image summary and select **Review deployments > Approve and deploy**. You do not need to copy a publish run ID.
 

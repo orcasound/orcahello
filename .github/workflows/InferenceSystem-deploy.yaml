@@ -36,10 +36,6 @@ on:
         description: 'Deploy to sunset-bay'
         type: boolean
         default: false
-      ref:
-        description: 'Source branch or tag to publish'
-        required: true
-        default: 'main'
       release_tag:
         description: 'Container release version, e.g. v2.2.0'
         required: true
@@ -66,13 +62,6 @@ jobs:
         with:
           egress-policy: audit
 
-      - name: Require main branch
-        run: |
-          if [ "$GITHUB_REF" != refs/heads/main ]; then
-            echo "Run this workflow from main" >&2
-            exit 1
-          fi
-
       - name: Select deployment locations
         id: locations
         env:
@@ -90,7 +79,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
-          ref: ${{ inputs.ref }}
+          ref: ${{ github.sha }}
 
       - name: Validate release version
         env:

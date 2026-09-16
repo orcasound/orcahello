@@ -220,7 +220,7 @@ The [release workflow](../.github/workflows/InferenceSystem-deploy.yaml) is star
 Before running a release, a repository administrator must configure **Settings > Environments > inference-production**:
 
 - Enable **Required reviewers** and select the people or team who approve deployments. Merely naming the environment in YAML does not create an approval rule; without this setting, deployment proceeds automatically after publishing.
-- Restrict deployment branches to `main`. Disable administrator bypass if approval must be enforced for administrators too.
+- Configure **Deployment branches and tags** to allow the branches or tags you intend to release (normally `main`). Other release branches or tags must also be permitted by this environment. Disable administrator bypass if approval must be enforced for administrators too.
 - Leave **Prevent self-review** disabled only if the person starting a release should also be allowed to approve it.
 - Make `ACR_USERNAME` and `ACR_PASSWORD` available as repository or organization Actions secrets for the publish job. Supply `KUBE_CONFIG` as a repository or organization Actions secret so both workflows can access it. An `inference-production` environment secret alone only supports image releases; the ConfigMap workflow does not use that environment. It must authenticate non-interactively and permit deployment and recovery operations in the target namespace. The GitHub runner must be able to reach the cluster API.
 
@@ -230,10 +230,10 @@ See [GitHub's environment setup documentation](https://docs.github.com/en/action
 
 There is no staging environment. Select only the locations you intend to update; after approval, the selected locations deploy one at a time.
 
-1. Run **InferenceSystem-deploy** from the Actions tab, choosing workflow branch `main`. Enter source `ref` (normally `main`), an unused `release_tag` such as `v2.2.0`, and check the target hydrophone locations. At least one checkbox must be selected.
+1. Run **InferenceSystem-deploy** from the Actions tab, selecting a branch or tag in **Use workflow from**. Normally select `main`. Enter an unused `release_tag` such as `v2.2.0` and check the target hydrophone locations. At least one checkbox must be selected. The selected revision must contain the release workflows; no separate source argument is needed.
 2. Wait for **Publish image** to succeed. It pushes an image tagged like `orcaconservancycr.azurecr.io/live-inference-system:MM-DD-YYYY.v2.2.0` and uploads its immutable `@sha256:` reference in the `inference-release` artifact. Review the image reference in the run summary.
 3. In the same run, select **Review deployments**, review the selected locations, and choose **Approve and deploy** for `inference-production`. Rejecting approval leaves the image published but does not change AKS. No second workflow dispatch or publish run ID is needed.
-4. Each approved deployment job downloads the same artifact from this run, verifies the image, applies the selected namespace's ConfigMap, stops the old pods, and applies the deployment manifest with the published image. It restores one replica and waits for rollout. Manifests come from the workflow's `main` commit, while the image comes from the selected source `ref`.
+4. Each approved deployment job downloads the same artifact from this run, verifies the image, applies the selected namespace's ConfigMap, stops the old pods, and applies the deployment manifest with the published image. It restores one replica and waits for rollout. Workflow logic, deployment manifests, and the image source all use the exact commit selected for the run (`github.sha`), even if the branch moves while the run is queued.
 5. Check the selected location on the [Orcanode monitor](https://orcanodemonitor.azurewebsites.net/OrcaHelloOverview) and inspect its logs. A successful Kubernetes rollout does not prove that audio inference is healthy.
 6. Update each selected namespace's image in `deploy/<namespace>.yaml` through a PR to the exact digest from the run summary. The workflow does not edit repository manifests; applying an outdated manifest could restore its old image.
 
