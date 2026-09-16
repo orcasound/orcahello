@@ -167,9 +167,25 @@ Confirm that the host starts and discovers the eight functions described in the 
 
 ## Run on Azure
 
-1. Go to the "orcanotification" function app (link 3 above). 
-2. On the "Overview" tab, make sure the status of the function shows running.
-3. On the "Functions" tab, you should see all the functions of the notification system. Enable/Disable as needed.
+1. Go to the `orcanotification` Function App.
+2. On the **Overview** tab, confirm that the Function App is in the **Running** state.
+3. On the **Functions** tab, confirm that all eight functions are listed and check the logs to verify that their listeners start without errors.
+
+### Updating the .NET version
+
+Merges to `main` automatically deploy the NotificationSystem package through the GitHub Actions workflow, but updating the Function App's .NET stack is currently a manual Azure portal step for `orcanotification`. Follow Microsoft's [Update Language Versions in Azure Functions](https://learn.microsoft.com/azure/azure-functions/update-language-versions?tabs=azure-portal%2Cwindows&pivots=programming-language-csharp) guidance: deploy the updated application package before changing the stack.
+
+For a .NET version update:
+
+1. Update and validate the application for the target .NET version.
+2. Merge the code changes and wait for the NotificationSystem deployment from `main` to complete successfully.
+3. In the Azure portal, open the `orcanotification` Function App.
+4. Go to **Settings > Configuration > General settings** and change **.NET Version** to the target version.
+5. Confirm that the Functions runtime and worker settings still match the application's isolated-worker requirements. For this app, they are currently `~4` and `FUNCTIONS_WORKER_RUNTIME=dotnet-isolated`.
+6. Select **Save** and accept the Function App restart.
+7. Repeat the checks at the start of this section.
+
+For the 2026 migration, the target version was .NET 10.
 
 ## Directory structure
 
