@@ -80,7 +80,7 @@ A repository administrator must first configure required reviewers on the **infe
 
 Deployment applies the namespace's ConfigMap and full deployment manifest, stops the old pods, and starts the published image. Failures attempt to restore the saved configuration and deployment. Verify pod health, logs, and the [Orcanode monitor](https://orcanodemonitor.azurewebsites.net/OrcaHelloOverview), then update each selected namespace's repository manifest to match the deployed image digest.
 
-ConfigMap-only updates are also manual: run **InferenceSystem-deploy-configmaps**, select one namespace, and approve the deployment. Image and ConfigMap deployments share a namespace lock.
+ConfigMap changes pushed to `main` automatically start **InferenceSystem-deploy-configmaps**. It applies the ConfigMaps changed in the latest commit and restarts their existing images without an approval step. A manual run applies all ConfigMaps. Image and ConfigMap deployments share one global lock and run sequentially.
 
 See [DEVELOPMENT.md](DEVELOPMENT.md#deployment) for environment setup, release instructions, and the manual fallback, and [AzurePlaybook.md](AzurePlaybook.md) for troubleshooting.
 

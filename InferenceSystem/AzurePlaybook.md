@@ -202,9 +202,9 @@ In the above example, the CPU is pegged because 0.994/1 = 99.4% CPU
 
 ### Q: How do I deploy a new configmap?
 
-After merging ConfigMap changes to `main`, manually run the
-[configmap workflow](../.github/workflows/InferenceSystem-deploy-configmaps.yaml),
-select one namespace, and approve the deployment.
+Merging ConfigMap changes to `main` automatically starts the
+[configmap workflow](../.github/workflows/InferenceSystem-deploy-configmaps.yaml)
+for ConfigMaps changed in the latest commit, without an approval step. A manual run applies all ConfigMaps.
 For a manual update, using (say) `north-sjc` as the namespace:
 
 ```

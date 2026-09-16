@@ -222,13 +222,13 @@ Before running a release, a repository administrator must configure **Settings >
 - Enable **Required reviewers** and select the people or team who approve deployments. Merely naming the environment in YAML does not create an approval rule; without this setting, deployment proceeds automatically after publishing.
 - Restrict deployment branches to `main`. Disable administrator bypass if approval must be enforced for administrators too.
 - Leave **Prevent self-review** disabled only if the person starting a release should also be allowed to approve it.
-- Make `ACR_USERNAME` and `ACR_PASSWORD` available as repository or organization Actions secrets for the publish job. Supply `KUBE_CONFIG` as a repository/organization secret or an `inference-production` environment secret. It must authenticate non-interactively and permit deployment and recovery operations in the target namespace. The GitHub runner must be able to reach the cluster API.
+- Make `ACR_USERNAME` and `ACR_PASSWORD` available as repository or organization Actions secrets for the publish job. Supply `KUBE_CONFIG` as a repository or organization Actions secret so both workflows can access it. An `inference-production` environment secret alone only supports image releases; the ConfigMap workflow does not use that environment. It must authenticate non-interactively and permit deployment and recovery operations in the target namespace. The GitHub runner must be able to reach the cluster API.
 
 See [GitHub's environment setup documentation](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments). Environment approval rules are repository settings and are not installed by merging this code.
 
 #### Release procedure
 
-There is no staging environment. Select only the locations you intend to update; after approval, the selected locations can deploy concurrently.
+There is no staging environment. Select only the locations you intend to update; after approval, the selected locations deploy one at a time.
 
 1. Run **InferenceSystem-deploy** from the Actions tab, choosing workflow branch `main`. Enter source `ref` (normally `main`), an unused `release_tag` such as `v2.2.0`, and check the target hydrophone locations. At least one checkbox must be selected.
 2. Wait for **Publish image** to succeed. It pushes an image tagged like `orcaconservancycr.azurecr.io/live-inference-system:MM-DD-YYYY.v2.2.0` and uploads its immutable `@sha256:` reference in the `inference-release` artifact. Review the image reference in the run summary.
@@ -245,11 +245,11 @@ Each release run builds and publishes once, then deploys that exact image digest
 - Deployment is not zero-downtime: memory limits require stopping the old pods before starting replacements.
 - Configuration is applied even when the image is unchanged. Before changing anything, the script saves the live ConfigMap and deployment. Failure triggers an attempt to restore both objects and one replica.
 - Cancellation recovery is best effort. A forced runner shutdown can interrupt restoration; inspect the namespace and use the manual fallback below with the last known good image and configuration if needed.
-- Image releases and ConfigMap updates share a concurrency group per namespace. They queue without canceling active deployments; different namespaces can deploy concurrently.
+- Image releases and ConfigMap updates share one global deployment lock. They queue without canceling active deployments; only one deployment runs at a time across all locations.
 
 #### ConfigMap-only updates
 
-Merge the configuration change, then manually run [InferenceSystem-deploy-configmaps](../.github/workflows/InferenceSystem-deploy-configmaps.yaml) from `main` and select one namespace. Approve its `inference-production` deployment. This uses the same stop/start and recovery script while preserving the live image and deployment settings. Merging a ConfigMap change does not itself deploy it.
+ConfigMap changes pushed to `main` automatically start [InferenceSystem-deploy-configmaps](../.github/workflows/InferenceSystem-deploy-configmaps.yaml). It applies ConfigMaps changed in the latest commit and restarts their deployments, waiting for each rollout. A manual run applies all ConfigMaps. This workflow keeps the existing images and does not require environment approval or use the image-release recovery script. It shares the global deployment lock with image releases.
 
 ### Monitoring
 
@@ -326,11 +326,10 @@ kubectl logs -n $NAMESPACE -l app=inference-system
     kubectl apply -f deploy/<namespace>.yaml
     ```
 
-The deployment workflows currently support eight hydrophone namespaces. To support a new hydrophone, add its namespace in three places, then merge the changes to `main`:
+The deployment workflows currently support eight hydrophone namespaces. To support a new hydrophone, add its namespace in two places, then merge the changes to `main`:
 
 - The location checkboxes in [InferenceSystem-deploy.yaml](../.github/workflows/InferenceSystem-deploy.yaml).
 - The namespace check in [deploy-inference.sh](../.github/scripts/deploy-inference.sh).
-- The `namespace` choices in [InferenceSystem-deploy-configmaps.yaml](../.github/workflows/InferenceSystem-deploy-configmaps.yaml).
 
 The Docker container image is common across all hydrophones. Each hydrophone's configuration is stored in a namespace-scoped ConfigMap mounted at `/config/`.
 

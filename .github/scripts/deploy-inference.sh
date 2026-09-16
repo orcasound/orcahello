@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Both release and ConfigMap workflows hold the namespace concurrency lock.
+# Image deployments hold the same global lock as the ConfigMap workflow.
 # Required inputs: NAMESPACE and RUNNER_TEMP. Set IMAGE for an image release;
 # leave it unset for a ConfigMap-only update that preserves the live deployment.
 set -euo pipefail

@@ -2,36 +2,25 @@
 name: InferenceSystem-deploy-configmaps
 
 on:
-  workflow_dispatch:
-    inputs:
-      namespace:
-        description: 'Hydrophone configuration to apply'
-        required: true
-        type: choice
-        options:
-          - andrews-bay
-          - bush-point
-          - mast-center
-          - north-sjc
-          - orcasound-lab
-          - point-robinson
-          - port-townsend
-          - sunset-bay
+  push:
+    branches:
+      - main
+    paths:
+      - 'InferenceSystem/deploy/*-configmap.yaml'
+  workflow_dispatch:  # Allow manual workflow invocation from the Github Actions UI
+
+concurrency:
+  # Serialize ConfigMap updates with image deployments.
+  group: inference-system-aks-deployment
+  cancel-in-progress: false
+  queue: max
 
 permissions:  # added using https://github.com/step-security/secure-repo
   contents: read
 
 jobs:
   deploy-configmaps:
-    environment: inference-production
     runs-on: ubuntu-latest
-    timeout-minutes: 45
-    concurrency:
-      group: inference-system-aks-deployment-${{ inputs.namespace }}
-      cancel-in-progress: false
-      queue: max
-    env:
-      NAMESPACE: ${{ inputs.namespace }}
     steps:
       - uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c  # v2.21.0
         with:
@@ -39,13 +28,8 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-
-      - name: Require main branch
-        run: |
-          if [ "$GITHUB_REF" != refs/heads/main ]; then
-            echo "Run this workflow from main" >&2
-            exit 1
-          fi
+        with:
+          fetch-depth: 2
 
       - name: Set up kubectl
         uses: azure/setup-kubectl@829323503d1be3d00ca8346e5391ca0b07a9ab0d  # v5.1.0
@@ -56,13 +40,30 @@ jobs:
           method: kubeconfig
           kubeconfig: ${{ secrets.KUBE_CONFIG }}
 
-      - name: Apply ConfigMap and restart deployment
-        id: rollout
-        run: bash .github/scripts/deploy-inference.sh
-
-      - name: Show deployment diagnostics on failure
-        if: failure() && steps.rollout.outcome == 'failure'
+      - name: Get configmap files to apply
+        id: changed-files
         run: |
-          kubectl get deployment/inference-system -n "$NAMESPACE" -o wide || true
-          kubectl get pods -n "$NAMESPACE" -l app=inference-system -o wide || true
-          kubectl describe deployment/inference-system -n "$NAMESPACE" || true
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # For manual triggers, apply all configmap files
+            CHANGED=$(ls InferenceSystem/deploy/*-configmap.yaml 2>/dev/null || true)
+          else
+            CHANGED=$(git diff --name-only HEAD~1 HEAD -- 'InferenceSystem/deploy/*-configmap.yaml')
+          fi
+          printf '%s\n' "$CHANGED" > "$RUNNER_TEMP/configmap-files.txt"
+
+      - name: Apply configmaps and restart deployments
+        run: |
+          CHANGED=$(cat "$RUNNER_TEMP/configmap-files.txt")
+          if [ -z "$CHANGED" ]; then
+            echo "No configmap files to apply."
+            exit 0
+          fi
+          for FILE in $CHANGED; do
+            echo "Applying $FILE"
+            kubectl apply -f "$FILE"
+            # Derive namespace from filename, e.g. InferenceSystem/deploy/bush-point-configmap.yaml -> bush-point
+            NAMESPACE=$(basename "$FILE" -configmap.yaml)
+            echo "Restarting deployment/inference-system in namespace $NAMESPACE"
+            kubectl rollout restart deployment/inference-system -n "$NAMESPACE"
+            kubectl rollout status deployment/inference-system -n "$NAMESPACE" --timeout=10m
+          done
