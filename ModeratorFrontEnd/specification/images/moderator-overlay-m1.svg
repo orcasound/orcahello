@@ -18,8 +18,16 @@
   <!-- spectrogram -->
   <rect x="34" y="98" width="900" height="110" rx="3" fill="url(#spec)"/>
   <g class="grid"><line x1="34" y1="135" x2="934" y2="135"/><line x1="34" y1="172" x2="934" y2="172"/></g>
-  <g opacity=".82" fill="#1d9a75"><rect x="120" y="112" width="12" height="84" rx="3"/><rect x="250" y="120" width="12" height="72" rx="3"/><rect x="380" y="116" width="12" height="80" rx="3"/></g>
-  <g opacity=".82" fill="#df7b2d"><rect x="200" y="126" width="11" height="64" rx="2"/><rect x="330" y="120" width="11" height="72" rx="2"/><rect x="470" y="130" width="11" height="58" rx="2"/></g>
+  <g opacity=".9" fill="#dcf1f8"><rect x="162" y="116" width="5" height="80" rx="2"/><rect x="170" y="130" width="3" height="62" rx="2" fill="#bfe6f4"/><rect x="242" y="122" width="5" height="70" rx="2"/><rect x="337" y="120" width="5" height="72" rx="2"/><rect x="427" y="118" width="5" height="76" rx="2"/><rect x="557" y="124" width="5" height="66" rx="2"/><rect x="657" y="134" width="5" height="54" rx="2"/></g>
+  <g fill="none" stroke-width="2.5">
+    <rect x="151" y="108" width="28" height="92" rx="3" stroke="#39b98f"/><path d="M170 116l4 4 6-7" stroke="#17864b" stroke-width="2"/>
+    <rect x="231" y="112" width="28" height="86" rx="3" stroke="#7f8ff0" stroke-dasharray="6 4"/>
+    <rect x="326" y="112" width="28" height="86" rx="3" stroke="#7f8ff0" stroke-dasharray="6 4"/>
+    <rect x="416" y="110" width="28" height="90" rx="3" stroke="#7f8ff0"/><path d="M435 116l4 4 6-7" stroke="#7f8ff0" stroke-width="2"/>
+    <rect x="546" y="110" width="28" height="90" rx="3" stroke="#df7b2d"/>
+    <rect x="646" y="118" width="28" height="76" rx="3" stroke="#d3a24a"/><line x1="646" y1="194" x2="674" y2="118" stroke="#b45539" stroke-width="2"/>
+  </g>
+  <g stroke="#61a9ff" stroke-width="1" stroke-dasharray="2 4" opacity=".4"><line x1="165" y1="208" x2="165" y2="270"/><line x1="340" y1="208" x2="340" y2="270"/><line x1="560" y1="208" x2="560" y2="270"/><line x1="245" y1="208" x2="245" y2="328"/><line x1="430" y1="208" x2="430" y2="328"/><line x1="660" y1="208" x2="660" y2="328"/></g>
 
   <!-- Reporter A lane -->
   <text x="34" y="252" class="small"><tspan fill="#1d9a75">●</tspan> A · human</text>
@@ -27,19 +35,19 @@
   <!-- confirmed humpback -->
   <g><rect x="150" y="242" width="30" height="22" rx="4" fill="#17864b"/><rect x="150" y="242" width="30" height="5" rx="2" fill="#2f8f77"/><path d="M158 253l4 4 8-8" stroke="#fff" stroke-width="2" fill="none"/></g>
   <!-- proposed transient -->
-  <g><rect x="300" y="242" width="30" height="22" rx="4" fill="url(#hatch)" stroke="#607483"/><rect x="300" y="242" width="30" height="5" rx="2" fill="#5b6bd6"/></g>
+  <g><rect x="325" y="242" width="30" height="22" rx="4" fill="url(#hatch)" stroke="#607483"/><rect x="325" y="242" width="30" height="5" rx="2" fill="#5b6bd6"/></g>
   <!-- changed humpback with pulse + chip -->
-  <g><rect x="460" y="242" width="30" height="22" rx="4" fill="#fff" stroke="#b05b22" stroke-width="2"/><rect x="460" y="242" width="30" height="5" rx="2" fill="#2f8f77"/></g>
-  <circle cx="475" cy="253" r="20" fill="none" stroke="#df7b2d" stroke-width="2" opacity=".7"/><circle cx="475" cy="253" r="27" fill="none" stroke="#df7b2d" stroke-width="1.5" opacity=".4"/>
-  <circle cx="497" cy="238" r="9" fill="#df7b2d"/><text x="497" y="242" fill="#fff" font-size="10" font-weight="700" text-anchor="middle">2</text>
+  <g><rect x="545" y="242" width="30" height="22" rx="4" fill="#fff" stroke="#b05b22" stroke-width="2"/><rect x="545" y="242" width="30" height="5" rx="2" fill="#2f8f77"/></g>
+  <circle cx="560" cy="253" r="20" fill="none" stroke="#df7b2d" stroke-width="2" opacity=".7"/><circle cx="560" cy="253" r="27" fill="none" stroke="#df7b2d" stroke-width="1.5" opacity=".4"/>
+  <circle cx="582" cy="238" r="9" fill="#df7b2d"/><text x="582" y="242" fill="#fff" font-size="10" font-weight="700" text-anchor="middle">2</text>
 
   <!-- Reporter B lane -->
   <text x="34" y="310" class="small"><tspan fill="#df7b2d">■</tspan> B · model</text>
   <rect x="120" y="294" width="814" height="34" rx="4" fill="#fff1e6"/><line x1="120" y1="311" x2="934" y2="311" class="axis"/>
-  <g><rect x="200" y="300" width="30" height="22" rx="4" fill="url(#hatch)" stroke="#607483"/><rect x="200" y="300" width="30" height="5" rx="2" fill="#5b6bd6"/></g>
-  <g><rect x="330" y="300" width="30" height="22" rx="4" fill="#17864b"/><rect x="330" y="300" width="30" height="5" rx="2" fill="#5b6bd6"/><path d="M338 311l4 4 8-8" stroke="#fff" stroke-width="2" fill="none"/></g>
+  <g><rect x="230" y="300" width="30" height="22" rx="4" fill="url(#hatch)" stroke="#607483"/><rect x="230" y="300" width="30" height="5" rx="2" fill="#5b6bd6"/></g>
+  <g><rect x="415" y="300" width="30" height="22" rx="4" fill="#17864b"/><rect x="415" y="300" width="30" height="5" rx="2" fill="#5b6bd6"/><path d="M423 311l4 4 8-8" stroke="#fff" stroke-width="2" fill="none"/></g>
   <!-- rejected -->
-  <g><rect x="470" y="300" width="30" height="22" rx="4" fill="#f0e3df" stroke="#b45539"/><rect x="470" y="300" width="30" height="5" rx="2" fill="#b0873a"/><line x1="470" y1="322" x2="500" y2="300" stroke="#b45539" stroke-width="2"/></g>
+  <g><rect x="645" y="300" width="30" height="22" rx="4" fill="#f0e3df" stroke="#b45539"/><rect x="645" y="300" width="30" height="5" rx="2" fill="#b0873a"/><line x1="645" y1="322" x2="675" y2="300" stroke="#b45539" stroke-width="2"/></g>
 
   <!-- legend -->
   <rect x="34" y="352" width="560" height="132" rx="5" fill="#f5f8fa" stroke="#c9d3dc"/>
@@ -60,7 +68,7 @@
   <text x="212" y="210" class="calloutText">Three encodings on one marker:</text>
   <text x="212" y="223" class="calloutText">lane + species stripe + state fill.</text>
 
-  <path class="leader" d="M497 232 C520 210 560 205 560 205"/>
+  <path class="leader" d="M582 232 C590 210 600 184 600 184"/>
   <rect x="470" y="150" width="250" height="34" rx="5" class="callout"/>
   <text x="482" y="164" class="calloutText">Change pulse + count chip appears</text>
   <text x="482" y="177" class="calloutText">when a signal changed since opening.</text>

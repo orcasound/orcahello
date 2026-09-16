@@ -25,12 +25,13 @@
   <rect x="12" y="110" width="366" height="200" rx="6" class="panel"/>
   <text x="22" y="130" class="small">Pinch to zoom · drag to scrub · tap blocks to select</text>
   <rect x="20" y="140" width="350" height="120" rx="3" fill="url(#mspec)"/>
-  <!-- blocks -->
-  <rect x="40" y="152" width="40" height="96" rx="3" fill="#17864b" opacity=".3" stroke="#17864b"/><text x="45" y="166" fill="#bff0d3" font-size="9">🔒</text>
-  <rect x="110" y="160" width="38" height="88" rx="3" fill="#df7b2d" opacity=".35" stroke="#df7b2d"/>
-  <rect x="176" y="156" width="40" height="92" rx="3" fill="#61a9ff" opacity=".32" stroke="#61a9ff"/>
-  <rect x="228" y="164" width="40" height="84" rx="3" fill="#61a9ff" opacity=".32" stroke="#61a9ff"/>
-  <rect x="300" y="170" width="36" height="72" rx="3" fill="url(#mhatch)" stroke="#7d97a5"/>
+  <!-- blocks: empty boxes around always-visible bursts -->
+  <g opacity=".9" fill="#dcf1f8"><rect x="58" y="158" width="5" height="84" rx="2"/><rect x="66" y="174" width="3" height="62" rx="2" fill="#bfe6f4"/><rect x="126" y="166" width="5" height="76" rx="2"/><rect x="194" y="162" width="5" height="80" rx="2"/><rect x="246" y="170" width="5" height="72" rx="2"/><rect x="316" y="176" width="4" height="60" rx="2"/></g>
+  <rect x="40" y="152" width="40" height="96" rx="3" fill="none" stroke="#17864b" stroke-width="2.5"/><text x="45" y="166" fill="#bff0d3" font-size="9">🔒</text>
+  <rect x="110" y="160" width="38" height="88" rx="3" fill="none" stroke="#df7b2d" stroke-width="2.5" stroke-dasharray="5 3"/>
+  <rect x="176" y="156" width="40" height="92" rx="3" fill="none" stroke="#df7b2d" stroke-width="2.5" stroke-dasharray="5 3"/>
+  <rect x="228" y="164" width="40" height="84" rx="3" fill="none" stroke="#1d9a75" stroke-width="2.5" stroke-dasharray="5 3"/>
+  <rect x="300" y="170" width="36" height="72" rx="3" fill="none" stroke="#7d97a5" stroke-width="2" stroke-dasharray="3 3"/>
   <rect x="170" y="148" width="104" height="108" rx="8" class="sel" stroke-dasharray="6 4"/>
   <text x="176" y="278" class="tiny" fill="#617583">2 blocks selected in view</text>
   <text x="300" y="278" class="tiny" fill="#617583">🔒 locked</text>

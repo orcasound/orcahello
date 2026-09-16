@@ -67,6 +67,14 @@ model). That answers "who said this?" but not:
 The options below add these three encodings **without** throwing away the
 per-reporter view that already works.
 
+> **Rendering convention (matches the live site).** The sonogram always shows the
+> sound waveform with bright **bursts** where energy is detected. A signal tag is
+> drawn as an **empty outlined rectangle around** its burst — never a solid fill —
+> so the waveform stays visible inside the box. Encoding rides on the box's
+> *outline and badges* (color = species, border style = state, corner glyph =
+> source), not on an opaque fill. Two species in one timeframe are two overlapping
+> boxes.
+
 ---
 
 ## 4. Moderator overlay — proposed options
@@ -75,28 +83,55 @@ Each option is evaluated against the three needs: **(M-state)** show moderation
 status, **(Species)** show mixed-species/two-bout overlap, **(Alerts)** show
 changes.
 
-### 4.0 Baseline capability — flip the primary pivot (Reporter ⇄ Species)
+### 4.0 Baseline capability — “Who” and “What” as separate, combinable layers
 
-Independent of which option below is chosen, the main interface MUST expose a
-**one-tap pivot toggle** that re-groups the *same* signals between:
+The main interface treats **Who (source)** and **What (species)** as two
+*independent layers*, not a single either/or view, because they answer different
+questions and routinely co-occur (a vessel *and* residents in the same minute):
 
-- **"Who reported"** — per-reporter lanes (human vs model); best for provenance and
-  comparing reporters. This is today's default.
-- **"What is here"** — species/source swimlanes; best for seeing mixed-species
-  overlap and two bouts sharing one timeframe.
+- **What · species** is drawn as a **color** layer — translucent species regions and
+  top color bands on the spectrogram.
+- **Who · source** is drawn as a **shape** layer — neutral glyphs on the same signals
+  (● human, ▪ model). Keeping source to *shape* leaves *color* free for species, so
+  both layers can be read at once without collision.
+
+Each layer has its **own on/off control**, and the default shows **both at the same
+time**. This visual distinction — color for What, shape for Who — is exactly what lets
+them be displayed together.
+
+![Who (source) and What (species) shown together as distinct color vs shape layers, with a separate toggle that regroups only the lower bars](images/overlay-who-what-layers.svg)
+
+**The toggle is for the lower bars.** Below the spectrogram, the same signals are
+also laid out as grouped **swimlane rows**. A one-tap toggle sets whether those
+*lower bars* are grouped **by Who** (per-reporter lanes) or **by What** (species
+lanes). The toggle only regroups the lower bars; it does **not** turn off either
+upper layer, and it preserves zoom, playback, selection, and the underlying
+evidence.
 
 ```text
-View: ( ) Who reported   (•) What is here        ⟵ one-tap toggle
+Layers:  [x] What · species (color)   [x] Who · source (shape)
+Lower bars grouping:  (•) by Who   ( ) by What        ⟵ toggle
 ```
 
-![Main overlay one-tap pivot: Who reported vs What is here, with shared moderation-state encoding](images/signal-overlay-pivot.svg)
+![Lower-bar grouping toggle: the same signals re-grouped between per-reporter lanes and species lanes](images/signal-overlay-pivot.svg)
 
-The toggle re-labels lanes **in place** without changing zoom, playback position,
-current selection, or the underlying evidence. The moderation-state encoding
-(padlock/✓ = confirmed, hatch = proposed, amber = changed) is identical in both
-pivots, so flipping never loses the "what's confirmed?" read. The options below
-differ only in which pivot is the **default**; Option M3 generalizes the toggle to a
-third pivot (moderation state).
+**Encoding channels (shared vocabulary).** Every §4 option and the reporter overlay
+(§5) reuse the same channel assignment, so the four concerns never fight over the
+same visual variable and can be shown simultaneously:
+
+| Concern | Channel |
+| ------- | ------- |
+| **What** · species / source-type | **color** (hue / region) |
+| **Who** · reporter (human vs model) | **shape** (● human, ▪ model) and/or lane |
+| **Moderation state** | **fill / border** (✓ solid = confirmed·locked, hatch = proposed, amber ring = changed, strike = rejected) |
+| **Change alerts** | **motion** (pulse) + minimap ✦ |
+
+All of these ride on the tag box's **outline, badges, and glyphs** — the box
+interior stays empty so the waveform burst remains visible (see the rendering
+convention in §3).
+
+Option M3 generalizes the lower-bar grouping to a third choice (group by moderation
+state) in addition to Who/What.
 
 ### Option M1 — Status as a visual layer on today's reporter lanes (evolutionary)
 
@@ -210,6 +245,10 @@ Reporters **report sounds, not bouts** (bout-spec §1a). Their overlay is
 
 ![Reporter overlay: group-select open signals and apply one tag; confirmed signals are locked; reporter tags recorded as proposals](images/reporter-overlay.svg)
 
+The reporter overlay reuses the §4.0 **encoding channels** — species = color,
+source = shape, state = fill/border, locked = padlock — so “Who” and “What” remain
+separable here too.
+
 Rules for reporter tagging:
 
 - A reporter tag is a **proposal**, recorded as that reporter's own signal under
@@ -321,6 +360,11 @@ construction and confirming them against the proposed detection. Confirming
   only a moderator can revise, and every revision is audited.
 - **Live intake:** newly arriving detections stream into the "pending" set in near
   real time.
+- **Encoding note (differs from §4.0):** the console reviews one proposed detection
+  at a time and has no species swimlanes, so here **color encodes Who** (source:
+  human vs model) and **species is shown as the tag**, with state still on
+  fill/border. The §4.0 “color = What” rule applies to the *overlay*, not this
+  single-signal review surface.
 
 ### Option S1 — Time-rail triage inbox (list-centric)
 

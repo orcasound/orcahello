@@ -18,7 +18,8 @@
   <!-- mini spectrogram -->
   <rect x="12" y="144" width="366" height="96" rx="6" class="panel"/>
   <rect x="20" y="152" width="350" height="80" rx="3" fill="url(#mspec)"/>
-  <g opacity=".82"><rect x="70" y="166" width="10" height="52" rx="2" fill="#2f8f77"/><rect x="150" y="172" width="10" height="46" rx="2" fill="#5b6bd6"/><rect x="220" y="168" width="10" height="50" rx="2" fill="#5b6bd6"/><rect x="300" y="180" width="10" height="38" rx="2" fill="#b0873a"/></g>
+  <g opacity=".9" fill="#dcf1f8"><rect x="73" y="170" width="4" height="48" rx="1"/><rect x="153" y="176" width="4" height="42" rx="1"/><rect x="223" y="172" width="4" height="46" rx="1"/><rect x="303" y="184" width="4" height="34" rx="1"/></g>
+  <g fill="none" stroke-width="2"><rect x="64" y="162" width="22" height="60" rx="2" stroke="#39b98f"/><rect x="144" y="168" width="22" height="54" rx="2" stroke="#7f8ff0"/><rect x="214" y="164" width="22" height="58" rx="2" stroke="#7f8ff0"/><rect x="294" y="178" width="22" height="42" rx="2" stroke="#d3a24a" stroke-dasharray="5 3"/></g>
 
   <!-- chip list (single lane, vertical for phone) -->
   <text x="16" y="266" class="label" font-weight="700">Signals</text>

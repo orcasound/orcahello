@@ -25,34 +25,41 @@
   <!-- spectrogram -->
   <rect x="34" y="150" width="1000" height="150" rx="3" fill="url(#spec)"/>
   <g class="grid"><line x1="34" y1="195" x2="1034" y2="195"/><line x1="34" y1="240" x2="1034" y2="240"/><line x1="34" y1="285" x2="1034" y2="285"/></g>
-  <g opacity=".8" fill="#1d9a75"><rect x="120" y="168" width="14" height="120" rx="3"/><rect x="210" y="180" width="12" height="100" rx="3"/></g>
-  <g opacity=".82" fill="#df7b2d"><rect x="520" y="172" width="12" height="112" rx="2"/><rect x="600" y="186" width="12" height="92" rx="2"/><rect x="690" y="176" width="12" height="104" rx="2"/><rect x="820" y="200" width="12" height="70" rx="2"/></g>
+  <g opacity=".9" fill="#dcf1f8"><rect x="227" y="172" width="6" height="112" rx="2"/><rect x="236" y="190" width="3" height="88" rx="2" fill="#bfe6f4"/><rect x="377" y="178" width="6" height="104" rx="2"/><rect x="567" y="176" width="6" height="108" rx="2"/><rect x="517" y="182" width="6" height="98" rx="2"/><rect x="667" y="184" width="6" height="94" rx="2"/><rect x="767" y="180" width="6" height="100" rx="2"/><rect x="877" y="204" width="5" height="70" rx="2"/></g>
+  <g fill="none" stroke-width="2.5">
+    <rect x="208" y="164" width="44" height="128" rx="3" stroke="#39b98f"/><rect x="358" y="164" width="44" height="128" rx="3" stroke="#39b98f"/><rect x="548" y="164" width="44" height="128" rx="3" stroke="#39b98f"/>
+    <rect x="498" y="168" width="44" height="124" rx="3" stroke="#7f8ff0" stroke-dasharray="6 4"/><rect x="648" y="168" width="44" height="124" rx="3" stroke="#7f8ff0"/><rect x="748" y="168" width="44" height="124" rx="3" stroke="#7f8ff0"/>
+    <rect x="858" y="196" width="44" height="80" rx="3" stroke="#9fb6c4" stroke-dasharray="4 3"/>
+  </g>
   <g class="tiny" fill="#a9c4d1"><text x="34" y="314">07:55</text><text x="270" y="314">08:00</text><text x="520" y="314">08:05</text><text x="770" y="314">08:10</text><text x="1000" y="314">08:15</text></g>
+
+  <!-- alignment guides: signal boxes line up with lower lane markers -->
+  <g stroke="#61a9ff" stroke-width="1" stroke-dasharray="2 4" opacity=".4"><line x1="230" y1="300" x2="230" y2="366"/><line x1="380" y1="300" x2="380" y2="366"/><line x1="570" y1="300" x2="570" y2="366"/><line x1="520" y1="300" x2="520" y2="418"/><line x1="670" y1="300" x2="670" y2="418"/><line x1="770" y1="300" x2="770" y2="418"/><line x1="880" y1="300" x2="880" y2="464"/></g>
 
   <!-- Humpback lane (bout 1) -->
   <text x="34" y="352" class="label" font-weight="700">Humpback</text>
   <rect x="150" y="336" width="884" height="30" rx="4" fill="#eaf5ef"/>
-  <rect x="150" y="336" width="180" height="30" rx="4" fill="none" stroke="#17864b" stroke-width="2" stroke-dasharray="5 3"/>
-  <text x="158" y="332" class="ok">◄ bout #1 (07:57–08:01)</text>
-  <line x1="150" y1="330" x2="150" y2="372" class="bound"/><line x1="330" y1="330" x2="330" y2="372" class="bound"/>
-  <circle cx="190" cy="351" r="9" class="a"/><path d="M185 351l4 4 6-7" stroke="#fff" stroke-width="1.8" fill="none"/>
-  <circle cx="250" cy="351" r="9" class="a"/><path d="M245 351l4 4 6-7" stroke="#fff" stroke-width="1.8" fill="none"/>
+  <rect x="182" y="336" width="438" height="30" rx="4" fill="none" stroke="#17864b" stroke-width="2" stroke-dasharray="5 3"/>
+  <text x="190" y="332" class="ok">◄ bout #1 · humpback (07:58–08:07)</text>
+  <line x1="182" y1="330" x2="182" y2="372" class="bound"/><line x1="620" y1="330" x2="620" y2="372" class="bound"/>
+  <circle cx="230" cy="351" r="9" class="a"/><path d="M225 351l4 4 6-7" stroke="#fff" stroke-width="1.8" fill="none"/>
+  <circle cx="380" cy="351" r="9" class="a"/><path d="M375 351l4 4 6-7" stroke="#fff" stroke-width="1.8" fill="none"/>
+  <circle cx="570" cy="351" r="9" class="a"/><path d="M565 351l4 4 6-7" stroke="#fff" stroke-width="1.8" fill="none"/>
 
-  <!-- Transient lane (bout 2) overlapping -->
+  <!-- Transient lane (bout 2) overlapping in time -->
   <text x="34" y="404" class="label" font-weight="700">Transient</text>
   <rect x="150" y="388" width="884" height="30" rx="4" fill="#eef0fb"/>
-  <rect x="470" y="388" width="410" height="30" rx="4" fill="none" stroke="#5b6bd6" stroke-width="2" stroke-dasharray="5 3"/>
-  <text x="478" y="384" fill="#3b46a8" font-size="11" font-weight="700">◄ bout #2 (08:04–08:11) — overlaps bout #1 in time is allowed (diff species)</text>
-  <line x1="470" y1="382" x2="470" y2="424" class="bound"/><line x1="880" y1="382" x2="880" y2="424" class="bound"/>
-  <rect x="514" y="404" width="16" height="16" rx="2" class="b"/>
-  <rect x="594" y="404" width="16" height="16" rx="2" fill="url(#hatch)" stroke="#df7b2d"/>
-  <rect x="684" y="404" width="16" height="16" rx="2" class="b"/>
-  <rect x="814" y="404" width="16" height="16" rx="2" fill="#df7b2d" opacity=".55"/><rect x="814" y="404" width="16" height="16" rx="2" fill="none" stroke="#b05b22" stroke-width="2"/>
+  <rect x="470" y="388" width="350" height="30" rx="4" fill="none" stroke="#5b6bd6" stroke-width="2" stroke-dasharray="5 3"/>
+  <text x="478" y="384" fill="#3b46a8" font-size="11" font-weight="700">◄ bout #2 · transient (08:04–08:11) — overlaps bout #1 (08:04–08:07); allowed for different species</text>
+  <line x1="470" y1="382" x2="470" y2="424" class="bound"/><line x1="820" y1="382" x2="820" y2="424" class="bound"/>
+  <rect x="512" y="404" width="16" height="16" rx="2" fill="url(#hatch)" stroke="#df7b2d"/>
+  <rect x="662" y="404" width="16" height="16" rx="2" class="b"/>
+  <rect x="762" y="404" width="16" height="16" rx="2" class="b"/>
 
   <!-- Unassigned lane -->
   <text x="34" y="454" class="small">Unassigned</text>
   <rect x="150" y="440" width="884" height="24" rx="4" fill="#f3f5f7"/>
-  <circle cx="410" cy="452" r="8" fill="url(#hatch)" stroke="#607483"/>
+  <circle cx="880" cy="452" r="8" fill="url(#hatch)" stroke="#607483"/>
 
   <!-- legend -->
   <rect x="34" y="486" width="470" height="96" rx="5" fill="#f5f8fa" stroke="#c9d3dc"/>
@@ -70,9 +77,4 @@
   <rect x="524" y="540" width="510" height="42" rx="6" class="callout"/>
   <text x="536" y="557" class="calloutText">Changes never auto-publish — the generator suggests a new</text>
   <text x="536" y="572" class="calloutText">boundary; a moderator accepts it (bout-spec §1a).</text>
-
-  <!-- callouts to features -->
-  <path class="leader" d="M330 348 C360 348 380 336 470 388"/>
-  <rect x="360" y="300" width="150" height="20" rx="4" class="callout" opacity="0"/>
-  <path class="leader" d="M190 360 C190 470 150 486 150 486"/>
 </svg>

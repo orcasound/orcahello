@@ -40,14 +40,13 @@
   <g class="grid"><line x1="34" y1="190" x2="1034" y2="190"/><line x1="34" y1="240" x2="1034" y2="240"/><line x1="34" y1="290" x2="1034" y2="290"/></g>
   <!-- state lanes -->
   <text x="44" y="176" fill="#bff0d3" font-size="11" font-weight="700">Confirmed 🔒</text>
-  <rect x="150" y="158" width="70" height="30" rx="4" fill="#17864b" opacity=".4" stroke="#17864b"/><text x="158" y="178" fill="#eafff2" font-size="10">🔒</text>
-  <rect x="300" y="158" width="60" height="30" rx="4" fill="#17864b" opacity=".4" stroke="#17864b"/><text x="308" y="178" fill="#eafff2" font-size="10">🔒</text>
+  <g opacity=".9" fill="#dcf1f8"><rect x="180" y="162" width="4" height="22" rx="1"/><rect x="188" y="166" width="3" height="16" rx="1" fill="#bfe6f4"/><rect x="326" y="162" width="4" height="22" rx="1"/><rect x="496" y="214" width="4" height="22" rx="1"/><rect x="586" y="214" width="4" height="22" rx="1"/><rect x="726" y="214" width="4" height="22" rx="1"/><rect x="846" y="264" width="4" height="22" rx="1"/></g>
+  <g fill="none" stroke-width="2"><rect x="150" y="158" width="70" height="30" rx="4" stroke="#39b98f"/><rect x="300" y="158" width="60" height="30" rx="4" stroke="#39b98f"/></g>
+  <text x="204" y="178" font-size="11">🔒</text><text x="344" y="178" font-size="11">🔒</text>
   <text x="44" y="228" fill="#cfe0ea" font-size="11" font-weight="700">Proposed</text>
-  <rect x="470" y="210" width="60" height="30" rx="4" fill="url(#hatch)" stroke="#7d97a5"/>
-  <rect x="560" y="210" width="60" height="30" rx="4" fill="url(#hatch)" stroke="#7d97a5"/>
-  <rect x="700" y="210" width="60" height="30" rx="4" fill="url(#hatch)" stroke="#7d97a5"/>
+  <g fill="none" stroke="#9fb6c4" stroke-width="2" stroke-dasharray="6 4"><rect x="470" y="210" width="60" height="30" rx="4"/><rect x="560" y="210" width="60" height="30" rx="4"/><rect x="700" y="210" width="60" height="30" rx="4"/></g>
   <text x="44" y="278" fill="#ffd9b8" font-size="11" font-weight="700">Changed</text>
-  <rect x="820" y="260" width="60" height="30" rx="4" fill="#df7b2d" opacity=".4" stroke="#b05b22" stroke-width="2"/>
+  <rect x="820" y="260" width="60" height="30" rx="4" fill="none" stroke="#df7b2d" stroke-width="2.5"/>
   <g class="tiny" fill="#a9c4d1"><text x="34" y="332">07:55</text><text x="500" y="332">08:05</text><text x="1000" y="332">08:15</text></g>
 
   <!-- callouts -->

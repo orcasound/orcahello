@@ -15,7 +15,9 @@
 
   <!-- shared spectrogram -->
   <rect x="120" y="98" width="820" height="80" rx="3" fill="url(#spec)"/>
-  <g opacity=".8"><rect x="200" y="110" width="12" height="56" rx="2" fill="#2f8f77"/><rect x="430" y="112" width="12" height="54" rx="2" fill="#5b6bd6"/><rect x="520" y="108" width="12" height="60" rx="2" fill="#5b6bd6"/><rect x="720" y="116" width="12" height="46" rx="2" fill="#9fb3c0"/></g>
+  <g opacity=".9" fill="#dcf1f8"><rect x="225" y="112" width="5" height="56" rx="2"/><rect x="233" y="124" width="3" height="40" rx="2" fill="#bfe6f4"/><rect x="525" y="110" width="5" height="58" rx="2"/><rect x="533" y="124" width="3" height="42" rx="2" fill="#bfe6f4"/></g>
+  <g fill="none" stroke-width="2.5"><rect x="206" y="104" width="44" height="66" rx="3" stroke="#39b98f"/><path d="M240 112l4 4 6-7" stroke="#17864b" stroke-width="2"/><rect x="506" y="104" width="44" height="66" rx="3" stroke="#7f8ff0"/><path d="M540 112l4 4 6-7" stroke="#7f8ff0" stroke-width="2"/></g>
+  <g stroke="#61a9ff" stroke-width="1" stroke-dasharray="2 4" opacity=".4"><line x1="228" y1="170" x2="228" y2="358"/><line x1="528" y1="170" x2="528" y2="358"/></g>
   <g class="tiny" fill="#a9c4d1"><text x="120" y="192">08:00</text><text x="520" y="192">08:05</text><text x="905" y="192">08:10</text></g>
 
   <!-- YOU band -->

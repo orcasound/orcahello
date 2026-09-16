@@ -35,20 +35,21 @@
   <g class="grid"><line x1="34" y1="186" x2="1164" y2="186"/><line x1="34" y1="236" x2="1164" y2="236"/><line x1="34" y1="286" x2="1164" y2="286"/></g>
   <g class="tiny" fill="#a9c4d1"><text x="34" y="300">08:03:00</text><text x="315" y="300">08:03:15</text><text x="596" y="300">08:03:30</text><text x="877" y="300">08:03:45</text><text x="1095" y="300">08:04:00</text></g>
 
-  <!-- signal blocks -->
+  <!-- signal blocks: empty boxes around always-visible bursts -->
+  <g opacity=".9" fill="#dcf1f8"><rect x="150" y="158" width="6" height="124" rx="2"/><rect x="160" y="176" width="4" height="96" rx="2" fill="#bfe6f4"/><rect x="276" y="168" width="6" height="104" rx="2"/><rect x="404" y="164" width="6" height="112" rx="2"/><rect x="498" y="172" width="6" height="96" rx="2"/><rect x="746" y="166" width="6" height="106" rx="2"/><rect x="924" y="178" width="5" height="84" rx="2"/></g>
   <!-- confirmed + locked -->
-  <rect x="120" y="150" width="70" height="140" rx="4" fill="#17864b" opacity=".28" stroke="#17864b"/><text x="128" y="166" fill="#bff0d3" font-size="11">🔒 confirmed</text>
-  <!-- proposed model -->
-  <rect x="250" y="160" width="60" height="120" rx="4" fill="#df7b2d" opacity=".35" stroke="#df7b2d"/><text x="256" y="176" fill="#ffd9b8" font-size="10">model 0.94</text>
+  <rect x="120" y="150" width="70" height="140" rx="4" fill="none" stroke="#17864b" stroke-width="2.5"/><text x="128" y="166" fill="#bff0d3" font-size="11">🔒 confirmed</text>
+  <!-- proposed model (dashed) -->
+  <rect x="250" y="160" width="60" height="120" rx="4" fill="none" stroke="#df7b2d" stroke-width="2.5" stroke-dasharray="6 4"/><text x="256" y="176" fill="#ffd9b8" font-size="10">model 0.94</text>
   <!-- selected group (two proposed) -->
-  <rect x="380" y="156" width="64" height="128" rx="4" fill="#61a9ff" opacity=".3" stroke="#61a9ff"/>
-  <rect x="470" y="164" width="64" height="112" rx="4" fill="#61a9ff" opacity=".3" stroke="#61a9ff"/>
+  <rect x="380" y="156" width="64" height="128" rx="4" fill="none" stroke="#df7b2d" stroke-width="2.5" stroke-dasharray="6 4"/>
+  <rect x="470" y="164" width="64" height="112" rx="4" fill="none" stroke="#1d9a75" stroke-width="2.5" stroke-dasharray="6 4"/>
   <rect x="372" y="148" width="172" height="146" rx="8" class="sel" stroke-dasharray="6 4"/>
   <text x="378" y="140" fill="#61a9ff" font-size="11" font-weight="700">2 selected</text>
-  <!-- proposed human -->
-  <rect x="720" y="158" width="60" height="122" rx="4" fill="#1d9a75" opacity=".33" stroke="#1d9a75"/><text x="726" y="174" fill="#c8f2e4" font-size="10">human</text>
-  <!-- unverified hatch -->
-  <rect x="900" y="170" width="56" height="100" rx="4" fill="url(#hatch)" stroke="#7d97a5"/>
+  <!-- proposed human (dashed) -->
+  <rect x="720" y="158" width="60" height="122" rx="4" fill="none" stroke="#1d9a75" stroke-width="2.5" stroke-dasharray="6 4"/><text x="726" y="174" fill="#c8f2e4" font-size="10">human</text>
+  <!-- unverified -->
+  <rect x="900" y="170" width="56" height="100" rx="4" fill="none" stroke="#7d97a5" stroke-width="2" stroke-dasharray="3 3"/>
 
   <!-- action bar for selection -->
   <rect x="34" y="322" width="1130" height="60" rx="6" fill="#f5f8fa" stroke="#c9d3dc"/>
@@ -63,10 +64,10 @@
   <!-- legend -->
   <rect x="34" y="398" width="470" height="92" rx="5" fill="#f5f8fa" stroke="#c9d3dc"/>
   <text x="46" y="418" class="small" font-weight="700">Block legend</text>
-  <rect x="46" y="428" width="18" height="14" rx="3" fill="#17864b" opacity=".28" stroke="#17864b"/><text x="72" y="440" class="small">confirmed · locked 🔒 (immutable to reporter/model)</text>
-  <rect x="46" y="450" width="18" height="14" rx="3" fill="#df7b2d" opacity=".35" stroke="#df7b2d"/><text x="72" y="462" class="small">model-proposed</text>
-  <rect x="240" y="450" width="18" height="14" rx="3" fill="#1d9a75" opacity=".33" stroke="#1d9a75"/><text x="266" y="462" class="small">human-proposed</text>
-  <rect x="46" y="470" width="18" height="14" rx="3" fill="url(#hatch)" stroke="#7d97a5"/><text x="72" y="482" class="small">unverified / awaiting review</text>
+  <rect x="46" y="428" width="18" height="14" rx="3" fill="none" stroke="#17864b" stroke-width="2"/><text x="72" y="440" class="small">confirmed · locked 🔒 (immutable to reporter/model)</text>
+  <rect x="46" y="450" width="18" height="14" rx="3" fill="none" stroke="#df7b2d" stroke-width="2" stroke-dasharray="5 3"/><text x="72" y="462" class="small">model-proposed</text>
+  <rect x="240" y="450" width="18" height="14" rx="3" fill="none" stroke="#1d9a75" stroke-width="2" stroke-dasharray="5 3"/><text x="266" y="462" class="small">human-proposed</text>
+  <rect x="46" y="470" width="18" height="14" rx="3" fill="none" stroke="#7d97a5" stroke-width="2" stroke-dasharray="3 3"/><text x="72" y="482" class="small">unverified / awaiting review</text>
 
   <!-- callouts -->
   <path class="leader" d="M155 290 C155 410 120 398 120 398"/><circle cx="155" cy="290" r="3" class="cdot"/>
