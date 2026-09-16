@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="390" height="844" viewBox="0 0 390 844" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <style>
+      .label{fill:#263847;font-size:13px}.small{fill:#617583;font-size:11px}.tiny{fill:#728694;font-size:9px}.white{fill:#fff;font-size:13px;font-weight:700}.panel{fill:#fff;stroke:#c8d3dc}.a{fill:#1d9a75}.b{fill:#df7b2d}.axis{stroke:#91a3b1}.ok{fill:#17864b;font-size:11px;font-weight:700}.chip{fill:#e8f4f8;stroke:#91bed0}.button{fill:#087c8c}.green{fill:#17864b}.reject{fill:#b45539}.sel{stroke:#087c8c;stroke-width:2.5;fill:none}
+      .callout{fill:#fff3e0;stroke:#c25a2b;stroke-width:1.2}.calloutText{fill:#8a3c15;font-size:10px;font-weight:600}.leader{stroke:#c25a2b;stroke-width:1.2;stroke-dasharray:3 2;fill:none}
+    </style>
+    <linearGradient id="mspec" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#09131c"/><stop offset=".55" stop-color="#15313c"/><stop offset="1" stop-color="#081018"/></linearGradient>
+    <pattern id="mhatch" width="6" height="6" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#26424f"/><line x1="0" y1="0" x2="0" y2="6" stroke="#5c7d8c" stroke-width="2"/></pattern>
+  </defs>
+  <rect width="390" height="844" fill="#eef3f6"/>
+  <rect width="390" height="48" fill="#0c4968"/>
+  <text x="16" y="30" class="white" font-size="15">Signal Approval · live</text>
+  <circle cx="330" cy="24" r="6" class="green"/><text x="344" y="28" fill="#fff" font-size="11">6</text>
+
+  <!-- zoom + span -->
+  <rect x="12" y="60" width="366" height="40" rx="6" class="panel"/>
+  <text x="20" y="84" class="small">Zoom</text>
+  <rect x="62" y="68" width="46" height="24" rx="4" fill="#fff" stroke="#aebdc9"/><text x="85" y="84" class="small" text-anchor="middle">10s</text>
+  <rect x="112" y="68" width="46" height="24" rx="4" class="button"/><text x="135" y="84" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">1m</text>
+  <rect x="162" y="68" width="50" height="24" rx="4" fill="#fff" stroke="#aebdc9"/><text x="187" y="84" class="small" text-anchor="middle">15m</text>
+  <rect x="216" y="68" width="40" height="24" rx="4" fill="#fff" stroke="#aebdc9"/><text x="236" y="84" class="small" text-anchor="middle">1h</text>
+  <text x="270" y="84" class="tiny">08:03–08:04</text>
+
+  <!-- spectrogram, pinch/scrub -->
+  <rect x="12" y="110" width="366" height="200" rx="6" class="panel"/>
+  <text x="22" y="130" class="small">Pinch to zoom · drag to scrub · tap blocks to select</text>
+  <rect x="20" y="140" width="350" height="120" rx="3" fill="url(#mspec)"/>
+  <!-- blocks -->
+  <rect x="40" y="152" width="40" height="96" rx="3" fill="#17864b" opacity=".3" stroke="#17864b"/><text x="45" y="166" fill="#bff0d3" font-size="9">🔒</text>
+  <rect x="110" y="160" width="38" height="88" rx="3" fill="#df7b2d" opacity=".35" stroke="#df7b2d"/>
+  <rect x="176" y="156" width="40" height="92" rx="3" fill="#61a9ff" opacity=".32" stroke="#61a9ff"/>
+  <rect x="228" y="164" width="40" height="84" rx="3" fill="#61a9ff" opacity=".32" stroke="#61a9ff"/>
+  <rect x="300" y="170" width="36" height="72" rx="3" fill="url(#mhatch)" stroke="#7d97a5"/>
+  <rect x="170" y="148" width="104" height="108" rx="8" class="sel" stroke-dasharray="6 4"/>
+  <text x="176" y="278" class="tiny" fill="#617583">2 blocks selected in view</text>
+  <text x="300" y="278" class="tiny" fill="#617583">🔒 locked</text>
+
+  <!-- multi-select list -->
+  <rect x="12" y="320" width="366" height="150" rx="6" class="panel"/>
+  <text x="24" y="342" class="label" font-weight="700">Selection · 3 signals</text>
+  <rect x="250" y="326" width="118" height="26" rx="4" class="chip"/><text x="262" y="344" class="small">Select all in view</text>
+  <!-- rows with checkboxes -->
+  <g>
+    <rect x="24" y="356" width="18" height="18" rx="3" class="button"/><path d="M28 365l4 4 7-9" fill="none" stroke="#fff" stroke-width="2"/>
+    <text x="52" y="370" class="small">08:03:19 · human · proposed</text>
+    <circle cx="330" cy="365" r="6" class="a"/>
+  </g>
+  <g>
+    <rect x="24" y="384" width="18" height="18" rx="3" class="button"/><path d="M28 393l4 4 7-9" fill="none" stroke="#fff" stroke-width="2"/>
+    <text x="52" y="398" class="small">08:03:23 · model 0.94 · proposed</text>
+    <rect x="324" y="391" width="12" height="12" rx="2" class="b"/>
+  </g>
+  <g>
+    <rect x="24" y="412" width="18" height="18" rx="3" class="button"/><path d="M28 421l4 4 7-9" fill="none" stroke="#fff" stroke-width="2"/>
+    <text x="52" y="426" class="small">08:03:26 · model 0.88 · proposed</text>
+    <rect x="324" y="419" width="12" height="12" rx="2" class="b"/>
+  </g>
+  <text x="24" y="452" class="tiny">Tag applied to all selected on approve/change</text>
+
+  <!-- listen + tag -->
+  <rect x="12" y="482" width="366" height="86" rx="6" class="panel"/>
+  <circle cx="42" cy="518" r="20" class="button"/><path d="M36 508l16 10-16 10z" fill="#fff"/>
+  <text x="74" y="512" class="label">Listen (3 clips)</text><text x="74" y="531" class="small">Scoped playback of selection</text>
+  <text x="24" y="556" class="small">Tag</text>
+  <rect x="60" y="544" width="300" height="16" rx="4" fill="#f2f6f8" stroke="#c8d3dc"/><text x="72" y="556" class="tiny">transient (Biggs) ▾</text>
+
+  <!-- callouts -->
+  <path class="leader" d="M222 256 C222 300 300 356 300 356"/>
+  <rect x="12" y="584" width="366" height="40" rx="6" class="callout"/>
+  <text x="24" y="601" class="calloutText">Multi-select approve: one Approve/Change/Reject applies to the</text>
+  <text x="24" y="615" class="calloutText">whole selection. Locked 🔒 signals are skipped automatically.</text>
+
+  <rect x="12" y="634" width="366" height="60" rx="6" class="panel"/>
+  <text x="24" y="655" class="label" font-weight="700">Live intake</text>
+  <text x="24" y="675" class="small">New detections stream into “pending”; a badge shows the count.</text>
+  <text x="24" y="689" class="tiny">Approve = confirmed + 🔒 · writes to the main database (no side store)</text>
+
+  <!-- sticky bottom bar -->
+  <rect x="0" y="766" width="390" height="78" fill="#fff" stroke="#c8d3dc"/>
+  <rect x="12" y="780" width="150" height="50" rx="5" class="green"/><text x="30" y="810" class="white">Approve all (3)</text>
+  <rect x="170" y="780" width="104" height="50" rx="5" fill="#087c8c"/><text x="186" y="810" class="white">Change</text>
+  <rect x="282" y="780" width="96" height="50" rx="5" class="reject"/><text x="304" y="810" class="white">Reject</text>
+</svg>

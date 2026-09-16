@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <style>
+      .panel{fill:#fff;stroke:#c9d3dc;stroke-width:1.5}.navy{fill:#0c4968}.title{fill:#fff;font-size:15px;font-weight:700}.label{fill:#263847;font-size:13px}.small{fill:#607483;font-size:11px}.tiny{fill:#718493;font-size:10px}.chip{fill:#e8f4f8;stroke:#91bed0}.a{fill:#1d9a75}.b{fill:#df7b2d}.axis{stroke:#91a3b1;stroke-width:1}.grid{stroke:#30434f;stroke-width:.7;opacity:.55}
+      .callout{fill:#fff3e0;stroke:#c25a2b;stroke-width:1.2}.calloutText{fill:#8a3c15;font-size:11px;font-weight:600}.leader{stroke:#c25a2b;stroke-width:1.2;stroke-dasharray:3 2;fill:none}.cdot{fill:#c25a2b}
+      .ok{fill:#17864b;font-size:11px;font-weight:700}.amber{fill:#b05b22;font-size:11px;font-weight:700}.bound{stroke:#61a9ff;stroke-width:3}
+    </style>
+    <linearGradient id="spec" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#09131c"/><stop offset=".55" stop-color="#152d39"/><stop offset="1" stop-color="#081018"/></linearGradient>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#dfe8ee"/><line x1="0" y1="0" x2="0" y2="6" stroke="#9fb3c0" stroke-width="2"/></pattern>
+  </defs>
+  <rect width="1200" height="620" fill="#eef3f6"/>
+  <rect width="1200" height="44" class="navy"/>
+  <text x="18" y="28" class="title" font-size="17">Moderator overlay · species-first swimlanes (M2) + change minimap</text>
+  <text x="980" y="27" class="title" font-size="12">Orcasound Lab · 07:55–08:15</text>
+
+  <rect x="20" y="58" width="1160" height="544" rx="6" class="panel"/>
+
+  <!-- minimap ribbon -->
+  <text x="34" y="86" class="small" font-weight="700">Session minimap · density + change markers</text>
+  <rect x="34" y="94" width="1000" height="26" rx="4" fill="#0c1c26"/>
+  <g fill="#3f6b7d"><rect x="60" y="100" width="40" height="14"/><rect x="140" y="98" width="70" height="18"/><rect x="260" y="102" width="50" height="12"/><rect x="420" y="97" width="90" height="20"/><rect x="620" y="101" width="60" height="14"/><rect x="820" y="99" width="80" height="16"/></g>
+  <path d="M470 90l8 6-8 6-8-6z" fill="#ffcf6b"/><text x="470" y="132" class="tiny" text-anchor="middle" fill="#8a3c15">✦ change 08:04</text>
+  <rect x="1044" y="94" width="120" height="26" rx="4" class="callout"/><text x="1052" y="111" class="calloutText">off-screen changes visible</text>
+
+  <!-- spectrogram -->
+  <rect x="34" y="150" width="1000" height="150" rx="3" fill="url(#spec)"/>
+  <g class="grid"><line x1="34" y1="195" x2="1034" y2="195"/><line x1="34" y1="240" x2="1034" y2="240"/><line x1="34" y1="285" x2="1034" y2="285"/></g>
+  <g opacity=".8" fill="#1d9a75"><rect x="120" y="168" width="14" height="120" rx="3"/><rect x="210" y="180" width="12" height="100" rx="3"/></g>
+  <g opacity=".82" fill="#df7b2d"><rect x="520" y="172" width="12" height="112" rx="2"/><rect x="600" y="186" width="12" height="92" rx="2"/><rect x="690" y="176" width="12" height="104" rx="2"/><rect x="820" y="200" width="12" height="70" rx="2"/></g>
+  <g class="tiny" fill="#a9c4d1"><text x="34" y="314">07:55</text><text x="270" y="314">08:00</text><text x="520" y="314">08:05</text><text x="770" y="314">08:10</text><text x="1000" y="314">08:15</text></g>
+
+  <!-- Humpback lane (bout 1) -->
+  <text x="34" y="352" class="label" font-weight="700">Humpback</text>
+  <rect x="150" y="336" width="884" height="30" rx="4" fill="#eaf5ef"/>
+  <rect x="150" y="336" width="180" height="30" rx="4" fill="none" stroke="#17864b" stroke-width="2" stroke-dasharray="5 3"/>
+  <text x="158" y="332" class="ok">◄ bout #1 (07:57–08:01)</text>
+  <line x1="150" y1="330" x2="150" y2="372" class="bound"/><line x1="330" y1="330" x2="330" y2="372" class="bound"/>
+  <circle cx="190" cy="351" r="9" class="a"/><path d="M185 351l4 4 6-7" stroke="#fff" stroke-width="1.8" fill="none"/>
+  <circle cx="250" cy="351" r="9" class="a"/><path d="M245 351l4 4 6-7" stroke="#fff" stroke-width="1.8" fill="none"/>
+
+  <!-- Transient lane (bout 2) overlapping -->
+  <text x="34" y="404" class="label" font-weight="700">Transient</text>
+  <rect x="150" y="388" width="884" height="30" rx="4" fill="#eef0fb"/>
+  <rect x="470" y="388" width="410" height="30" rx="4" fill="none" stroke="#5b6bd6" stroke-width="2" stroke-dasharray="5 3"/>
+  <text x="478" y="384" fill="#3b46a8" font-size="11" font-weight="700">◄ bout #2 (08:04–08:11) — overlaps bout #1 in time is allowed (diff species)</text>
+  <line x1="470" y1="382" x2="470" y2="424" class="bound"/><line x1="880" y1="382" x2="880" y2="424" class="bound"/>
+  <rect x="514" y="404" width="16" height="16" rx="2" class="b"/>
+  <rect x="594" y="404" width="16" height="16" rx="2" fill="url(#hatch)" stroke="#df7b2d"/>
+  <rect x="684" y="404" width="16" height="16" rx="2" class="b"/>
+  <rect x="814" y="404" width="16" height="16" rx="2" fill="#df7b2d" opacity=".55"/><rect x="814" y="404" width="16" height="16" rx="2" fill="none" stroke="#b05b22" stroke-width="2"/>
+
+  <!-- Unassigned lane -->
+  <text x="34" y="454" class="small">Unassigned</text>
+  <rect x="150" y="440" width="884" height="24" rx="4" fill="#f3f5f7"/>
+  <circle cx="410" cy="452" r="8" fill="url(#hatch)" stroke="#607483"/>
+
+  <!-- legend -->
+  <rect x="34" y="486" width="470" height="96" rx="5" fill="#f5f8fa" stroke="#c9d3dc"/>
+  <text x="46" y="506" class="small" font-weight="700">Moderation state (shared vocabulary)</text>
+  <circle cx="56" cy="526" r="8" class="a"/><path d="M51 526l4 4 6-7" stroke="#fff" stroke-width="1.6" fill="none"/><text x="72" y="530" class="ok">confirmed · locked 🔒</text>
+  <rect x="52" y="546" width="16" height="16" rx="2" fill="url(#hatch)" stroke="#607483"/><text x="78" y="559" class="small">proposed (unverified)</text>
+  <circle cx="300" cy="526" r="8" fill="none" stroke="#b05b22" stroke-width="2"/><text x="316" y="530" class="amber">changed — re-review</text>
+  <text x="300" y="559" class="small">● human   ■ model  (glyph inside lane)</text>
+
+  <!-- change-alert banner -->
+  <rect x="524" y="486" width="510" height="44" rx="6" fill="#fff7e9" stroke="#df7b2d"/>
+  <path d="M548 508l9 7-9 7z" fill="#df7b2d"/>
+  <text x="566" y="504" class="amber">Evidence changed at 08:04 (humpback → transient)</text>
+  <text x="566" y="522" class="small">Boundary may move · alerts active editor + prior watchers · Review new boundary ▸</text>
+  <rect x="524" y="540" width="510" height="42" rx="6" class="callout"/>
+  <text x="536" y="557" class="calloutText">Changes never auto-publish — the generator suggests a new</text>
+  <text x="536" y="572" class="calloutText">boundary; a moderator accepts it (bout-spec §1a).</text>
+
+  <!-- callouts to features -->
+  <path class="leader" d="M330 348 C360 348 380 336 470 388"/>
+  <rect x="360" y="300" width="150" height="20" rx="4" class="callout" opacity="0"/>
+  <path class="leader" d="M190 360 C190 470 150 486 150 486"/>
+</svg>

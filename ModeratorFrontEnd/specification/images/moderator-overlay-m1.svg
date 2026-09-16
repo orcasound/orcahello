@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="520" viewBox="0 0 1180 520" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <style>
+      .panel{fill:#fff;stroke:#c9d3dc;stroke-width:1.5}.navy{fill:#0c4968}.title{fill:#fff;font-size:15px;font-weight:700}.label{fill:#263847;font-size:13px}.small{fill:#607483;font-size:11px}.tiny{fill:#718493;font-size:10px}.axis{stroke:#91a3b1;stroke-width:1}.grid{stroke:#30434f;stroke-width:.7;opacity:.55}
+      .callout{fill:#fff3e0;stroke:#c25a2b;stroke-width:1.2}.calloutText{fill:#8a3c15;font-size:11px;font-weight:600}.leader{stroke:#c25a2b;stroke-width:1.2;stroke-dasharray:3 2;fill:none}.cdot{fill:#c25a2b}
+      .ok{fill:#17864b;font-size:11px;font-weight:700}.amber{fill:#b05b22;font-size:11px;font-weight:700}
+    </style>
+    <linearGradient id="spec" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#09131c"/><stop offset=".55" stop-color="#152d39"/><stop offset="1" stop-color="#081018"/></linearGradient>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#eef2f5"/><line x1="0" y1="0" x2="0" y2="6" stroke="#9fb3c0" stroke-width="2"/></pattern>
+  </defs>
+  <rect width="1180" height="520" fill="#eef3f6"/>
+  <rect width="1180" height="44" class="navy"/>
+  <text x="18" y="28" class="title" font-size="17">Option M1 · status layered on today's reporter lanes (evolutionary)</text>
+
+  <rect x="20" y="58" width="1140" height="444" rx="6" class="panel"/>
+  <text x="34" y="86" class="small">Keeps per-reporter lanes. Adds species stripe (top edge) + moderation-state fill + change pulse.</text>
+
+  <!-- spectrogram -->
+  <rect x="34" y="98" width="900" height="110" rx="3" fill="url(#spec)"/>
+  <g class="grid"><line x1="34" y1="135" x2="934" y2="135"/><line x1="34" y1="172" x2="934" y2="172"/></g>
+  <g opacity=".82" fill="#1d9a75"><rect x="120" y="112" width="12" height="84" rx="3"/><rect x="250" y="120" width="12" height="72" rx="3"/><rect x="380" y="116" width="12" height="80" rx="3"/></g>
+  <g opacity=".82" fill="#df7b2d"><rect x="200" y="126" width="11" height="64" rx="2"/><rect x="330" y="120" width="11" height="72" rx="2"/><rect x="470" y="130" width="11" height="58" rx="2"/></g>
+
+  <!-- Reporter A lane -->
+  <text x="34" y="252" class="small"><tspan fill="#1d9a75">●</tspan> A · human</text>
+  <rect x="120" y="236" width="814" height="34" rx="4" fill="#e8f7f2"/><line x1="120" y1="253" x2="934" y2="253" class="axis"/>
+  <!-- confirmed humpback -->
+  <g><rect x="150" y="242" width="30" height="22" rx="4" fill="#17864b"/><rect x="150" y="242" width="30" height="5" rx="2" fill="#2f8f77"/><path d="M158 253l4 4 8-8" stroke="#fff" stroke-width="2" fill="none"/></g>
+  <!-- proposed transient -->
+  <g><rect x="300" y="242" width="30" height="22" rx="4" fill="url(#hatch)" stroke="#607483"/><rect x="300" y="242" width="30" height="5" rx="2" fill="#5b6bd6"/></g>
+  <!-- changed humpback with pulse + chip -->
+  <g><rect x="460" y="242" width="30" height="22" rx="4" fill="#fff" stroke="#b05b22" stroke-width="2"/><rect x="460" y="242" width="30" height="5" rx="2" fill="#2f8f77"/></g>
+  <circle cx="475" cy="253" r="20" fill="none" stroke="#df7b2d" stroke-width="2" opacity=".7"/><circle cx="475" cy="253" r="27" fill="none" stroke="#df7b2d" stroke-width="1.5" opacity=".4"/>
+  <circle cx="497" cy="238" r="9" fill="#df7b2d"/><text x="497" y="242" fill="#fff" font-size="10" font-weight="700" text-anchor="middle">2</text>
+
+  <!-- Reporter B lane -->
+  <text x="34" y="310" class="small"><tspan fill="#df7b2d">■</tspan> B · model</text>
+  <rect x="120" y="294" width="814" height="34" rx="4" fill="#fff1e6"/><line x1="120" y1="311" x2="934" y2="311" class="axis"/>
+  <g><rect x="200" y="300" width="30" height="22" rx="4" fill="url(#hatch)" stroke="#607483"/><rect x="200" y="300" width="30" height="5" rx="2" fill="#5b6bd6"/></g>
+  <g><rect x="330" y="300" width="30" height="22" rx="4" fill="#17864b"/><rect x="330" y="300" width="30" height="5" rx="2" fill="#5b6bd6"/><path d="M338 311l4 4 8-8" stroke="#fff" stroke-width="2" fill="none"/></g>
+  <!-- rejected -->
+  <g><rect x="470" y="300" width="30" height="22" rx="4" fill="#f0e3df" stroke="#b45539"/><rect x="470" y="300" width="30" height="5" rx="2" fill="#b0873a"/><line x1="470" y1="322" x2="500" y2="300" stroke="#b45539" stroke-width="2"/></g>
+
+  <!-- legend -->
+  <rect x="34" y="352" width="560" height="132" rx="5" fill="#f5f8fa" stroke="#c9d3dc"/>
+  <text x="46" y="372" class="small" font-weight="700">Moderation-state fill</text>
+  <rect x="46" y="382" width="26" height="18" rx="4" fill="#17864b"/><path d="M53 391l4 4 8-8" stroke="#fff" stroke-width="1.8" fill="none"/><text x="82" y="395" class="ok">confirmed 🔒</text>
+  <rect x="196" y="382" width="26" height="18" rx="4" fill="url(#hatch)" stroke="#607483"/><text x="230" y="395" class="small">proposed</text>
+  <rect x="330" y="382" width="26" height="18" rx="4" fill="#fff" stroke="#b05b22" stroke-width="2"/><text x="364" y="395" class="amber">changed</text>
+  <rect x="452" y="382" width="26" height="18" rx="4" fill="#f0e3df" stroke="#b45539"/><line x1="452" y1="400" x2="478" y2="382" stroke="#b45539" stroke-width="1.8"/><text x="486" y="395" class="small">rejected</text>
+  <text x="46" y="428" class="small" font-weight="700">Species stripe (top edge)</text>
+  <rect x="46" y="438" width="26" height="6" rx="2" fill="#2f8f77"/><text x="82" y="445" class="small">humpback</text>
+  <rect x="196" y="438" width="26" height="6" rx="2" fill="#5b6bd6"/><text x="232" y="445" class="small">transient</text>
+  <rect x="330" y="438" width="26" height="6" rx="2" fill="#b0873a"/><text x="366" y="445" class="small">vessel</text>
+  <text x="46" y="472" class="tiny">Reporter = lane (unchanged). ● human   ■ model</text>
+
+  <!-- callouts -->
+  <path class="leader" d="M165 242 C165 220 210 210 210 210"/><circle cx="165" cy="242" r="3" class="cdot"/>
+  <rect x="200" y="196" width="250" height="34" rx="5" class="callout"/>
+  <text x="212" y="210" class="calloutText">Three encodings on one marker:</text>
+  <text x="212" y="223" class="calloutText">lane + species stripe + state fill.</text>
+
+  <path class="leader" d="M497 232 C520 210 560 205 560 205"/>
+  <rect x="470" y="150" width="250" height="34" rx="5" class="callout"/>
+  <text x="482" y="164" class="calloutText">Change pulse + count chip appears</text>
+  <text x="482" y="177" class="calloutText">when a signal changed since opening.</text>
+
+  <rect x="620" y="352" width="540" height="132" rx="5" fill="#fff6ee" stroke="#df7b2d"/>
+  <text x="632" y="374" class="amber">Trade-off (M1 con)</text>
+  <text x="632" y="398" class="small">Cheapest to build and reuses muscle memory, but stacking lane +</text>
+  <text x="632" y="418" class="small">species + state on one marker risks visual overload, and the</text>
+  <text x="632" y="438" class="small">two-bout / mixed-species case is still cramped inside per-reporter</text>
+  <text x="632" y="458" class="small">rows (overlap is inferred, not shown structurally).</text>
+</svg>
