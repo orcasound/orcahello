@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="460" viewBox="0 0 1080 460" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <style>
+      .panel{fill:#fff;stroke:#c9d3dc;stroke-width:1.5}.navy{fill:#0c4968}.title{fill:#fff;font-size:15px;font-weight:700}.label{fill:#263847;font-size:13px}.small{fill:#607483;font-size:11px}.tiny{fill:#718493;font-size:10px}.button{fill:#087c8c}.hump{fill:#2f8f77}.trans{fill:#5b6bd6}
+      .callout{fill:#fff3e0;stroke:#c25a2b;stroke-width:1.2}.calloutText{fill:#8a3c15;font-size:11px;font-weight:600}.leader{stroke:#c25a2b;stroke-width:1.2;stroke-dasharray:3 2;fill:none}.cdot{fill:#c25a2b}.sel{stroke:#087c8c;stroke-width:2.5;fill:none}.ok{fill:#17864b;font-size:11px;font-weight:700}
+    </style>
+    <linearGradient id="spec" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#09131c"/><stop offset=".55" stop-color="#152d39"/><stop offset="1" stop-color="#081018"/></linearGradient>
+  </defs>
+  <rect width="1080" height="460" fill="#eef3f6"/>
+  <rect width="1080" height="44" class="navy"/>
+  <text x="18" y="28" class="title" font-size="17">Option R1 · trust tint + tap / group tag</text>
+
+  <rect x="20" y="58" width="1040" height="384" rx="6" class="panel"/>
+  <text x="34" y="86" class="small">Confirmed = locked tint 🔒 · your submissions highlighted · others muted · tap/group-select open chips to tag</text>
+
+  <!-- spectrogram -->
+  <rect x="34" y="98" width="1012" height="96" rx="3" fill="url(#spec)"/>
+  <g opacity=".8"><rect x="120" y="112" width="12" height="70" rx="3" fill="#2f8f77"/><rect x="300" y="120" width="12" height="62" rx="2" fill="#5b6bd6"/><rect x="410" y="116" width="12" height="66" rx="2" fill="#5b6bd6"/><rect x="640" y="118" width="12" height="64" rx="2" fill="#2f8f77"/><rect x="820" y="130" width="12" height="52" rx="2" fill="#9fb3c0"/></g>
+
+  <!-- chip lane -->
+  <text x="34" y="232" class="label" font-weight="700">Signals</text>
+  <rect x="34" y="246" width="1012" height="54" rx="6" fill="#f5f8fa" stroke="#c9d3dc"/>
+  <!-- confirmed locked (tinted) -->
+  <g><rect x="60" y="258" width="120" height="30" rx="15" fill="#dff0e6" stroke="#17864b" stroke-width="1.5"/><circle cx="78" cy="273" r="6" class="hump"/><text x="90" y="277" class="small">humpback</text><text x="156" y="278" font-size="13">🔒</text></g>
+  <!-- your submission highlighted -->
+  <g><rect x="200" y="258" width="118" height="30" rx="15" fill="#eef0fb" stroke="#087c8c" stroke-width="2.5"/><circle cx="218" cy="273" r="6" class="trans"/><text x="230" y="277" class="small">transient</text><text x="290" y="277" class="tiny" fill="#087c8c">you</text></g>
+  <!-- others muted -->
+  <g opacity=".45"><rect x="338" y="258" width="118" height="30" rx="15" fill="#fff" stroke="#b9c6cf"/><circle cx="356" cy="273" r="6" class="trans"/><text x="368" y="277" class="small">transient</text></g>
+  <!-- open/untagged group to select -->
+  <g><rect x="490" y="258" width="96" height="30" rx="15" fill="#fff" stroke="#b9c6cf" stroke-dasharray="4 3"/><circle cx="508" cy="273" r="6" fill="#b9c6cf"/><text x="520" y="277" class="small">untagged</text></g>
+  <g><rect x="600" y="258" width="96" height="30" rx="15" fill="#fff" stroke="#b9c6cf" stroke-dasharray="4 3"/><circle cx="618" cy="273" r="6" fill="#b9c6cf"/><text x="630" y="277" class="small">untagged</text></g>
+  <rect x="482" y="252" width="222" height="42" rx="10" class="sel" stroke-dasharray="6 4"/>
+
+  <!-- tag popover -->
+  <rect x="520" y="312" width="220" height="96" rx="8" fill="#fff" stroke="#087c8c" stroke-width="1.5"/>
+  <rect x="520" y="312" width="220" height="26" rx="8" fill="#087c8c"/><text x="534" y="330" fill="#fff" font-size="12" font-weight="700">Tag 2 selected</text>
+  <rect x="534" y="348" width="192" height="24" rx="4" fill="#f1f5f7" stroke="#b9c6cf"/><text x="546" y="365" class="label">humpback ▾</text>
+  <rect x="534" y="378" width="92" height="22" rx="4" class="button"/><text x="580" y="394" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">Apply</text>
+
+  <!-- legend -->
+  <rect x="760" y="312" width="286" height="96" rx="6" fill="#f5f8fa" stroke="#c9d3dc"/>
+  <text x="772" y="332" class="small" font-weight="700">Legend</text>
+  <rect x="772" y="342" width="20" height="14" rx="7" fill="#dff0e6" stroke="#17864b"/><text x="800" y="353" class="ok">confirmed · locked 🔒</text>
+  <rect x="772" y="362" width="20" height="14" rx="7" fill="#eef0fb" stroke="#087c8c" stroke-width="2"/><text x="800" y="373" class="small">your submission</text>
+  <rect x="772" y="382" width="20" height="14" rx="7" fill="#fff" stroke="#b9c6cf" opacity=".6"/><text x="800" y="393" class="small">others (muted) · untagged (dashed)</text>
+
+  <!-- callouts -->
+  <path class="leader" d="M160 258 C160 220 210 208 210 208"/><circle cx="160" cy="258" r="3" class="cdot"/>
+  <rect x="200" y="120" width="248" height="34" rx="5" class="callout"/>
+  <text x="212" y="134" class="calloutText">Confirmed by a moderator → locked tint 🔒.</text>
+  <text x="212" y="147" class="calloutText">Reporters &amp; models can’t re-tag it.</text>
+
+  <path class="leader" d="M593 300 C593 306 630 312 630 312"/><circle cx="593" cy="300" r="3" class="cdot"/>
+  <rect x="470" y="150" width="290" height="34" rx="5" class="callout"/>
+  <text x="482" y="164" class="calloutText">Tap one open chip, or group-select several,</text>
+  <text x="482" y="177" class="calloutText">then apply one tag (locked members skipped).</text>
+</svg>

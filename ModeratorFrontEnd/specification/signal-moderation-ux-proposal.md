@@ -231,6 +231,8 @@ reporter's own submissions are highlighted, everyone else's are muted. The repor
 can tap an open signal — or group-select several — to add or correct a tag;
 confirmed signals are non-editable.
 
+![Option R1 wireframe: confirmed signals shown as locked tint with padlock, the reporter's own submissions highlighted and others muted, with a group-select tag popover](images/reporter-overlay-r1.svg)
+
 **Pros**
 - Simple and safe; reinforces the authority model (bout-spec §1a) while still
   allowing light correction of open signals.
@@ -245,6 +247,8 @@ confirmed signals are non-editable.
 Two stacked bands: top = *this reporter's* signals; bottom = the confirmed /
 aggregated consensus. Divergences are highlighted (e.g. "you tagged **humpback**;
 a moderator confirmed **transient**").
+
+![Option R2 wireframe: two aligned bands — the reporter's own tags above and the confirmed consensus below — with an agreement link and a highlighted divergence where humpback was confirmed as transient](images/reporter-overlay-r2.svg)
 
 **Pros**
 - Strong feedback loop; teaches reporters and improves future reports.
@@ -261,6 +265,8 @@ One lane; each signal is a chip colored by species with a small status chip
 (`pending` / `confirmed` / `changed`). Tap a chip to tag it, long-press to
 multi-select a group and tag them together; confirmed chips are locked. Optimized
 for onboarding (#620) and phones.
+
+![Option R3 wireframe (phone): a vertical list of species-colored chips with pending/confirmed/changed status, a locked confirmed chip, long-press group selection, and a tag sheet applying one tag to the selection](images/reporter-overlay-r3.svg)
 
 **Pros**
 - Lowest cognitive load; best for new/occasional reporters and mobile.
