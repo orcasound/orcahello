@@ -6,6 +6,12 @@
     public class Location
     {
         /// <summary>
+        /// ID of the hydrophone location.
+        /// </summary>
+        /// <example>rpi_orcasound_lab</example>
+        public string Id { get; set; }
+
+        /// <summary>
         /// Name of the hydrophone location.
         /// </summary>
         /// <example>Orcasound Lab</example>
