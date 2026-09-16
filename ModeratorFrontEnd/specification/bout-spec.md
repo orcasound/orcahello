@@ -685,7 +685,6 @@ stateDiagram-v2
 
 The authoritative register is **Appendix A**. Remaining themes are:
 
-- How to fuse human + model detections into a single candidate.
 - Aggregation method for bout `confidence`.
 - Controlled tag vocabulary and audience-group taxonomy.
 
@@ -714,6 +713,13 @@ The authoritative register is **Appendix A**. Remaining themes are:
   #39).
 - **No separate rejection reason:** final tags on 3-second samples are sufficient
   for retraining (2.1 review #42, #48).
+
+**Resolved (2026-09-16):**
+
+- **Human + model fusion is resolved:** keep one `detection` per reporter and let a
+  candidate bout carry any number of reporters (human and/or machine). They are not
+  merged into a single fused record; per-reporter evidence lanes (§8.1) present them
+  side by side.
 
 ## 12. Acceptance criteria
 
