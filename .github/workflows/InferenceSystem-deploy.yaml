@@ -4,28 +4,48 @@ name: InferenceSystem-deploy
 on:
   workflow_dispatch:
     inputs:
-      operation:
-        description: 'Publish an image or deploy an existing release to mast-center'
-        required: true
-        type: choice
-        default: publish
-        options:
-          - publish
-          - deploy-mast-center
+      andrews-bay:
+        description: 'Deploy to andrews-bay'
+        type: boolean
+        default: false
+      bush-point:
+        description: 'Deploy to bush-point'
+        type: boolean
+        default: false
+      mast-center:
+        description: 'Deploy to mast-center'
+        type: boolean
+        default: false
+      north-sjc:
+        description: 'Deploy to north-sjc'
+        type: boolean
+        default: false
+      orcasound-lab:
+        description: 'Deploy to orcasound-lab'
+        type: boolean
+        default: false
+      point-robinson:
+        description: 'Deploy to point-robinson'
+        type: boolean
+        default: false
+      port-townsend:
+        description: 'Deploy to port-townsend'
+        type: boolean
+        default: false
+      sunset-bay:
+        description: 'Deploy to sunset-bay'
+        type: boolean
+        default: false
       ref:
-        description: 'Source branch or tag (publish only)'
-        required: false
-        default: 'test/322-mast-center'
+        description: 'Source branch or tag to publish'
+        required: true
+        default: 'main'
       release_tag:
-        description: 'Container release tag, e.g. v0.0.0 (required for publish only)'
-        required: false
-      publish_run_id:
-        description: 'Successful image-publish run ID (required for deploy-mast-center only)'
-        required: false
-        type: string
+        description: 'Container release version, e.g. v2.2.0'
+        required: true
 
 concurrency:
-  group: inference-system-test-${{ inputs.operation }}-${{ github.ref }}
+  group: inference-system-publish-${{ inputs.release_tag }}
   cancel-in-progress: false
   queue: max
 
@@ -33,9 +53,10 @@ permissions:  # added using https://github.com/step-security/secure-repo
   contents: read
 
 jobs:
-  deploy:
+  publish:
     name: Publish image
-    if: inputs.operation == 'publish'
+    outputs:
+      namespaces: ${{ steps.locations.outputs.namespaces }}
     runs-on: ubuntu-latest
     env:
       IMAGE_NAME: live-inference-system
@@ -45,18 +66,42 @@ jobs:
         with:
           egress-policy: audit
 
+      - name: Require main branch
+        run: |
+          if [ "$GITHUB_REF" != refs/heads/main ]; then
+            echo "Run this workflow from main" >&2
+            exit 1
+          fi
+
+      - name: Select deployment locations
+        id: locations
+        env:
+          RELEASE_INPUTS: ${{ toJSON(inputs) }}
+        run: |
+          set -euo pipefail
+          namespaces=$(jq -c 'to_entries | map(select(.value == true) | .key)' <<< "$RELEASE_INPUTS")
+          if [ "$namespaces" = '[]' ]; then
+            echo "Select at least one hydrophone location" >&2
+            exit 1
+          fi
+          printf 'namespaces=%s\n' "$namespaces" >> "$GITHUB_OUTPUT"
+          printf 'Selected locations: `%s`\n' "$namespaces" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
-          ref: ${{ github.event.inputs.ref || github.ref }}
+          ref: ${{ inputs.ref }}
 
-      - name: Resolve release tag suffix
+      - name: Validate release version
         env:
           INPUT_RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
           set -euo pipefail
           release_tag=$INPUT_RELEASE_TAG
-          [[ "$release_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          [[ "$release_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
+            echo "Enter a release version in vX.Y.Z format, such as v2.2.0" >&2
+            exit 1
+          }
           printf 'RELEASE_TAG=%s\n' "$release_tag" >> "$GITHUB_ENV"
 
       - name: Check if ACR secrets are set
@@ -67,8 +112,6 @@ jobs:
           if [ -z "$ACR_USERNAME" ] || [ -z "$ACR_PASSWORD" ]; then
             echo "ACR credentials are missing"
             exit 1
-          else
-            echo "ACR credentials are set"
           fi
 
       - name: Free up disk space
@@ -94,26 +137,16 @@ jobs:
       - name: Build Dockerfile image
         working-directory: InferenceSystem
         run: |
-          docker build -f Dockerfile -t $IMAGE_NAME .
+          docker build -f Dockerfile -t "$IMAGE_NAME" .
 
-      - name: List Docker images
-        run: docker images
-
-      - name: Get image creation date in MM-DD-YYYY
+      - name: Tag image with creation date and release version
         run: |
-          IMAGE_ID=$(docker images $IMAGE_NAME --format "{{.ID}}" | head -n 1)
-          CREATED=$(docker inspect --format='{{.Created}}' $IMAGE_ID)
+          set -euo pipefail
+          CREATED=$(docker image inspect "$IMAGE_NAME" --format='{{.Created}}')
           DATE_STRING=$(date -d "$CREATED" +"%m-%d-%Y")
-          echo "DATE_STRING=$DATE_STRING" >> $GITHUB_ENV
-
-      - name: Define full image tag
-        run: |
           IMAGE_TAG="$ACR_REGISTRY/$IMAGE_NAME:$DATE_STRING.$RELEASE_TAG"
-          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
-
-      - name: Tag docker container
-        run: |
-          docker tag $IMAGE_NAME $IMAGE_TAG
+          docker tag "$IMAGE_NAME" "$IMAGE_TAG"
+          printf 'IMAGE_TAG=%s\n' "$IMAGE_TAG" >> "$GITHUB_ENV"
 
       - name: Docker login to ACR
         env:
@@ -136,7 +169,7 @@ jobs:
           image="$IMAGE_TAG@$digest"
           printf '%s\n' "$image" > "$RUNNER_TEMP/inference-image.txt"
           printf 'Published image: `%s`\n' "$image" >> "$GITHUB_STEP_SUMMARY"
-          printf 'Publish run ID for the AKS release workflow: `%s`\n' "$GITHUB_RUN_ID" >> "$GITHUB_STEP_SUMMARY"
+          printf 'Review this image, then approve the production deployment in this run.\n' >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload release metadata
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
@@ -147,15 +180,19 @@ jobs:
           if-no-files-found: error
           overwrite: true
 
-  deploy-mast-center:
-    if: inputs.operation == 'deploy-mast-center'
+  deploy:
+    name: Deploy ${{ matrix.namespace }} after approval
+    needs: publish
+    strategy:
+      fail-fast: false
+      matrix:
+        namespace: ${{ fromJSON(needs.publish.outputs.namespaces) }}
     permissions:
       actions: read
       contents: read
     uses: ./.github/workflows/InferenceSystem-deploy-aks.yaml
     with:
-      namespace: mast-center
-      publish_run_id: ${{ inputs.publish_run_id }}
+      namespace: ${{ matrix.namespace }}
     secrets:
       KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
       ACR_USERNAME: ${{ secrets.ACR_USERNAME }}

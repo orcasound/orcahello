@@ -380,6 +380,8 @@ data
 
 # Azure
 .amlignore*
+# Local Kubernetes credentials
+/.github/workflows/kubeconfig
 
 # Jupyter
 .ipynb_*

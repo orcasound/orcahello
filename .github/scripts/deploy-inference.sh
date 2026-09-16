@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 # Both release and ConfigMap workflows hold the namespace concurrency lock.
+# Required inputs: NAMESPACE and RUNNER_TEMP. Set IMAGE for an image release;
+# leave it unset for a ConfigMap-only update that preserves the live deployment.
 set -euo pipefail
 
 case "$NAMESPACE" in
@@ -30,12 +32,16 @@ stop_pods() {
   kubectl wait --for=delete pod -l app=inference-system -n "$NAMESPACE" --timeout=5m
 }
 
+start_pods() {
+  kubectl scale deployment/inference-system --replicas=1 -n "$NAMESPACE" &&
+  kubectl rollout status deployment/inference-system -n "$NAMESPACE" --timeout=10m
+}
+
 deploy() {
   kubectl apply -n "$NAMESPACE" -f "InferenceSystem/deploy/$NAMESPACE-configmap.yaml" &&
   stop_pods &&
   kubectl apply -n "$NAMESPACE" -f "$manifest" &&
-  kubectl scale deployment/inference-system --replicas=1 -n "$NAMESPACE" &&
-  kubectl rollout status deployment/inference-system -n "$NAMESPACE" --timeout=10m
+  start_pods
 }
 
 restore_resource() {
@@ -58,8 +64,7 @@ recover() {
   if stop_pods &&
      restore_resource configmap/hydrophone-configs "$backup/configmap.json" &&
      restore_resource deployment/inference-system "$backup/deployment.json" &&
-     kubectl scale deployment/inference-system --replicas=1 -n "$NAMESPACE" &&
-     kubectl rollout status deployment/inference-system -n "$NAMESPACE" --timeout=10m; then
+     start_pods; then
     echo "Previous ConfigMap and deployment restored"
   else
     echo "Recovery failed; manual intervention is required in $NAMESPACE" >&2

@@ -74,17 +74,15 @@ global_prediction: 0
 
 ## Releasing the live inference system
 
-### Pushing your image to Azure Container Registry
+Run [InferenceSystem-deploy](../.github/workflows/InferenceSystem-deploy.yaml) manually from `main`. Enter the source `ref`, an unused release version such as `v2.2.0`, and check every hydrophone location you want to deploy. The workflow publishes the image and records its immutable digest, then waits for approval before deploying that same image to all selected locations in the same run.
 
-Tag a release on `main` as `InferenceSystem.v#.#.#`. The [image publish workflow](../.github/workflows/InferenceSystem-deploy.yaml) builds and pushes `orcaconservancycr.azurecr.io/live-inference-system:MM-DD-YYYY.v#.#.#` to ACR and records the image with its immutable `sha256` digest as a release artifact. Wait for that workflow to succeed before deploying.
+A repository administrator must first configure required reviewers on the **inference-production** environment. Without that protection rule, the deployment job will not pause. After publishing, review the image summary and select **Review deployments > Approve and deploy**. You do not need to copy a publish run ID.
 
-### Deploying an updated docker build to Azure Kubernetes Service
+Deployment applies the namespace's ConfigMap and full deployment manifest, stops the old pods, and starts the published image. Failures attempt to restore the saved configuration and deployment. Verify pod health, logs, and the [Orcanode monitor](https://orcanodemonitor.azurewebsites.net/OrcaHelloOverview), then update each selected namespace's repository manifest to match the deployed image digest.
 
-Run [InferenceSystem-deploy-aks](../.github/workflows/InferenceSystem-deploy-aks.yaml) from `main`. Select a hydrophone and enter a successful image-publish run ID; both tag and manual runs are supported. The workflow applies that namespace's ConfigMap and full deployment manifest from `main`, using the published image digest, and performs a stop/start deployment. Failed deployments attempt to restore the saved ConfigMap and full deployment. Image releases and ConfigMap-only updates share a namespace lock to prevent overlapping changes.
+ConfigMap-only updates are also manual: run **InferenceSystem-deploy-configmaps**, select one namespace, and approve the deployment. Image and ConfigMap deployments share a namespace lock.
 
-Verify the first location on the [Orcanode monitor](https://orcanodemonitor.azurewebsites.net/OrcaHelloOverview) before deploying the others. Afterward, update the image references in `deploy/*.yaml` through a PR to match the published digest.
-
-See [DEVELOPMENT.md](DEVELOPMENT.md#deployment) for the full release procedure and manual fallback, and [AzurePlaybook.md](AzurePlaybook.md) for AKS troubleshooting and configuration commands.
+See [DEVELOPMENT.md](DEVELOPMENT.md#deployment) for environment setup, release instructions, and the manual fallback, and [AzurePlaybook.md](AzurePlaybook.md) for troubleshooting.
 
 ## Development
 

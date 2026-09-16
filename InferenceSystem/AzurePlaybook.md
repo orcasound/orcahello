@@ -7,8 +7,8 @@ who wants a quick reference list of useful commands for various
 purposes.
 
 For a new container image, follow the [release procedure](DEVELOPMENT.md#deployment):
-publish a version tag, then run the manual AKS workflow for one hydrophone at a
-time. The commands below are for troubleshooting and manual configuration work.
+start the release workflow, review the published image, and approve deployment
+to the selected hydrophone. The commands below are for troubleshooting and manual configuration work.
 Run commands referencing `deploy/` from the `InferenceSystem/` directory.
 
 - [Inference Script Logs](#inference-script-logs)
@@ -202,8 +202,9 @@ In the above example, the CPU is pegged because 0.994/1 = 99.4% CPU
 
 ### Q: How do I deploy a new configmap?
 
-ConfigMap changes merged to `main` trigger the
-[configmap workflow](../.github/workflows/InferenceSystem-deploy-configmaps.yaml).
+After merging ConfigMap changes to `main`, manually run the
+[configmap workflow](../.github/workflows/InferenceSystem-deploy-configmaps.yaml),
+select one namespace, and approve the deployment.
 For a manual update, using (say) `north-sjc` as the namespace:
 
 ```

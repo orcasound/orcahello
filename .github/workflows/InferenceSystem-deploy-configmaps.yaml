@@ -2,24 +2,13 @@
 name: InferenceSystem-deploy-configmaps
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'InferenceSystem/deploy/*-configmap.yaml'
-  workflow_dispatch:  # Allow manual workflow invocation from the Github Actions UI
-
-permissions:  # added using https://github.com/step-security/secure-repo
-  contents: read
-
-jobs:
-  deploy-configmaps:
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
-    strategy:
-      fail-fast: false
-      matrix:
-        namespace:
+  workflow_dispatch:
+    inputs:
+      namespace:
+        description: 'Hydrophone configuration to apply'
+        required: true
+        type: choice
+        options:
           - andrews-bay
           - bush-point
           - mast-center
@@ -28,12 +17,21 @@ jobs:
           - point-robinson
           - port-townsend
           - sunset-bay
+
+permissions:  # added using https://github.com/step-security/secure-repo
+  contents: read
+
+jobs:
+  deploy-configmaps:
+    environment: inference-production
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
     concurrency:
-      group: inference-system-aks-deployment-${{ matrix.namespace }}
+      group: inference-system-aks-deployment-${{ inputs.namespace }}
       cancel-in-progress: false
       queue: max
     env:
-      NAMESPACE: ${{ matrix.namespace }}
+      NAMESPACE: ${{ inputs.namespace }}
     steps:
       - uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c  # v2.21.0
         with:
@@ -41,32 +39,18 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-        with:
-          fetch-depth: 0
 
-      - name: Check for ConfigMap changes
-        id: changes
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          BEFORE_SHA: ${{ github.event.before }}
+      - name: Require main branch
         run: |
-          set -euo pipefail
-          file="InferenceSystem/deploy/$NAMESPACE-configmap.yaml"
-          if [ "$EVENT_NAME" = workflow_dispatch ]; then
-            changed=true
-          else
-            # Compare the whole push, including pushes containing multiple commits.
-            files=$(git diff --name-only "$BEFORE_SHA" "$GITHUB_SHA" -- "$file")
-            if [ -n "$files" ]; then changed=true; else changed=false; fi
+          if [ "$GITHUB_REF" != refs/heads/main ]; then
+            echo "Run this workflow from main" >&2
+            exit 1
           fi
-          echo "changed=$changed" >> "$GITHUB_OUTPUT"
 
       - name: Set up kubectl
-        if: steps.changes.outputs.changed == 'true'
         uses: azure/setup-kubectl@829323503d1be3d00ca8346e5391ca0b07a9ab0d  # v5.1.0
 
       - name: Set Kubernetes context
-        if: steps.changes.outputs.changed == 'true'
         uses: azure/k8s-set-context@8698eba2499e9012f0d5085f8798077cce4bc526  # v5.0.1
         with:
           method: kubeconfig
@@ -74,7 +58,6 @@ jobs:
 
       - name: Apply ConfigMap and restart deployment
         id: rollout
-        if: steps.changes.outputs.changed == 'true'
         run: bash .github/scripts/deploy-inference.sh
 
       - name: Show deployment diagnostics on failure
