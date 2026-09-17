@@ -137,7 +137,7 @@ state) in addition to Who/What.
 
 Keep per-reporter lanes and the Signals overlay. Add three lightweight encodings:
 
-- **Moderation state via fill/border:** confirmed = solid fill + ✓ badge;
+- **Moderation state via border/badge (keeping tag boxes empty):** confirmed = solid outline + ✓ badge;
   unverified = hatched/outline; changed = amber ring; rejected = struck-through.
 - **Species via a thin color stripe** along the top edge of each marker.
 - **Change alerts via a pulse + count chip** on markers whose underlying signal
