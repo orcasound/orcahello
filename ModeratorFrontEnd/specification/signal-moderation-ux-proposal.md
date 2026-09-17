@@ -24,19 +24,21 @@ Two related goals:
      are actively editing and on bouts they have previously worked.
 2. **Add a Realtime Signal Approval console** — a moderator-only surface for
    reviewing **signals outside of any bout** and confirming them against the
-   proposed detection. A confirmed signal becomes authoritative and is **locked**
-   against later reporter/model overwrites. The console is **time-first** (default
-   1-minute span, zoomable) and supports select → listen → tag → approve.
+  proposed detection. A confirmed signal becomes authoritative; later
+  reporter/model input is preserved as a separate proposal rather than
+  overwriting it. Whether the API also hard-locks confirmed signals is unresolved
+  pending the override policy in U-3. The console is **time-first** (default
+  1-minute span, zoomable) and supports select → listen → tag → approve.
 
 The main overlay is also **pivotable**: a one-tap control flips the same signals
 between a *who reported* view (per-reporter lanes) and a *what is here* view
 (species/source lanes) — see §4.0.
 
 Reporters get an overlay too, but a **read + propose** one: they must be able to
-tell what a moderator has already confirmed (locked, unchangeable by a reporter or
-model) versus what is still open, and they may **select signals** — including quick
-group selection — to **tag** ones that are untagged or look mis-tagged. Reporter
-tags are proposals (§5); they never overwrite a confirmed signal.
+tell what a moderator has already confirmed (authoritative) versus what is still
+open, and they may **select signals** — including quick group selection — to
+**tag** ones that are untagged or look mis-tagged. Reporter tags are separate
+proposals (§5); they never overwrite a confirmed signal.
 
 Out of scope here: the bout generation algorithm (bout-spec §3–§6), notification
 delivery mechanics (bout-spec §9), and storage-engine choice (bout-spec §6b.5).
@@ -47,7 +49,7 @@ delivery mechanics (bout-spec §9), and storage-engine choice (bout-spec §6b.5)
 | ---- | ------------------------ |
 | **Signal** | The reviewable unit: a tagged ~3-second **annotation**, or a whole 1-minute **detection** when it has no sub-annotations (consistent with bout-spec §2). |
 | **Proposed detection** | The reporter's or model's *unconfirmed* claim about a signal — its interval and tag(s) — before a moderator acts. |
-| **Confirmed signal** | A signal a moderator has approved. It is **locked**: reporters and models may not overwrite it (they may still submit *new* signals). |
+| **Confirmed signal** | A signal a moderator has approved. It is authoritative; reporters and models may submit new proposals but never overwrite the moderator decision. Hard-lock enforcement is an unresolved alternative (U-3). |
 | **Moderation state** | Per-signal review status (see §7): `proposed`, `confirmed`, `changed`, `rejected`. Distinct from the *bout* `status` in bout-spec §5.2.1. |
 | **Watcher** | A moderator who is working, or previously worked, a bout and should be alerted when its evidence changes (§8). |
 
@@ -124,7 +126,7 @@ same visual variable and can be shown simultaneously:
 | ------- | ------- |
 | **What** · species / source-type | **color** (hue / region) |
 | **Who** · reporter (human vs model) | **shape** (● human, ▪ model) and/or lane |
-| **Moderation state** | **fill / border** (✓ solid = confirmed·locked, hatch = proposed, amber ring = changed, strike = rejected) |
+| **Moderation state** | **fill / border** (✓ solid = confirmed/authoritative, hatch = proposed, amber ring = changed, strike = rejected) |
 | **Change alerts** | **motion** (pulse) + minimap ✦ |
 
 All of these ride on the tag box's **outline, badges, and glyphs** — the box
@@ -201,8 +203,9 @@ Handles: M-state ✔ · Species ✔ (strong) · Alerts ✔
 
 One spectrogram; the §4.0 pivot control is extended to a **third option** —
 (Reporter | Species | Moderation state) — and the moderator can toggle facets on/off. Confirmed signals
-render with a padlock. A **minimap ribbon** above the timeline shows signal density
-and change markers across the whole session, so alerts are visible even off-screen.
+render with a checkmark. A **minimap ribbon** above the timeline shows signal
+density and change markers across the whole session, so alerts are visible even
+off-screen.
 
 ```text
 Pivot: (•)Species ( )Reporter ( )State    Facets: [x]confirmed [x]proposed [ ]rejected
@@ -241,37 +244,40 @@ moderation-state vocabulary across every option and across the reporter view.
 ## 5. Reporter overlay — proposed options
 
 Reporters **report sounds, not bouts** (bout-spec §1a). Their overlay is
-**read + propose**: they can see what is confirmed (locked) vs open, and they can
-**select signals and tag them** when a signal is untagged or looks mis-tagged.
+**read + propose**: they can see what is confirmed (authoritative) vs open, and
+they can **select signals and tag them** when a signal is untagged or looks
+mis-tagged.
 
-![Reporter overlay: group-select open signals and apply one tag; confirmed signals are locked; reporter tags recorded as proposals](images/reporter-overlay.svg)
+![Reporter overlay: group-select open signals and apply one tag; confirmed signals are authoritative; reporter tags are separate proposals](images/reporter-overlay.svg)
 
 The reporter overlay reuses the §4.0 **encoding channels** — species = color,
-source = shape, state = fill/border, locked = padlock — so “Who” and “What” remain
-separable here too.
+source = shape, and state = fill/border plus a confirmation checkmark — so “Who”
+and “What” remain separable here too. A padlock is reserved for the unresolved
+hard-lock alternative in U-3 and is not the baseline confirmed-state glyph.
 
 Rules for reporter tagging:
 
 - A reporter tag is a **proposal**, recorded as that reporter's own signal under
   their `reporter_id`; it never mutates another reporter's signal or the original
   proposed detection. A moderator still confirms it (§6, §7).
-- **Confirmed = locked:** if a moderator has already confirmed a signal, a reporter
-  (or model) cannot re-tag it. The UI disables tagging on locked signals and shows
-  the padlock; the `locked` guard (§7) enforces this server-side.
+- **Confirmed = authoritative:** reporter/model tagging never edits the confirmed
+  record. It creates a new proposed signal under that reporter's identity, shown
+  alongside the confirmed decision for later moderator reconciliation.
 - **Quick group select:** reporters can rubber-band or range-select many signals
   and apply one tag in a single action, so correcting a run of untagged calls is
-  fast. Any locked signals in the selection are skipped, not overwritten.
+  fast. A selection that overlaps confirmed evidence creates proposals and never
+  mutates the authoritative signals.
 - The pivot toggle (§4.0) is available read-only to reporters, so they can view
   signals by species as well as by reporter.
 
 ### Option R1 — Trust tint + tap / group tag
 
-Same spectrogram; confirmed signals use a distinct **locked** style + padlock, the
-reporter's own submissions are highlighted, everyone else's are muted. The reporter
-can tap an open signal — or group-select several — to add or correct a tag;
-confirmed signals are non-editable.
+Same spectrogram; confirmed signals use a distinct **authoritative** style +
+checkmark, the reporter's own submissions are highlighted, and everyone else's
+are muted. The reporter can tap an open signal — or group-select several — to add
+or correct a tag; input overlapping a confirmed signal becomes a new proposal.
 
-![Option R1 wireframe: confirmed signals shown as locked tint with padlock, the reporter's own submissions highlighted and others muted, with a group-select tag popover](images/reporter-overlay-r1.svg)
+![Option R1 wireframe: confirmed signals shown with authoritative styling, the reporter's own submissions highlighted and others muted, with a group-select tag popover](images/reporter-overlay-r1.svg)
 
 **Pros**
 - Simple and safe; reinforces the authority model (bout-spec §1a) while still
@@ -303,10 +309,10 @@ a moderator confirmed **transient**").
 
 One lane; each signal is a chip colored by species with a small status chip
 (`pending` / `confirmed` / `changed`). Tap a chip to tag it, long-press to
-multi-select a group and tag them together; confirmed chips are locked. Optimized
-for onboarding (#620) and phones.
+multi-select a group and tag them together; input overlapping a confirmed chip
+becomes a separate proposal. Optimized for onboarding (#620) and phones.
 
-![Option R3 wireframe (phone): a vertical list of species-colored chips with pending/confirmed/changed status, a locked confirmed chip, long-press group selection, and a tag sheet applying one tag to the selection](images/reporter-overlay-r3.svg)
+![Option R3 wireframe (phone): a vertical list of species-colored chips with pending/confirmed/changed status, an authoritative confirmed chip, long-press group selection, and a tag sheet applying one tag to the selection](images/reporter-overlay-r3.svg)
 
 **Pros**
 - Lowest cognitive load; best for new/occasional reporters and mobile.
@@ -326,20 +332,21 @@ for onboarding (#620) and phones.
 
 **Recommendation:** default reporters to **R3** (approachable, mobile-first) with
 an opt-in **R2** "compare with moderator decisions" mode for engaged contributors.
-All three support **select + group-tag of open signals** and **lock confirmed
-signals**, and all reuse the M1/M2 moderation-state vocabulary so confirmed = the
-same padlock/✓ everywhere.
+All three support **select + group-tag** without mutating confirmed signals, and
+all reuse the M1/M2 moderation-state vocabulary so confirmed = the same ✓
+authoritative state everywhere.
 
 ---
 
 ## 6. New surface — Realtime Signal Approval console (moderator-only)
 
 A dedicated, **time-first** surface for reviewing signals **outside** of bout
-construction and confirming them against the proposed detection. Confirming
-**locks** the signal (§7). Default span is **1 minute**; the moderator can zoom out
-(hours) or in (seconds). Core loop: **see → select → listen → tag/approve**.
+construction and confirming them against the proposed detection. Confirmation
+makes the moderator decision authoritative (§7); it does not imply an exclusive
+hard lock. Default span is **1 minute**; the moderator can zoom out (hours) or in
+(seconds). Core loop: **see → select → listen → tag/approve**.
 
-![Realtime Signal Approval console (S2 timeline scrubber): zoom presets, selectable signal blocks, listen/tag/approve/reject actions, confirm=lock, live intake and downstream feedback](images/signal-approval-console.svg)
+![Realtime Signal Approval console (S2 timeline scrubber): zoom presets, selectable signal blocks, listen/tag/approve/reject actions, authoritative confirmation, live intake and downstream feedback](images/signal-approval-console.svg)
 
 ### Shared requirements (all options)
 
@@ -349,16 +356,18 @@ construction and confirming them against the proposed detection. Confirming
   view."
 - **Multi-select approve (first-class):** a single **Approve** — or **Change tag**
   or **Reject** — applies to the **entire selection** in one action, with a
-  keyboard/gesture shortcut for "approve all in view." Any locked signals in the
-  selection are skipped, not overwritten. This is the primary throughput lever and
-  MUST be available in every option and on phone.
+  keyboard/gesture shortcut for "approve all in view." Already-confirmed signals
+  are listed separately and require an explicit audited moderator revision; they
+  are never silently skipped. This is the primary throughput lever and MUST be
+  available in every option and on phone.
 - **Listen:** scoped playback of the selected signal/region (or sequential
   playback across a multi-selection).
 - **Tag/approve:** approve as-is, change the tag/species, or reject; the chosen tag
   applies to the whole selection; edits write to the main database (§7), not a side
   store.
-- **Lock on confirm:** once confirmed, reporter/model ingestion may not overwrite;
-  only a moderator can revise, and every revision is audited.
+- **Authority on confirm:** reporter/model ingestion creates separate proposals
+  and may not overwrite a confirmed decision. A moderator may revise it through
+  an explicit audited action. Hard-lock enforcement remains an alternative in U-3.
 - **Live intake:** newly arriving detections stream into the "pending" set in near
   real time.
 - **Encoding note (differs from §4.0):** the console reviews one proposed detection
@@ -385,7 +394,8 @@ Approve / Change / Reject. Optimized for **backlog throughput**.
 
 A horizontally scrolling spectrogram at 1-min default zoom; signals are selectable
 blocks. Select one/many → listen → tag → approve inline. Zoom changes the span.
-Confirmed blocks show a padlock and lock from further reporter/model writes.
+Confirmed blocks show a checkmark and remain authoritative when later
+reporter/model proposals arrive.
 
 ```text
 [◀ 08:03 ──────── 08:04 ──────── 08:05 ▶]   zoom: 10s · [1m] · 15m · 1h
@@ -448,7 +458,8 @@ keeps the same review contract.
 4. **Listen** plays the selection (scoped or sequential); a single **Tag** applies
    to all selected.
 5. A **sticky bottom bar** exposes **Approve all (N)**, **Change**, and **Reject**;
-   approve/change confirm + lock the whole selection, skipping any locked members.
+  approve/change confirms the whole selection; confirmed members require an
+  explicit audited revision and are never silently skipped.
 6. Live intake updates the pending badge without losing the current selection,
    zoom, or playback position.
 
@@ -462,8 +473,8 @@ same signals and server state (mirrors bout-spec §8.2).
 flowchart LR
   I[New detection / annotation<br/>from reporter or model] --> Q[Pending signals in view]
   Q --> R{Moderator action}
-  R -- approve --> C[Confirmed + locked]
-  R -- change tag/species --> K[Corrected + confirmed + locked]
+  R -- approve --> C[Confirmed + authoritative]
+  R -- change tag/species --> K[Corrected + authoritative]
   R -- reject --> X[Rejected]
   C --> B[Recompute affected bouts]
   K --> B
@@ -488,15 +499,21 @@ history over a mutable flag.
 
 | Field | Table | Type | Purpose |
 | ----- | ----- | ---- | ------- |
-| `moderation_state` | `annotations` (and `detections` for annotation-less minutes) | enum | `proposed` \| `confirmed` \| `changed` \| `rejected`. Drives the overlay padlock/✓ and the reporter read-only lock. |
-| `locked` | same | boolean | True once confirmed/changed by a moderator; ingestion MUST NOT overwrite a locked signal (only a moderator may revise). |
-| `confirmed_species` / `confirmed_tag_id` | same | FK | The authoritative species/tag a moderator affirmed (may differ from the proposed one — e.g. humpback → transient). |
+| `moderation_state` | `annotations` (and `detections` for annotation-less minutes) | enum | `proposed` \| `confirmed` \| `changed` \| `rejected`. Drives the overlay confirmation checkmark, proposed styling, and changed/rejected states. |
+| `signal_confirmed_tags` | new join table | rows | `{signal_ref, tag_id, confirmed_by, confirmed_at}`. The authoritative set of tags a moderator affirmed; supports multiple simultaneous species/sources on one signal without duplicating its parent detection. |
 | `confirmed_by` | same | FK → user | Moderator who confirmed/changed it. |
 | `confirmed_at` | same | timestamptz | When it was confirmed/changed. |
 
 `signal_reviews` (append-only, mirrors `detection_reviews`): `{id, signal_ref,
-prior_state, new_state, prior_tag, new_tag, actor, at, comment}`. The current state
-is the newest review; history is never mutated.
+prior_state, new_state, prior_tag_ids[], new_tag_ids[], actor, at, comment}`. The
+current state and authoritative tag set come from the newest review and its
+`signal_confirmed_tags` rows; history is never mutated.
+
+> A confirmed signal is not restricted to one species/source. For example, an
+> annotation-less minute may be authoritatively tagged with both `srkw` and
+> `vessel` and contribute to two overlapping bouts. A correction replaces the
+> applicable member of the confirmed tag set rather than overwriting the whole
+> set (for example, `{orca, vessel}` → `{seal, vessel}`).
 
 > The bout-spec already has `detection_reviews` (`unreviewed|confirmed|
 > false_positive|unknown`). This proposal **refines that to the signal level** and
@@ -504,19 +521,18 @@ is the newest review; history is never mutated.
 > migration: `confirmed`→`confirmed`, `false_positive`→`rejected`, `unreviewed`→
 > `proposed`, `unknown` stays a distinct holding value (see open issue U-6).
 
-> **Reporter tagging & the lock (§5).** A reporter tag creates a **new proposed
-> signal** under that reporter's `reporter_id` (state `proposed`); it never edits
-> another reporter's signal or a locked one. The `locked` guard is enforced
-> server-side, so the API rejects any reporter/model write targeting a confirmed
-> signal — the UI's disabled state is a convenience, not the security boundary. A
-> group-tag action fans out to one proposed signal per selected interval and
-> silently skips locked members.
+> **Reporter tagging and confirmed authority (§5).** A reporter tag creates a
+> **new proposed signal** under that reporter's `reporter_id` (state `proposed`);
+> it never edits another reporter's signal or a confirmed decision. A group-tag
+> action fans out to one proposed signal per selected interval, including where
+> the interval overlaps confirmed evidence. The moderator may reconcile those
+> proposals later. A stronger API hard lock is not part of this baseline; see U-3.
 
 ### 7.2 Species assignment & multi-bout membership (for the species-first overlay)
 
 | Field | Table | Type | Purpose |
 | ----- | ----- | ---- | ------- |
-| `species_source` | `annotations` and `detections` for annotation-less signals | tag/enum | Species/source of the signal, enabling the species-first swimlanes (Option M2). Nullable → renders in the "Unassigned" lane. |
+| Species/source lanes | derived from `signal_confirmed_tags` (or proposed tags before confirmation) | projection | A signal appears in every applicable species/source lane (Option M2); a signal with no applicable tag renders in "Unassigned." This is not a singular stored field. |
 | `signal_bout_membership` | new join table | rows | `{signal_ref, bout_id, role}` — lets one minute's signals belong to **multiple** overlapping bouts without duplication (bout-spec §3 detection-vs-bout note, Appendix A item A). |
 
 ### 7.3 Change tracking & watchers (for alerts)
@@ -525,7 +541,7 @@ is the newest review; history is never mutated.
 | ------------- | ---- | ------- |
 | `change_events` (new) | rows | `{id, entity_type: bout\|signal, entity_id, change_type, from, to, actor, at, affected_bout_ids[]}`. One row per moderation change; drives all alerting. |
 | `bout_watch` (new) | rows | `{bout_id, user_id, reason: working\|worked, created_at}`. Populated when a moderator claims/edits a bout, and retained after publish so prior reviewers can be alerted later. |
-| `boundary_dirty` | `candidate_bouts` | boolean | Set when an approval/rejection near a boundary means the bout's start/end may need recomputation; clears when a moderator accepts or dismisses the recomputed boundary. |
+| `bout_change_proposals` (new) | rows | `{id, bout_kind: candidate\|published, bout_id, change_event_id, proposed_start, proposed_end, proposed_type, proposed_tag_ids[], disposition: pending\|accepted\|adjusted\|dismissed, reviewed_by, reviewed_at, created_at}`. Stores recomputed changes for either `candidate_bouts` or published `bouts`; a pending row is the shared "dirty" state. The application validates the polymorphic target and permits only one pending proposal per affected bout/change event. |
 
 ### 7.4 Model-feedback fields
 
@@ -550,11 +566,14 @@ When a signal is confirmed, changed, or rejected, the effect can ripple into bou
 Design:
 
 1. Every change writes a `change_events` row with `affected_bout_ids`.
-2. Affected candidate bouts get `boundary_dirty = true`; the generator recomputes
-   proposed boundaries but **does not auto-publish** (bout-spec §1a).
+2. For every affected candidate or published bout, the generator writes a pending
+  `bout_change_proposals` row containing the recomputed boundary and metadata
+  changes. It **does not** mutate or auto-publish the target bout (bout-spec §1a).
 3. **Active editors** of an affected bout see an inline, non-destructive banner
-   ("Evidence changed — review new boundary") with optimistic-concurrency conflict
-   handling.
+  ("Evidence changed — review proposed update") with optimistic-concurrency
+  conflict handling. Accepting or adjusting a proposal updates the target
+  lifecycle table transactionally and records the proposal disposition;
+  dismissing it leaves the bout unchanged.
 4. **Watchers** (`bout_watch.reason = worked`) get an inbox/notification badge:
    "A bout you reviewed changed," linking to a diff of before/after.
 
@@ -571,23 +590,25 @@ The reviewer chooses **Change**, selects `seal`, and sees an inline preview befo
 confirming:
 
 - the signal moves from the orca lane to the seal lane;
+- unrelated confirmed tags on the signal remain unchanged;
 - the signal leaves the orca bout and joins or seeds the applicable seal bout;
 - every affected bout is listed with its current and proposed boundaries; and
 - any title, type, tag, split, or merge consequence is called out explicitly.
 
 Confirming writes a `signal_reviews` entry (`orca` → `seal`), keeps the signal
-locked against reporter/model overwrites, records model feedback, and emits one
-`change_events` row naming all affected bouts. Those bouts become
-`boundary_dirty`; the reviewer accepts or adjusts each proposed boundary change
-rather than the system silently applying it. Correcting the signal does not by
-itself publish a bout or notify subscribers (see U-7).
+authoritative while later reporter/model input remains separate, records model
+feedback, and emits one `change_events` row naming all affected bouts. Each bout
+is linked to a pending `bout_change_proposals` row; the reviewer accepts, adjusts,
+or dismisses each proposed change rather than the system silently applying it.
+Correcting the signal does not by itself publish a bout or notify subscribers
+(see U-7).
 
 ### 8.2 Existing-bout correction: unidentified opening signals → ship
 
 A reviewer opens an existing bout and zooms to the small unidentified signals at
 its beginning. They drag a marquee over the run, then add or remove individual
 signals by Shift-click on desktop or checkboxes on phone. The selection summary
-shows the count, total time span, current tags and lock states. **Listen to
+shows the count, total time span, current tags and moderation states. **Listen to
 selection** plays the intervals in sequence so the reviewer can verify that the
 whole group has the same ship source before changing it.
 
@@ -602,9 +623,10 @@ remaining signal and displays both bouts before and after the change.
 
 Confirming creates one append-only `signal_reviews` record per selected signal,
 corresponding `change_events` and model-feedback records, and an audit link that
-groups them as one batch action. The reviewer then accepts or adjusts the proposed
-bout changes. The batch update never silently republishes a bout or sends a
-subscriber notification.
+groups them as one batch action. Each affected candidate or published bout gets a
+pending `bout_change_proposals` row. The reviewer then accepts, adjusts, or
+dismisses the proposed bout changes. The batch update never silently republishes
+a bout or sends a subscriber notification.
 
 ```mermaid
 stateDiagram-v2
@@ -693,12 +715,12 @@ Add these to bout-spec **Appendix A** if adopted.
 | -- | ------------- | ----------------------------------- |
 | U-1 | **Auto vs suggested boundary recompute:** when an approval changes evidence near a boundary, does the bout boundary move automatically or only after a moderator accepts the recomputed value? | Auto-move is fast but can surprise editors; suggested-with-accept preserves authority (bout-spec §1a). Proposed: suggest + one-click accept, never silent. |
 | U-2 | **Bout identity across split/merge:** if a confirmation splits one bout into two (or merges two), are IDs preserved, retired, or lineage-linked? | Affects notifications, `coincident_with`, and audit. Proposed: retire+link via a `derived_from` lineage field. |
-| U-3 | **Moderator override of a locked signal:** a confirmed signal is locked to reporters/models — but may a *different* moderator change it, and with what precedence? | Needs a clear last-writer + audit rule; ties to bout-spec §5.2 `reviewed_by` question for Dave Bain. |
+| U-3 | **Confirmed-signal write policy:** is append-only authority sufficient (reporter/model input becomes a separate proposal and moderators revise through audited actions), or should the API additionally hard-lock confirmed records? If hard locking is adopted, who may override it and with what precedence? | The baseline in this proposal uses append-only authority to match the bout spec's guidance to avoid hard locking. A padlock/`locked` field MUST NOT be implemented unless stakeholders choose the stronger alternative and define moderator override, takeover, and audit behavior. |
 | U-4 | **What is fed back to models, and when?** confirmed labels, corrected labels (humpback↔transient), rejections (false positives), and boundary-adjacent negatives — in what format and cadence, and how are `unknown`/ambiguous items excluded? | Drives retraining quality (KPI 3). Proposed: export `model_feedback` where `export_state = pending` and decision ∈ {approve, change, reject}; withhold `unknown`. |
 | U-5 | **Realtime intake latency & backpressure:** how "live" is the approval queue, and what happens under bursts (many nodes, model re-runs)? | Determines whether S2's live intake is truly realtime or near-realtime; affects infra (bout-spec Appendix A item T). |
 | U-6 | **`unknown` / `SRKWFound` semantics:** how does signal-level `unknown` map to the bout spec's `SRKWFound` scope question (Appendix A item C)? | A rejected SRKW signal may still be a valid *other-species* signal; rejection must be species-scoped, not blanket. |
 | U-7 | **Does approving a signal outside a bout ever notify subscribers,** or is notification still exclusively a bout-publish action (bout-spec §9)? | Prevents double-notification and keeps the publish gate authoritative. Proposed: approval never notifies; only bout publish does. |
-| U-8 | **Reporter correction as new signal vs edit:** when a reporter re-tags a likely-incorrect but unconfirmed signal, is that a new proposed signal under their `reporter_id` (preferred — preserves provenance) or an edit to the existing one? How are competing reporter tags for the same interval shown before a moderator confirms? | Proposed: always create a new proposed signal; stack competing proposals on the same interval; a moderator confirms exactly one, which then locks. |
+| U-8 | **Reporter correction as new signal vs edit:** when a reporter re-tags a likely-incorrect but unconfirmed signal, is that a new proposed signal under their `reporter_id` (preferred — preserves provenance) or an edit to the existing one? How are competing reporter tags for the same interval shown before a moderator confirms? | Proposed: always create a new proposed signal; stack competing proposals on the same interval; a moderator confirms the authoritative interpretation while preserving the alternatives. |
 
 ## 11. Recommendation summary
 
@@ -706,17 +728,21 @@ Add these to bout-spec **Appendix A** if adopted.
   baseline control in the main interface; default to the **species pivot / M2
   (species-first swimlanes)** to solve the mixed-species / two-bout requirement,
   layered with **M3's minimap** for change alerts; adopt a single moderation-state
-  vocabulary (padlock/✓/hatch/amber) shared everywhere.
+  vocabulary (✓/hatch/amber/strike) shared everywhere.
 - **Reporter overlay:** default **R3 (guided chips)**, opt-in **R2 (compare with
   moderator decisions)**; reporters can **select (incl. quick group select) and tag
-  open signals**, but **confirmed signals are locked** and clearly marked.
+  signals** by creating proposals, while confirmed decisions remain authoritative
+  and clearly marked.
 - **Realtime approval:** build **S2 (timeline scrubber)** as primary, with **S1**
   triage mode and **S3** reconcile mode; time-first, 1-min default, zoomable,
-  select/listen/tag/approve, **first-class multi-select approve**, confirm = lock,
-  and a **responsive phone layout** with a sticky Approve-all / Change / Reject bar.
-- **Data:** add per-signal `moderation_state` + `locked` + confirmation fields,
-  `signal_bout_membership`, `change_events`, `bout_watch`, and `model_feedback`,
-  extending bout-spec §6b.2.
+  select/listen/tag/approve, **first-class multi-select approve**, authoritative
+  confirmation, and a **responsive phone layout** with a sticky Approve-all /
+  Change / Reject bar.
+- **Data:** add per-signal `moderation_state` + confirmation fields, the
+  many-to-many `signal_confirmed_tags` relation, `signal_bout_membership`,
+  `change_events`, shared `bout_change_proposals`, `bout_watch`, and
+  `model_feedback`, extending bout-spec §6b.2; do not add a `locked` field unless
+  U-3 resolves in favor of hard enforcement.
 - **Loop safety:** changes suggest (never silently apply) new boundaries, alert
   active editors and prior watchers, and feed a clean supervised set back to models.
 - **Quality calibration:** add a Recent bouts view ordered by moderator-assigned

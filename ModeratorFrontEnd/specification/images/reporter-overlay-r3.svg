@@ -23,9 +23,9 @@
 
   <!-- chip list (single lane, vertical for phone) -->
   <text x="16" y="266" class="label" font-weight="700">Signals</text>
-  <!-- confirmed locked -->
+  <!-- confirmed authoritative -->
   <rect x="12" y="278" width="366" height="40" rx="8" fill="#dff0e6" stroke="#17864b"/>
-  <circle cx="34" cy="298" r="8" class="hump"/><text x="50" y="302" class="label">humpback</text><text x="150" y="303" class="ok">confirmed</text><text x="340" y="304" font-size="15">🔒</text>
+  <circle cx="34" cy="298" r="8" class="hump"/><text x="50" y="302" class="label">humpback</text><text x="150" y="303" class="ok">confirmed</text><text x="340" y="304" class="ok">✓</text>
   <!-- pending untagged -->
   <rect x="12" y="326" width="366" height="40" rx="8" fill="#fff" stroke="#b9c6cf" stroke-dasharray="4 3"/>
   <circle cx="34" cy="346" r="8" fill="#b9c6cf"/><text x="50" y="350" class="label">untagged</text><text x="150" y="351" class="small">pending · tap to tag</text>
@@ -47,8 +47,8 @@
   <!-- callouts -->
   <path class="leader" d="M340 298 C360 280 360 262 360 262"/>
   <rect x="150" y="600" width="228" height="40" rx="6" class="callout"/>
-  <text x="162" y="617" class="calloutText">Confirmed = locked 🔒 —</text>
-  <text x="162" y="630" class="calloutText">reporters can’t re-tag.</text>
+  <text x="162" y="617" class="calloutText">Confirmed = authoritative ✓.</text>
+  <text x="162" y="630" class="calloutText">New input stays a proposal.</text>
 
   <rect x="12" y="600" width="130" height="40" rx="6" class="callout"/>
   <text x="24" y="617" class="calloutText">Long-press to</text>

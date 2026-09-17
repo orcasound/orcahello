@@ -11,7 +11,7 @@
   <text x="18" y="28" class="title" font-size="17">Option R1 · trust tint + tap / group tag</text>
 
   <rect x="20" y="58" width="1040" height="384" rx="6" class="panel"/>
-  <text x="34" y="86" class="small">Confirmed = locked tint 🔒 · your submissions highlighted · others muted · tap/group-select open chips to tag</text>
+  <text x="34" y="86" class="small">Confirmed = authoritative ✓ · your submissions highlighted · others muted · tap/group-select signals to propose tags</text>
 
   <!-- spectrogram -->
   <rect x="34" y="98" width="1012" height="96" rx="3" fill="url(#spec)"/>
@@ -21,8 +21,8 @@
   <!-- chip lane -->
   <text x="34" y="232" class="label" font-weight="700">Signals</text>
   <rect x="34" y="246" width="1012" height="54" rx="6" fill="#f5f8fa" stroke="#c9d3dc"/>
-  <!-- confirmed locked (tinted) -->
-  <g><rect x="60" y="258" width="120" height="30" rx="15" fill="#dff0e6" stroke="#17864b" stroke-width="1.5"/><circle cx="78" cy="273" r="6" class="hump"/><text x="90" y="277" class="small">humpback</text><text x="156" y="278" font-size="13">🔒</text></g>
+  <!-- confirmed authoritative (tinted) -->
+  <g><rect x="60" y="258" width="120" height="30" rx="15" fill="#dff0e6" stroke="#17864b" stroke-width="1.5"/><circle cx="78" cy="273" r="6" class="hump"/><text x="90" y="277" class="small">humpback</text><text x="156" y="278" class="ok">✓</text></g>
   <!-- your submission highlighted -->
   <g><rect x="200" y="258" width="118" height="30" rx="15" fill="#eef0fb" stroke="#087c8c" stroke-width="2.5"/><circle cx="218" cy="273" r="6" class="trans"/><text x="230" y="277" class="small">transient</text><text x="290" y="277" class="tiny" fill="#087c8c">you</text></g>
   <!-- others muted -->
@@ -41,18 +41,18 @@
   <!-- legend -->
   <rect x="760" y="312" width="286" height="96" rx="6" fill="#f5f8fa" stroke="#c9d3dc"/>
   <text x="772" y="332" class="small" font-weight="700">Legend</text>
-  <rect x="772" y="342" width="20" height="14" rx="7" fill="#dff0e6" stroke="#17864b"/><text x="800" y="353" class="ok">confirmed · locked 🔒</text>
+  <rect x="772" y="342" width="20" height="14" rx="7" fill="#dff0e6" stroke="#17864b"/><text x="800" y="353" class="ok">confirmed · authoritative ✓</text>
   <rect x="772" y="362" width="20" height="14" rx="7" fill="#eef0fb" stroke="#087c8c" stroke-width="2"/><text x="800" y="373" class="small">your submission</text>
   <rect x="772" y="382" width="20" height="14" rx="7" fill="#fff" stroke="#b9c6cf" opacity=".6"/><text x="800" y="393" class="small">others (muted) · untagged (dashed)</text>
 
   <!-- callouts -->
   <path class="leader" d="M160 258 C160 220 210 208 210 208"/><circle cx="160" cy="258" r="3" class="cdot"/>
   <rect x="200" y="120" width="248" height="34" rx="5" class="callout"/>
-  <text x="212" y="134" class="calloutText">Confirmed by a moderator → locked tint 🔒.</text>
-  <text x="212" y="147" class="calloutText">Reporters &amp; models can’t re-tag it.</text>
+  <text x="212" y="134" class="calloutText">Confirmed by a moderator → authoritative ✓.</text>
+  <text x="212" y="147" class="calloutText">Later input becomes a separate proposal.</text>
 
   <path class="leader" d="M593 300 C593 306 630 312 630 312"/><circle cx="593" cy="300" r="3" class="cdot"/>
   <rect x="470" y="150" width="290" height="34" rx="5" class="callout"/>
   <text x="482" y="164" class="calloutText">Tap one open chip, or group-select several,</text>
-  <text x="482" y="177" class="calloutText">then apply one tag (locked members skipped).</text>
+  <text x="482" y="177" class="calloutText">then apply one tag as a new proposal.</text>
 </svg>

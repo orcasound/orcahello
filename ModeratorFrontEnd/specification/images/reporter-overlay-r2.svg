@@ -51,6 +51,6 @@
   <rect x="120" y="388" width="910" height="82" rx="6" fill="#f5f8fa" stroke="#c9d3dc"/>
   <text x="132" y="410" class="label" font-weight="700">Why it helps</text>
   <text x="132" y="432" class="small">• Strong feedback loop — reporters see where they agreed with and diverged from moderator decisions.</text>
-  <text x="132" y="452" class="small">• Surfaces disagreements as clean signal for people and models. Confirmed row stays authoritative &amp; locked.</text>
+  <text x="132" y="452" class="small">• Surfaces disagreements as clean signal for people and models. Confirmed row stays authoritative.</text>
   <text x="132" y="468" class="tiny">Tone/privacy: don’t expose moderator identity by default; frame as learning, not grading.</text>
 </svg>

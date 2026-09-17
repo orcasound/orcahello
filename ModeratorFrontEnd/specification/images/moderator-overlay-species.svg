@@ -64,7 +64,7 @@
   <!-- legend -->
   <rect x="34" y="486" width="470" height="96" rx="5" fill="#f5f8fa" stroke="#c9d3dc"/>
   <text x="46" y="506" class="small" font-weight="700">Moderation state (shared vocabulary)</text>
-  <circle cx="56" cy="526" r="8" class="a"/><path d="M51 526l4 4 6-7" stroke="#fff" stroke-width="1.6" fill="none"/><text x="72" y="530" class="ok">confirmed · locked 🔒</text>
+  <circle cx="56" cy="526" r="8" class="a"/><path d="M51 526l4 4 6-7" stroke="#fff" stroke-width="1.6" fill="none"/><text x="72" y="530" class="ok">confirmed · authoritative ✓</text>
   <rect x="52" y="546" width="16" height="16" rx="2" fill="url(#hatch)" stroke="#607483"/><text x="78" y="559" class="small">proposed (unverified)</text>
   <circle cx="300" cy="526" r="8" fill="none" stroke="#b05b22" stroke-width="2"/><text x="316" y="530" class="amber">changed — re-review</text>
   <text x="300" y="559" class="small">● human   ■ model  (glyph inside lane)</text>

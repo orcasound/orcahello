@@ -9,7 +9,7 @@
   </defs>
   <rect width="1120" height="540" fill="#eef3f6"/>
   <rect width="1120" height="44" class="navy"/>
-  <text x="18" y="28" class="title" font-size="17">Reporter overlay · select &amp; group-tag open signals — confirmed = locked 🔒</text>
+  <text x="18" y="28" class="title" font-size="17">Reporter overlay · select &amp; group-tag signals — confirmed = authoritative ✓</text>
 
   <rect x="20" y="58" width="1080" height="462" rx="6" class="panel"/>
   <text x="34" y="86" class="small">View by species ▾ (read-only pivot)   ·   Orcasound Lab · 08:03–08:04</text>
@@ -23,8 +23,8 @@
   <!-- signal chip lane -->
   <text x="34" y="262" class="label" font-weight="700">Signals (chips colored by species)</text>
   <rect x="34" y="276" width="900" height="46" rx="6" fill="#f5f8fa" stroke="#c9d3dc"/>
-  <!-- confirmed locked chip -->
-  <g><rect x="60" y="286" width="112" height="26" rx="13" fill="#e8f7f2" stroke="#17864b"/><circle cx="76" cy="299" r="6" class="hump"/><text x="88" y="303" class="small">humpback</text><text x="150" y="303" font-size="12">🔒</text></g>
+  <!-- confirmed authoritative chip -->
+  <g><rect x="60" y="286" width="112" height="26" rx="13" fill="#e8f7f2" stroke="#17864b"/><circle cx="76" cy="299" r="6" class="hump"/><text x="88" y="303" class="small">humpback</text><text x="150" y="303" class="ok">✓</text></g>
   <!-- pending untagged chip -->
   <g><rect x="188" y="286" width="96" height="26" rx="13" fill="#fff" stroke="#b9c6cf" stroke-dasharray="4 3"/><circle cx="204" cy="299" r="6" class="pend"/><text x="216" y="303" class="small">untagged</text></g>
   <!-- selected group of pending transient chips -->
@@ -46,14 +46,14 @@
   <!-- callouts -->
   <path class="leader" d="M150 286 C150 250 170 240 200 240"/><circle cx="150" cy="286" r="3" class="cdot"/>
   <rect x="150" y="150" width="250" height="40" rx="5" class="callout"/>
-  <text x="162" y="166" class="calloutText">Confirmed by a moderator → locked 🔒.</text>
-  <text x="162" y="181" class="calloutText">Reporters &amp; models can’t re-tag it.</text>
+  <text x="162" y="166" class="calloutText">Confirmed by a moderator → authoritative ✓.</text>
+  <text x="162" y="181" class="calloutText">Later input becomes a separate proposal.</text>
 
   <path class="leader" d="M462 318 C462 330 470 340 470 340"/><circle cx="462" cy="318" r="3" class="cdot"/>
   <rect x="636" y="344" width="300" height="56" rx="5" class="callout"/>
   <text x="648" y="362" class="calloutText">Rubber-band / long-press to group-select many</text>
   <text x="648" y="377" class="calloutText">open signals, then apply one tag in a single action.</text>
-  <text x="648" y="392" class="calloutText">Any locked members are skipped, not overwritten.</text>
+  <text x="648" y="392" class="calloutText">Confirmed members create proposals, never overwrites.</text>
 
   <rect x="636" y="410" width="300" height="66" rx="5" fill="#f5f8fa" stroke="#c9d3dc"/>
   <text x="648" y="430" class="small" font-weight="700">Reporter tag = proposal</text>
@@ -64,7 +64,7 @@
   <!-- legend -->
   <rect x="34" y="410" width="300" height="66" rx="5" fill="#f5f8fa" stroke="#c9d3dc"/>
   <text x="46" y="430" class="small" font-weight="700">Chip status</text>
-  <circle cx="52" cy="449" r="6" class="hump"/><text x="66" y="453" class="small">confirmed 🔒</text>
+  <circle cx="52" cy="449" r="6" class="hump"/><text x="66" y="453" class="small">confirmed ✓</text>
   <rect x="150" y="443" width="14" height="12" rx="6" fill="#fff" stroke="#b9c6cf" stroke-dasharray="3 2"/><text x="170" y="453" class="small">untagged / pending</text>
   <circle cx="52" cy="468" r="6" class="trans"/><text x="66" y="472" class="small">proposed (yours or others)</text>
 </svg>

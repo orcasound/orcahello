@@ -42,7 +42,7 @@
   <text x="40" y="420" class="tiny">Best for provenance &amp; comparing reporters (today’s default)</text>
   <rect x="40" y="436" width="230" height="70" rx="5" fill="#f5f8fa" stroke="#c9d3dc"/>
   <text x="52" y="456" class="small" font-weight="700">Moderation state (shared)</text>
-  <circle cx="62" cy="474" r="7" class="a"/><path d="M58 474l3 3 5-6" stroke="#fff" stroke-width="1.4" fill="none"/><text x="76" y="478" class="ok">confirmed · locked</text>
+  <circle cx="62" cy="474" r="7" class="a"/><path d="M58 474l3 3 5-6" stroke="#fff" stroke-width="1.4" fill="none"/><text x="76" y="478" class="ok">confirmed · authoritative</text>
   <circle cx="62" cy="494" r="7" fill="url(#hatch)" stroke="#607483"/><text x="76" y="498" class="small">proposed</text>
   <circle cx="182" cy="494" r="7" fill="none" stroke="#b05b22" stroke-width="2"/><text x="196" y="498" class="amber">changed</text>
 
