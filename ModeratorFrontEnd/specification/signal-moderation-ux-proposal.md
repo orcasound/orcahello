@@ -515,7 +515,7 @@ is the newest review; history is never mutated.
 
 | Field | Table | Type | Purpose |
 | ----- | ----- | ---- | ------- |
-| `species_source` | `annotations` | tag/enum | Species/source of the signal, enabling the species-first swimlanes (Option M2). Nullable → renders in the "Unassigned" lane. |
+| `species_source` | `annotations` and `detections` for annotation-less signals | tag/enum | Species/source of the signal, enabling the species-first swimlanes (Option M2). Nullable → renders in the "Unassigned" lane. |
 | `signal_bout_membership` | new join table | rows | `{signal_ref, bout_id, role}` — lets one minute's signals belong to **multiple** overlapping bouts without duplication (bout-spec §3 detection-vs-bout note, Appendix A item A). |
 
 ### 7.3 Change tracking & watchers (for alerts)
