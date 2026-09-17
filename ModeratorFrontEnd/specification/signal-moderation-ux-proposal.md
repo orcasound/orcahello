@@ -1,11 +1,11 @@
-# Moderator Overlay + Realtime Signal Approval — UX Proposal (Draft v0.1)
+# Moderator Overlay + Post-bout Signal Approval — UX Proposal (Draft v0.1)
 
 > Status: **DRAFT / EXPLORATORY** — companion to
 > [bout-spec.md](bout-spec.md). This document proposes UX options; it does not
 > replace the normative contracts in the bout spec. Where it introduces new data,
 > those additions are proposals for §6b.2 of the bout spec.
 > Grounded in a 2026-09-16 request to (a) improve the moderator evidence
-> **overlay** and (b) add **realtime signal approval** for moderators.
+> **overlay** and (b) add **post-bout signal approval** for moderators.
 
 ## 1. Purpose & scope
 
@@ -21,15 +21,16 @@ Two related goals:
    - when signals **change under them** — a label correction (humpback →
      transient) that can move a bout boundary — both on the bout they are actively
      editing and on bouts they have previously worked.
-2. **Add realtime signal approval** — primarily as an inline mode of the M2
+2. **Add post-bout signal approval** — primarily as an inline mode of the M2
   Moderator Workbench overlay, with dedicated queue/compare views retained as
-  alternatives (§6). A moderator can review signals outside any bout and confirm
-  them against the proposed detection without leaving the overlay. A confirmed
-  signal becomes authoritative; later reporter/model input is preserved as a
-  separate proposal rather than overwriting it. Whether the API also hard-locks
-  confirmed signals is unresolved pending the override policy in U-3. The flow
-  is **time-first** (default 1-minute span, zoomable) and supports select → listen
-  → tag → approve.
+  alternatives (§6). After a bout is closed and logged, a moderator can review
+  its signals, including signals not yet assigned to a species/source bout, and
+  confirm them against the proposed detection without leaving the overlay. A
+  confirmed signal becomes authoritative; later reporter/model input is
+  preserved as a separate proposal rather than overwriting it. Whether the API
+  also hard-locks confirmed signals is unresolved pending the override policy in
+  U-3. The flow is **time-first** (default 1-minute span, zoomable) and supports
+  select → listen → tag → approve.
 
 The main overlay is also **pivotable**: a one-tap control flips the same signals
 between a *who reported* view (per-reporter lanes) and a *what is here* view
@@ -70,13 +71,15 @@ model). That answers "who said this?" but not:
 The options below add these three encodings **without** throwing away the
 per-reporter view that already works.
 
-> **Rendering convention (matches the live site).** The sonogram always shows the
+> **Baseline rendering convention (matches the live site).** The sonogram always shows the
 > sound waveform with bright **bursts** where energy is detected. A signal tag is
 > drawn as an **empty outlined rectangle around** its burst — never a solid fill —
 > so the waveform stays visible inside the box. Encoding rides on the box's
 > *outline and corner glyph* (color = signal type, outline pattern = reporting
 > source, corner glyph = moderation state), not on an opaque fill. Two signal
-> types in one timeframe are two overlapping boxes.
+> types in one timeframe are two overlapping boxes. M1 intentionally tests a
+> state-fill alternative only in the lower swimlane markers; spectrogram boxes
+> remain translucent enough to preserve waveform visibility.
 
 ---
 
@@ -119,9 +122,11 @@ Lower bars grouping:  (•) by Who   ( ) by What        ⟵ toggle
 
 ![Lower-bar grouping toggle: the same signals re-grouped between per-reporter lanes and species lanes](images/signal-overlay-pivot.svg)
 
-**Encoding channels (shared vocabulary).** Every §4 option and the moderator
-editing controls (§5) reuse the same channel assignment, so the four concerns
-never fight over the same visual variable and can be shown simultaneously:
+**Encoding channels (shared baseline vocabulary).** M2, M3, and the moderator
+editing controls (§5) reuse this channel assignment, so the four concerns never
+fight over the same visual variable and can be shown simultaneously. M1 is the
+explicit alternative that moves source/type into the lane grouping and adds
+state fill while retaining the same corner glyphs.
 
 | Concern | Channel |
 | ------- | ------- |
@@ -139,6 +144,10 @@ Option M3 generalizes the lower-bar grouping to a third choice (group by moderat
 state) in addition to Who/What.
 
 ### Option M1 — Status fill on toggleable lanes (evolutionary)
+
+This option intentionally departs from the §4.0 outline-only baseline for lower
+swimlane markers. Its fill is supplemental; the corner glyph remains the
+portable moderation-state encoding shared with every other view.
 
 Keep the existing Signals overlay, but let moderators toggle its lanes between
 **reporting source** and **signal type**. Do not add another per-marker type
@@ -197,7 +206,7 @@ changing the active signal-type/source swimlane pivot.
  Unassigned ┤   ┌?┐··     (needs signal type)                │ dotted=unknown source
 ```
 
-![Option M2-A wireframe: species-first swimlanes with overlapping bouts, shared moderation-state legend, change minimap, and an inline Listen, Tag, Approve, and Change label action bar](images/moderator-overlay-species.svg)
+![Option M2-A wireframe: species-first swimlanes with overlapping bouts, bout-limit filtering, an audited Force merge bouts option, shared moderation-state legend, change minimap, and inline moderation actions](images/moderator-overlay-species.svg)
 
 #### Option M2-A — Inline signal approval mode (recommended v1)
 
@@ -208,11 +217,12 @@ spectrogram, species lanes, bout boundaries, minimap, and current zoom remain in
 place. Signals outside a bout appear in the applicable species lane or
 **Unassigned** and can be moderated with the same controls.
 
-Live detections enter the visible time range as unmoderated markers and increment a
-pending count without changing the moderator's selection. After an action, the
-marker updates in place to the shared corner-glyph styling and the next
-unmoderated signal may be selected. Group selection uses the same action bar and
-requires an explicit audited revision for any confirmed member (§5.2).
+The bout enters the review queue only after 15 minutes with no applicable
+detections closes and logs it. Its signals then appear as unmoderated markers.
+After an action, the marker updates in place to the shared corner-glyph styling
+and the next unmoderated signal may be selected. Group selection uses the same
+action bar and requires an explicit audited revision for any confirmed member
+(§5.2).
 
 **Pros**
 - The mixed-species / two-bout timeframe is **immediately legible** — the split is
@@ -300,7 +310,7 @@ Already-confirmed members are identified before confirmation and require an
 explicit audited revision; no member is silently skipped.
 
 This interaction supports the worked existing-bout corrections in §8.1–§8.2 and
-the realtime approval options in §6. On phone, the same controls use the stacked
+  the post-bout approval options in §6. On phone, the same controls use the stacked
 Workbench layout and sticky moderator action bar described in bout-spec §8.2.
 
 Non-moderator tagging or correction of historical/non-live signals is not a v1
@@ -310,7 +320,7 @@ separate product decision.
 
 ---
 
-## 6. Realtime Signal Approval options (moderator-only)
+## 6. Post-bout Signal Approval options (moderator-only)
 
 The recommended v1 option is **M2-A**, the inline approval mode in §4. It supports
 the core **see → select → listen → tag/approve** loop without a separate console
@@ -319,7 +329,7 @@ backlogs or focused reconciliation. In every option, confirmation makes the
 moderator decision authoritative (§7); it does not imply an exclusive hard lock.
 The default span is **1 minute**, zoomable out to hours or in to seconds.
 
-![Dedicated Realtime Signal Approval alternative (S2 timeline scrubber): zoom presets, selectable signal blocks, listen/tag/approve/change-label actions, authoritative confirmation, live intake and downstream feedback](images/signal-approval-console.svg)
+![Dedicated post-bout Signal Approval alternative (S2 timeline scrubber): zoom presets, selectable signal blocks, listen/tag/approve/change-label actions, authoritative confirmation, logged-bout intake, and downstream feedback](images/signal-approval-console.svg)
 
 ### Shared requirements (all options)
 
@@ -341,12 +351,14 @@ The default span is **1 minute**, zoomable out to hours or in to seconds.
 - **Authority on confirm:** reporter/model ingestion creates separate proposals
   and may not overwrite a confirmed decision. A moderator may revise it through
   an explicit audited action. Hard-lock enforcement remains an alternative in U-3.
-- **Live intake:** newly arriving detections stream into the "pending" set in near
-  real time.
-- **Encoding is unchanged from §4.0:** outline color encodes signal type,
+- **Closed-bout intake:** moderation begins after the automatic 15-minute
+  no-detection gap closes and logs a bout. Newly logged bouts enter the review
+  queue; moderators do not need to annotate an open bout in real time.
+- **Encoding for M2-A and dedicated views is unchanged from §4.0:** outline color encodes signal type,
   solid/dashed/dotted outline encodes reporting source, and the corner glyph
-  encodes moderation state. The same marker therefore reads identically in the
-  overlay, dedicated alternatives, and phone layout.
+  encodes moderation state. The same marker therefore reads identically in M2-A,
+  dedicated alternatives, and the phone layout. M1's optional state fill remains
+  confined to its lower swimlane markers.
 
 ### Option S1 — Time-rail triage inbox (list-centric)
 
@@ -362,7 +374,7 @@ Approve / Change label. Optimized for **backlog throughput**.
 - Weak spatial/temporal context; clustering and overlaps are hard to see.
 - Zoom is per-item, not continuous.
 
-### Option S2 — Continuous timeline scrubber (timeline-centric) — recommended
+### Option S2 — Continuous timeline scrubber (timeline-centric) — dedicated alternative
 
 A horizontally scrolling spectrogram at 1-min default zoom; signals are selectable
 blocks. Select one/many → listen → tag → approve inline. Zoom changes the span.
@@ -421,7 +433,7 @@ away from a desk. For M2-A this is the Workbench's stacked mobile layout, not a
 separate destination. It is not a shrunk desktop grid; it is a single vertical
 flow that keeps the same review contract.
 
-![Realtime Signal Approval console — phone layout: zoom presets, tap/drag multi-select, checkbox selection list, scoped listen, and a sticky Approve-all / Change label bar](images/signal-approval-console-mobile.svg)
+![Post-bout Signal Approval console — phone layout: zoom presets, tap/drag multi-select, checkbox selection list, scoped listen, and a sticky Approve-all / Change label bar](images/signal-approval-console-mobile.svg)
 
 1. A compact header shows node, "live" state, and the pending count.
 2. Zoom presets (10 s / **1 min** / 15 min / 1 h) sit above a pinch-zoomable,
@@ -434,8 +446,8 @@ flow that keeps the same review contract.
 5. A **sticky bottom bar** exposes **Approve all (N)** and **Change label**;
   either action confirms the whole selection; confirmed members require an
   explicit audited revision and are never silently skipped.
-6. Live intake updates the pending badge without losing the current selection,
-   zoom, or playback position.
+6. Newly closed and logged bouts update the queue badge without losing the
+  current selection, zoom, or playback position.
 
 Minimum target 390 CSS-pixel viewport; controls ≥ 44×44 CSS px; horizontal
 scrolling limited to the time-aligned spectrogram. Desktop and phone operate on the
@@ -445,7 +457,8 @@ same signals and server state (mirrors bout-spec §8.2).
 
 ```mermaid
 flowchart LR
-  I[New detection / annotation<br/>from reporter or model] --> Q[Pending signals in view]
+  I[New detection / annotation<br/>from reporter or model] --> G[Wait for 15-min<br/>no-detection gap]
+  G --> Q[Logged bout enters<br/>review queue]
   Q --> R{Moderator action}
   R -- approve existing label --> C[Confirmed + authoritative<br/>membership unchanged]
   R -- change label/species --> K[Corrected + authoritative]
@@ -511,12 +524,13 @@ current state and authoritative tag set come from the newest review and its
 | ------------- | ---- | ------- |
 | `change_events` (new) | rows | `{id, entity_type: bout\|signal, entity_id, change_type, from, to, actor, at, affected_bout_ids[]}`. One row per label or bout change that may affect bout membership; drives change alerts. Signal confirmation is audited in `signal_reviews` but does not trigger bout recomputation. |
 | `bout_watch` (new) | rows | `{bout_id, user_id, reason: working\|worked, created_at}`. Populated when a moderator claims/edits a bout, and retained after publish so prior reviewers can be alerted later. |
+| `bout_lineage` (new) | rows | `{predecessor_bout_id, successor_bout_id, reason: split\|merge, change_event_id}`. Split and merge results always receive fresh bout IDs while retired source IDs remain traceable for audit and links. |
 
 ### 7.4 Model-feedback fields
 
-| Field / table | Type | Purpose |
-| ------------- | ---- | ------- |
-| `model_feedback` (new) | rows | `{id, signal_ref, model_reporter_id, model_label, model_confidence, moderator_label, decision: approve\|change, at, export_state}`. The clean supervised signal for retraining/eval (§9); a false positive is represented by `change` plus the moderator's non-target/source label. |
+| Field | Table | Type | Purpose |
+| ----- | ----- | ---- | ------- |
+| `model_feedback` | new table | rows | `{id, signal_ref, model_reporter_id, model_label, model_confidence, moderator_label, decision: approve\|change, at, export_state}`. The clean supervised signal for retraining/eval (§9); a false positive is represented by `change` plus the moderator's non-target/source label. |
 | `export_state` | `model_feedback` | enum | `pending` \| `exported` \| `excluded`. Lets ambiguous/unknown items be withheld from training. |
 
 ---
@@ -549,11 +563,33 @@ Design:
   `change_events` audit rows in one transaction. No intermediate boundary state
   is persisted. Updating an already-published bout is audited but does not send a
   subscriber notification or publish a candidate.
+  If one bout splits into two, the original bout is retired and both resulting
+  bouts receive new IDs; neither child inherits the original ID. A merge likewise
+  retires every source bout and creates one new ID. `bout_lineage` links each
+  retired predecessor to its new successor or successors.
 4. **Active editors** of an affected bout see an inline banner ("Evidence changed
   — boundary updated") with optimistic-concurrency handling and a before/after
   diff.
 5. **Watchers** (`bout_watch.reason = worked`) get an inbox/notification badge:
    "A bout you reviewed changed," linking to a diff of before/after.
+
+### 8.3 Activity resumes after closure: moderator force merge
+
+Ordinary bout creation waits for the 15-minute no-detection gap, then logs the
+closed bout for moderation. If relevant activity resumes after that closure, the
+new activity starts a separate bout under bout-spec R1. The Workbench offers an
+explicit **Force merge bouts** action when a moderator determines that adjacent
+bouts on the same node and with the same species/source represent one continuous
+real-world event.
+
+Force merge is not normal boundary recomputation: it is an intentional exception
+to the 15-minute gap invariant. The confirmation preview shows both source bouts,
+the intervening gap, and the resulting combined timeframe. The moderator must
+provide a reason. Saving atomically creates the merged bout, retires and
+lineage-links the source bouts, and appends a `change_events` audit record with
+the actor, reason, source IDs, gap duration, and resulting bout ID. It does not
+notify subscribers or republish automatically. Different-node or
+different-species/source bouts cannot be force-merged.
 
 ### 8.1 Existing-bout correction: orca signal → seal
 
@@ -644,10 +680,13 @@ compact spectrogram with a play action.
 
 While creating or updating a bout, a moderator can toggle a star action labeled
 **High Value** in the bout details panel. Turning it on adds the canonical
-`high-value` bout tag; turning it off removes that tag. The change autosaves with
-the other bout metadata and appends `{who, when, field: tags, from, to}` to the
-bout's `review_history`. Reporters and models may see the tag but cannot set or
-remove it.
+`high-value` bout tag; turning it off removes that tag. This remains a pending
+edit until the moderator chooses **Save bout changes**, so they can adjust several
+fields or continue inspecting the current spectrogram range before committing.
+Save applies the pending metadata together and appends `{who, when, field: tags,
+from, to}` to the bout's `review_history`. It preserves the current zoom,
+playhead, and selection. Reporters and models may see the saved tag but cannot set
+or remove it.
 
 The control includes a short optional note for why the example is valuable, such
 as clear signal-to-noise ratio, representative call type, unusual species, or a
@@ -655,7 +694,7 @@ useful correction example. The note is displayed in the Recent bouts view but is
 not part of ranking. Applying or removing `high-value` does not publish the bout
 or notify subscribers.
 
-![Moderator Workbench editing an existing bout with the High Value star enabled, an optional quality note, autosave history, and publish-independent behavior](images/mark-bout-high-value.svg)
+![Moderator Workbench editing an existing bout with the High Value star enabled, an optional quality note, explicit Save bout changes action, and publish-independent behavior](images/mark-bout-high-value.svg)
 
 ### 9.3 Sample recent-bouts view
 
@@ -675,12 +714,11 @@ Add these to bout-spec **Appendix A** if adopted.
 | ID | Open question | Why it matters / proposed direction |
 | -- | ------------- | ----------------------------------- |
 | U-1 | **Atomic recompute failure handling:** if the system cannot compute a valid post-change bout set, what recovery detail should the moderator see? | Direction decided: preview the automatic result and disable Save until the label change and all affected bouts can commit atomically. Confirmation alone never changes a boundary. Open detail: error/retry presentation. |
-| U-2 | **Bout identity across split/merge:** if a label change splits one bout into two or merges two bouts, are IDs preserved, retired, or lineage-linked? | Affects notifications, `coincident_with`, and audit. Proposed: retire+link via a `derived_from` lineage field. |
 | U-3 | **Confirmed-signal write policy:** is append-only authority sufficient (reporter/model input becomes a separate proposal and moderators revise through audited actions), or should the API additionally hard-lock confirmed records? If hard locking is adopted, who may override it and with what precedence? | The baseline in this proposal uses append-only authority to match the bout spec's guidance to avoid hard locking. A padlock/`locked` field MUST NOT be implemented unless stakeholders choose the stronger alternative and define moderator override, takeover, and audit behavior. |
 | U-4 | **What is fed back to models, and when?** confirmed labels, corrected labels (including humpback↔transient and false-positive→non-target/source), and boundary-adjacent negatives — in what format and cadence, and how are `unknown`/ambiguous items excluded? | Drives retraining quality (KPI 3). Proposed: export `model_feedback` where `export_state = pending` and decision ∈ {approve, change}; withhold `unknown`. |
-| U-5 | **Realtime intake latency & backpressure:** how "live" is the approval queue, and what happens under bursts (many nodes, model re-runs)? | Determines whether S2's live intake is truly realtime or near-realtime; affects infra (bout-spec Appendix A item T). |
+| U-5 | **Post-bout queue latency & force-merge policy:** when does a bout enter moderation after its 15-minute closing gap, and should the audited force-merge exception have a maximum gap or require a second moderator? | Baseline: enqueue once the bout is closed and logged; no realtime annotation requirement. Resumed same-node, same-species/source activity creates a new bout that a moderator may explicitly force-merge (§8.3). Adopting this requires a narrow normative exception to bout-spec R1 and the timeframe invariant. |
 | U-6 | **`unknown` / `SRKWFound` semantics:** how does signal-level `unknown` map to the bout spec's `SRKWFound` scope question (Appendix A item C)? | A signal changed from SRKW may still be valid *other-species* or source evidence; the replacement label must identify what is present. |
-| U-7 | **Does approving a signal outside a bout ever notify subscribers,** or is notification still exclusively a bout-publish action (bout-spec §9)? | Prevents double-notification and keeps the publish gate authoritative. Proposed: approval never notifies; only bout publish does. |
+| U-7 | **Does approving an unassigned signal in a logged bout's review window ever notify subscribers,** or is notification still exclusively a bout-publish action (bout-spec §9)? | Prevents double-notification and keeps the publish gate authoritative. Proposed: approval never notifies; only bout publish does. |
 
 ## 11. Recommendation summary
 
@@ -688,23 +726,28 @@ Add these to bout-spec **Appendix A** if adopted.
   baseline control in the main interface; default to the **species pivot / M2
   (species-first swimlanes)** to solve the mixed-species / two-bout requirement,
   layered with **M3's minimap** for change alerts; adopt a single moderation-state
-  vocabulary (✓/hatch/amber/strike) shared everywhere.
+  vocabulary (`□` unmoderated, `✓` confirmed, `×` false positive, `?` needs
+  confirmation) shared everywhere. M1's optional state fills are not part of the
+  shared baseline.
 - **Moderator editing:** integrate single-signal and group tagging directly into
   the §4 overlay; preserve timeline context and require audited revisions for
   confirmed signals. A separate non-moderator historical-data overlay is out of
   scope for v1.
-- **Realtime approval:** build **M2-A inline approval** in the main species-first
+- **Post-bout approval:** build **M2-A inline approval** in the main species-first
   overlay as the primary v1 workflow: time-first, 1-min default, zoomable,
   select/listen/tag/approve, **first-class multi-select approve**, authoritative
-  confirmation, and a responsive phone layout with a sticky Approve-all / Change
-  label bar. Keep S1–S3 as optional specialized views, not required navigation.
+  confirmation, closed-bout queue intake, and a responsive phone layout with a
+  sticky Approve-all / Change label bar. Keep S1–S3 as optional specialized
+  views, not required navigation.
 - **Data:** add per-signal `moderation_state` + confirmation fields, the
   many-to-many `signal_confirmed_tags` relation, `signal_bout_membership`,
   `change_events`, `bout_watch`, and `model_feedback`, extending bout-spec §6b.2;
   do not add a `locked` field unless U-3 resolves in favor of hard enforcement.
 - **Loop safety:** preview label-change effects, then atomically update all
-  affected bouts so the timeframe invariant always holds; alert active editors
-  and prior watchers, and feed a clean supervised set back to models.
+  affected bouts so the timeframe invariant holds unless a moderator deliberately
+  uses the audited same-node, same-species/source **Force merge bouts** exception;
+  alert active editors and prior watchers, and feed a clean supervised set back
+  to models.
 - **Quality calibration:** add a Recent bouts view ordered by moderator-assigned
   `high-value` first, with newest-first ordering inside each group and no opaque
   confidence-derived quality score.

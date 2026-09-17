@@ -24,7 +24,7 @@
   <text x="54" y="518" class="label" font-weight="700">Review history</text>
   <text x="54" y="540" class="small">09:48 &#183; Kai confirmed boundaries and tags</text>
   <text x="54" y="558" class="small">09:51 &#183; High Value added &#183; quality note saved</text>
-  <text x="38" y="618" class="small">Changes autosave. High-value tagging does not publish or notify.</text>
+  <text x="38" y="618" class="small">Changes remain pending until Save bout changes. Saving does not publish or notify.</text>
 
   <rect x="856" y="60" width="324" height="620" rx="6" class="panel"/>
   <rect x="856" y="60" width="324" height="36" rx="6" class="navy"/>

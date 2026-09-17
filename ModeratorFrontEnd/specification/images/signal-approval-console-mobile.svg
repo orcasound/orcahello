@@ -9,7 +9,7 @@
   </defs>
   <rect width="390" height="844" fill="#eef3f6"/>
   <rect width="390" height="48" fill="#0c4968"/>
-  <text x="16" y="30" class="white" font-size="15">Signal Approval · live</text>
+  <text x="16" y="30" class="white" font-size="15">Signal Approval · closed bouts</text>
   <circle cx="330" cy="24" r="6" class="green"/><text x="344" y="28" fill="#fff" font-size="11">6</text>
 
   <!-- zoom + span -->
@@ -72,8 +72,8 @@
   <text x="24" y="615" class="calloutText">whole selection. Confirmed items require an audited revision.</text>
 
   <rect x="12" y="634" width="366" height="60" rx="6" class="panel"/>
-  <text x="24" y="655" class="label" font-weight="700">Live intake</text>
-  <text x="24" y="675" class="small">New detections stream into “pending”; a badge shows the count.</text>
+  <text x="24" y="655" class="label" font-weight="700">Logged-bout queue</text>
+  <text x="24" y="675" class="small">Bouts enter after the 15-minute closing gap; the badge updates.</text>
   <text x="24" y="689" class="tiny">Approve = authoritative ✓ · writes to the main database (no side store)</text>
 
   <!-- sticky bottom bar -->

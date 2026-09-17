@@ -20,7 +20,9 @@
   <text x="700" y="85" class="small" font-weight="700">Bout limits</text>
   <rect x="770" y="66" width="142" height="24" rx="4" fill="#fff" stroke="#4d93ad"/>
   <text x="841" y="82" class="small" text-anchor="middle">All signal types ▾</text>
-  <text x="924" y="82" class="tiny">Boundaries only · signals stay visible</text>
+  <rect x="924" y="66" width="146" height="24" rx="4" fill="#fff" stroke="#b05b22"/>
+  <text x="997" y="82" class="amber" text-anchor="middle">Force merge bouts…</text>
+  <text x="1080" y="82" class="tiny">compatible only</text>
   <rect x="34" y="94" width="1000" height="26" rx="4" fill="#0c1c26"/>
   <g fill="#3f6b7d"><rect x="60" y="100" width="40" height="14"/><rect x="140" y="98" width="70" height="18"/><rect x="260" y="102" width="50" height="12"/><rect x="420" y="97" width="90" height="20"/><rect x="620" y="101" width="60" height="14"/><rect x="820" y="99" width="80" height="16"/></g>
   <path d="M470 90l8 6-8 6-8-6z" fill="#ffcf6b"/><text x="470" y="132" class="tiny" text-anchor="middle" fill="#8a3c15">✦ change 08:04</text>

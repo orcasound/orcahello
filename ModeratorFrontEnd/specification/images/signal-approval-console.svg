@@ -10,12 +10,12 @@
   </defs>
   <rect width="1200" height="620" fill="#eef3f6"/>
   <rect width="1200" height="44" class="navy"/>
-  <text x="18" y="28" class="title" font-size="17">Realtime Signal Approval console (moderator-only) · timeline scrubber (S2)</text>
-  <text x="980" y="27" class="title" font-size="12">Orcasound Lab · live</text>
+  <text x="18" y="28" class="title" font-size="17">Post-bout Signal Approval console (moderator-only) · timeline scrubber (S2)</text>
+  <text x="980" y="27" class="title" font-size="12">Orcasound Lab · logged bout</text>
 
   <rect x="20" y="58" width="1160" height="544" rx="6" class="panel"/>
 
-  <!-- toolbar: zoom + live -->
+  <!-- toolbar: zoom + queue -->
   <text x="34" y="88" class="small" font-weight="700">Zoom</text>
   <g>
     <rect x="80" y="72" width="52" height="24" rx="4" fill="#fff" stroke="#aebdc9"/><text x="106" y="88" class="small" text-anchor="middle">10 s</text>
@@ -25,7 +25,7 @@
   </g>
   <text x="330" y="88" class="tiny">◀ scrub ▶ · audio stays in sync</text>
   <rect x="980" y="70" width="184" height="28" rx="14" fill="#eaf5ef" stroke="#17864b"/>
-  <circle cx="998" cy="84" r="5" class="green"/><text x="1010" y="88" class="ok">LIVE intake · 6 pending</text>
+  <circle cx="998" cy="84" r="5" class="green"/><text x="1010" y="88" class="ok">CLOSED BOUTS · 6 pending</text>
 
   <!-- default span note -->
   <rect x="80" y="104" width="220" height="22" rx="4" class="callout"/><text x="92" y="120" class="calloutText">Default span = 1 minute</text>
