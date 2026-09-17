@@ -94,7 +94,7 @@
 
   <!-- feedback loop -->
   <path d="M660,326 C660,372 240,372 240,326" fill="none" stroke="#8a3ffc" stroke-width="1.4" stroke-dasharray="5 3" marker-end="url(#arrow)"/>
-  <text x="360" y="366" fill="#8a3ffc" font-size="11">rejection reason codes &#8594; model retrain (KPI 3)</text>
+  <text x="360" y="366" fill="#8a3ffc" font-size="11">corrected signal labels &#8594; model retrain (KPI 3)</text>
 
   <!-- KPI callouts -->
   <text x="16" y="404" class="m">KPI1 time-to-notification &#8595; &#183; KPI2 % moderated &#8593; &#183; KPI3 accuracy &#8593; &#183; KPI4 granularity &#8593; &#183; KPI6c moderators &#8593;</text>

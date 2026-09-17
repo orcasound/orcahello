@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="390" height="844" viewBox="0 0 390 844" font-family="Segoe UI, Arial, sans-serif">
   <defs>
     <style>
-      .label{fill:#263847;font-size:13px}.small{fill:#617583;font-size:11px}.tiny{fill:#728694;font-size:9px}.white{fill:#fff;font-size:13px;font-weight:700}.panel{fill:#fff;stroke:#c8d3dc}.a{fill:#1d9a75}.b{fill:#df7b2d}.axis{stroke:#91a3b1}.ok{fill:#17864b;font-size:11px;font-weight:700}.chip{fill:#e8f4f8;stroke:#91bed0}.button{fill:#087c8c}.green{fill:#17864b}.reject{fill:#b45539}.sel{stroke:#087c8c;stroke-width:2.5;fill:none}
+      .label{fill:#263847;font-size:13px}.small{fill:#617583;font-size:11px}.tiny{fill:#728694;font-size:9px}.white{fill:#fff;font-size:13px;font-weight:700}.panel{fill:#fff;stroke:#c8d3dc}.a{fill:#1d9a75}.b{fill:#df7b2d}.axis{stroke:#91a3b1}.ok{fill:#17864b;font-size:11px;font-weight:700}.chip{fill:#e8f4f8;stroke:#91bed0}.button{fill:#087c8c}.green{fill:#17864b}.sel{stroke:#087c8c;stroke-width:2.5;fill:none}
       .callout{fill:#fff3e0;stroke:#c25a2b;stroke-width:1.2}.calloutText{fill:#8a3c15;font-size:10px;font-weight:600}.leader{stroke:#c25a2b;stroke-width:1.2;stroke-dasharray:3 2;fill:none}
     </style>
     <linearGradient id="mspec" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#09131c"/><stop offset=".55" stop-color="#15313c"/><stop offset="1" stop-color="#081018"/></linearGradient>
@@ -28,10 +28,10 @@
   <!-- blocks: empty boxes around always-visible bursts -->
   <g opacity=".9" fill="#dcf1f8"><rect x="58" y="158" width="5" height="84" rx="2"/><rect x="66" y="174" width="3" height="62" rx="2" fill="#bfe6f4"/><rect x="126" y="166" width="5" height="76" rx="2"/><rect x="194" y="162" width="5" height="80" rx="2"/><rect x="246" y="170" width="5" height="72" rx="2"/><rect x="316" y="176" width="4" height="60" rx="2"/></g>
   <rect x="40" y="152" width="40" height="96" rx="3" fill="none" stroke="#17864b" stroke-width="2.5"/><text x="45" y="166" fill="#bff0d3" font-size="9">✓</text>
-  <rect x="110" y="160" width="38" height="88" rx="3" fill="none" stroke="#df7b2d" stroke-width="2.5" stroke-dasharray="5 3"/>
-  <rect x="176" y="156" width="40" height="92" rx="3" fill="none" stroke="#df7b2d" stroke-width="2.5" stroke-dasharray="5 3"/>
-  <rect x="228" y="164" width="40" height="84" rx="3" fill="none" stroke="#1d9a75" stroke-width="2.5" stroke-dasharray="5 3"/>
-  <rect x="300" y="170" width="36" height="72" rx="3" fill="none" stroke="#7d97a5" stroke-width="2" stroke-dasharray="3 3"/>
+  <rect x="110" y="160" width="38" height="88" rx="3" fill="none" stroke="#7f8ff0" stroke-width="2.5" stroke-dasharray="5 3"/><text x="115" y="174" fill="#fff" font-size="10">□</text>
+  <rect x="176" y="156" width="40" height="92" rx="3" fill="none" stroke="#7f8ff0" stroke-width="2.5" stroke-dasharray="5 3"/><text x="181" y="170" fill="#fff" font-size="10">□</text>
+  <rect x="228" y="164" width="40" height="84" rx="3" fill="none" stroke="#39b98f" stroke-width="2.5"/><text x="233" y="178" fill="#fff" font-size="10">×</text>
+  <rect x="300" y="170" width="36" height="72" rx="3" fill="none" stroke="#d3a24a" stroke-width="2" stroke-dasharray="1 3"/><text x="305" y="184" fill="#fff" font-size="10">?</text>
   <rect x="170" y="148" width="104" height="108" rx="8" class="sel" stroke-dasharray="6 4"/>
   <text x="176" y="278" class="tiny" fill="#617583">2 blocks selected in view</text>
   <text x="286" y="278" class="tiny" fill="#617583">✓ confirmed</text>
@@ -43,17 +43,17 @@
   <!-- rows with checkboxes -->
   <g>
     <rect x="24" y="356" width="18" height="18" rx="3" class="button"/><path d="M28 365l4 4 7-9" fill="none" stroke="#fff" stroke-width="2"/>
-    <text x="52" y="370" class="small">08:03:19 · human · proposed</text>
+    <text x="52" y="370" class="small">08:03:19 · human · □ unmoderated</text>
     <circle cx="330" cy="365" r="6" class="a"/>
   </g>
   <g>
     <rect x="24" y="384" width="18" height="18" rx="3" class="button"/><path d="M28 393l4 4 7-9" fill="none" stroke="#fff" stroke-width="2"/>
-    <text x="52" y="398" class="small">08:03:23 · model 0.94 · proposed</text>
+    <text x="52" y="398" class="small">08:03:23 · model 0.94 · □ unmoderated</text>
     <rect x="324" y="391" width="12" height="12" rx="2" class="b"/>
   </g>
   <g>
     <rect x="24" y="412" width="18" height="18" rx="3" class="button"/><path d="M28 421l4 4 7-9" fill="none" stroke="#fff" stroke-width="2"/>
-    <text x="52" y="426" class="small">08:03:26 · model 0.88 · proposed</text>
+    <text x="52" y="426" class="small">08:03:26 · model 0.88 · □ unmoderated</text>
     <rect x="324" y="419" width="12" height="12" rx="2" class="b"/>
   </g>
   <text x="24" y="452" class="tiny">Tag applied to all selected on approve/change</text>
@@ -68,7 +68,7 @@
   <!-- callouts -->
   <path class="leader" d="M222 256 C222 300 300 356 300 356"/>
   <rect x="12" y="584" width="366" height="40" rx="6" class="callout"/>
-  <text x="24" y="601" class="calloutText">Multi-select approve: one Approve/Change/Reject applies to the</text>
+  <text x="24" y="601" class="calloutText">Multi-select approve: Approve or Change label applies to the</text>
   <text x="24" y="615" class="calloutText">whole selection. Confirmed items require an audited revision.</text>
 
   <rect x="12" y="634" width="366" height="60" rx="6" class="panel"/>
@@ -79,6 +79,5 @@
   <!-- sticky bottom bar -->
   <rect x="0" y="766" width="390" height="78" fill="#fff" stroke="#c8d3dc"/>
   <rect x="12" y="780" width="150" height="50" rx="5" class="green"/><text x="30" y="810" class="white">Approve all (3)</text>
-  <rect x="170" y="780" width="104" height="50" rx="5" fill="#087c8c"/><text x="186" y="810" class="white">Change</text>
-  <rect x="282" y="780" width="96" height="50" rx="5" class="reject"/><text x="304" y="810" class="white">Reject</text>
+  <rect x="170" y="780" width="208" height="50" rx="5" fill="#087c8c"/><text x="274" y="810" class="white" text-anchor="middle">Change label</text>
 </svg>

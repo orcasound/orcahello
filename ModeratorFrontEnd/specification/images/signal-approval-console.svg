@@ -3,7 +3,7 @@
     <style>
       .panel{fill:#fff;stroke:#c9d3dc;stroke-width:1.5}.navy{fill:#0c4968}.title{fill:#fff;font-size:15px;font-weight:700}.label{fill:#263847;font-size:13px}.small{fill:#607483;font-size:11px}.tiny{fill:#718493;font-size:10px}.chip{fill:#e8f4f8;stroke:#91bed0}.axis{stroke:#91a3b1;stroke-width:1}.grid{stroke:#30434f;stroke-width:.7;opacity:.55}
       .callout{fill:#fff3e0;stroke:#c25a2b;stroke-width:1.2}.calloutText{fill:#8a3c15;font-size:11px;font-weight:600}.leader{stroke:#c25a2b;stroke-width:1.2;stroke-dasharray:3 2;fill:none}.cdot{fill:#c25a2b}
-      .ok{fill:#17864b;font-size:11px;font-weight:700}.amber{fill:#b05b22;font-size:11px;font-weight:700}.button{fill:#087c8c}.green{fill:#17864b}.reject{fill:#b45539}.sel{stroke:#087c8c;stroke-width:2.5;fill:none}
+      .ok{fill:#17864b;font-size:11px;font-weight:700}.amber{fill:#b05b22;font-size:11px;font-weight:700}.button{fill:#087c8c}.green{fill:#17864b}.sel{stroke:#087c8c;stroke-width:2.5;fill:none}
     </style>
     <linearGradient id="spec" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#09131c"/><stop offset=".55" stop-color="#152d39"/><stop offset="1" stop-color="#081018"/></linearGradient>
     <pattern id="hatch" width="6" height="6" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#26424f"/><line x1="0" y1="0" x2="0" y2="6" stroke="#5c7d8c" stroke-width="2"/></pattern>
@@ -37,19 +37,19 @@
 
   <!-- signal blocks: empty boxes around always-visible bursts -->
   <g opacity=".9" fill="#dcf1f8"><rect x="150" y="158" width="6" height="124" rx="2"/><rect x="160" y="176" width="4" height="96" rx="2" fill="#bfe6f4"/><rect x="276" y="168" width="6" height="104" rx="2"/><rect x="404" y="164" width="6" height="112" rx="2"/><rect x="498" y="172" width="6" height="96" rx="2"/><rect x="746" y="166" width="6" height="106" rx="2"/><rect x="924" y="178" width="5" height="84" rx="2"/></g>
-  <!-- confirmed + authoritative -->
-  <rect x="120" y="150" width="70" height="140" rx="4" fill="none" stroke="#17864b" stroke-width="2.5"/><text x="128" y="166" fill="#bff0d3" font-size="11">✓ confirmed</text>
+  <!-- confirmed human: signal-type color, solid source outline, state glyph -->
+  <rect x="120" y="150" width="70" height="140" rx="4" fill="none" stroke="#39b98f" stroke-width="2.5"/><text x="128" y="166" fill="#bff0d3" font-size="11">✓</text>
   <!-- proposed model (dashed) -->
-  <rect x="250" y="160" width="60" height="120" rx="4" fill="none" stroke="#df7b2d" stroke-width="2.5" stroke-dasharray="6 4"/><text x="256" y="176" fill="#ffd9b8" font-size="10">model 0.94</text>
+  <rect x="250" y="160" width="60" height="120" rx="4" fill="none" stroke="#7f8ff0" stroke-width="2.5" stroke-dasharray="6 4"/><text x="256" y="176" fill="#fff" font-size="11">□</text>
   <!-- selected group (two proposed) -->
-  <rect x="380" y="156" width="64" height="128" rx="4" fill="none" stroke="#df7b2d" stroke-width="2.5" stroke-dasharray="6 4"/>
-  <rect x="470" y="164" width="64" height="112" rx="4" fill="none" stroke="#1d9a75" stroke-width="2.5" stroke-dasharray="6 4"/>
+  <rect x="380" y="156" width="64" height="128" rx="4" fill="none" stroke="#7f8ff0" stroke-width="2.5" stroke-dasharray="6 4"/><text x="386" y="172" fill="#fff" font-size="11">□</text>
+  <rect x="470" y="164" width="64" height="112" rx="4" fill="none" stroke="#39b98f" stroke-width="2.5"/><text x="476" y="180" fill="#fff" font-size="11">□</text>
   <rect x="372" y="148" width="172" height="146" rx="8" class="sel" stroke-dasharray="6 4"/>
   <text x="378" y="140" fill="#61a9ff" font-size="11" font-weight="700">2 selected</text>
   <!-- proposed human (dashed) -->
-  <rect x="720" y="158" width="60" height="122" rx="4" fill="none" stroke="#1d9a75" stroke-width="2.5" stroke-dasharray="6 4"/><text x="726" y="174" fill="#c8f2e4" font-size="10">human</text>
+  <rect x="720" y="158" width="60" height="122" rx="4" fill="none" stroke="#39b98f" stroke-width="2.5"/><text x="726" y="174" fill="#fff" font-size="11">×</text>
   <!-- unverified -->
-  <rect x="900" y="170" width="56" height="100" rx="4" fill="none" stroke="#7d97a5" stroke-width="2" stroke-dasharray="3 3"/>
+  <rect x="900" y="170" width="56" height="100" rx="4" fill="none" stroke="#d3a24a" stroke-width="2" stroke-dasharray="1 4"/><text x="906" y="186" fill="#fff" font-size="11">?</text>
 
   <!-- action bar for selection -->
   <rect x="34" y="322" width="1130" height="60" rx="6" fill="#f5f8fa" stroke="#c9d3dc"/>
@@ -57,17 +57,15 @@
   <circle cx="60" cy="364" r="13" class="button"/><path d="M56 357l11 7-11 7z" fill="#fff"/><text x="84" y="368" class="small">Listen (scoped playback)</text>
   <rect x="300" y="352" width="190" height="26" rx="4" fill="#fff" stroke="#b9c6cf"/><text x="312" y="369" class="small">Tag: transient (Biggs) ▾</text>
   <rect x="510" y="352" width="120" height="26" rx="4" class="green"/><text x="570" y="369" fill="#fff" font-size="12" font-weight="700" text-anchor="middle">Approve</text>
-  <rect x="642" y="352" width="120" height="26" rx="4" class="button"/><text x="702" y="369" fill="#fff" font-size="12" font-weight="700" text-anchor="middle">Change tag</text>
-  <rect x="774" y="352" width="110" height="26" rx="4" class="reject"/><text x="829" y="369" fill="#fff" font-size="12" font-weight="700" text-anchor="middle">Reject</text>
+  <rect x="642" y="352" width="242" height="26" rx="4" class="button"/><text x="763" y="369" fill="#fff" font-size="12" font-weight="700" text-anchor="middle">Change label</text>
   <text x="900" y="369" class="tiny">Approve/Change → confirmed + authoritative ✓</text>
 
   <!-- legend -->
   <rect x="34" y="398" width="470" height="92" rx="5" fill="#f5f8fa" stroke="#c9d3dc"/>
-  <text x="46" y="418" class="small" font-weight="700">Block legend</text>
-  <rect x="46" y="428" width="18" height="14" rx="3" fill="none" stroke="#17864b" stroke-width="2"/><text x="72" y="440" class="small">confirmed · authoritative ✓</text>
-  <rect x="46" y="450" width="18" height="14" rx="3" fill="none" stroke="#df7b2d" stroke-width="2" stroke-dasharray="5 3"/><text x="72" y="462" class="small">model-proposed</text>
-  <rect x="240" y="450" width="18" height="14" rx="3" fill="none" stroke="#1d9a75" stroke-width="2" stroke-dasharray="5 3"/><text x="266" y="462" class="small">human-proposed</text>
-  <rect x="46" y="470" width="18" height="14" rx="3" fill="none" stroke="#7d97a5" stroke-width="2" stroke-dasharray="3 3"/><text x="72" y="482" class="small">unverified / awaiting review</text>
+  <text x="46" y="418" class="small" font-weight="700">Block legend · color = signal type</text>
+  <rect x="46" y="428" width="18" height="14" rx="3" fill="none" stroke="#607483" stroke-width="2"/><rect x="76" y="428" width="18" height="14" rx="3" fill="none" stroke="#607483" stroke-width="2" stroke-dasharray="5 3"/><rect x="106" y="428" width="18" height="14" rx="3" fill="none" stroke="#607483" stroke-width="2" stroke-dasharray="1 3"/><text x="136" y="440" class="small">source: human / model / unknown</text>
+  <text x="46" y="462" class="small">corner: □ unmoderated · ✓ confirmed</text>
+  <text x="46" y="482" class="small">× false positive · ? needs confirmation</text>
 
   <!-- callouts -->
   <path class="leader" d="M155 290 C155 410 120 398 120 398"/><circle cx="155" cy="290" r="3" class="cdot"/>
@@ -82,7 +80,7 @@
 
   <!-- feedback note -->
   <rect x="34" y="506" width="1130" height="82" rx="6" fill="#fff" stroke="#c9d3dc"/>
-  <text x="48" y="528" class="label" font-weight="700">Downstream of every decision</text>
-  <text x="48" y="550" class="small">• Recompute affected bouts (may split / merge / resize) → alert active editors + prior watchers · suggest boundary, never auto-publish.</text>
-  <text x="48" y="570" class="small">• Write a model-feedback row (approve / change / reject) for retraining &amp; eval; withhold “unknown” (open issues U-1…U-8).</text>
+  <text x="48" y="528" class="label" font-weight="700">Downstream effects</text>
+  <text x="48" y="550" class="small">• Label change: atomically update affected bouts (split / merge / resize). Approval alone preserves membership and boundaries.</text>
+  <text x="48" y="570" class="small">• Write a model-feedback row (approve / change label) for retraining &amp; eval; withhold “unknown” (open issues U-1…U-7).</text>
 </svg>
