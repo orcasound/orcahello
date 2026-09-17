@@ -590,8 +590,7 @@ The reviewer chooses **Change**, selects `seal`, and sees an inline preview befo
 confirming:
 
 - the signal moves from the orca lane to the seal lane;
-- unrelated confirmed tags on the signal remain unchanged;
-- the signal leaves the orca bout and joins or seeds the applicable seal bout;
+- the signal leaves the orca bout and joins or seeds the applicable seal bout (potentially resulting in merging two existing seal bouts);
 - every affected bout is listed with its current and proposed boundaries; and
 - any title, type, tag, split, or merge consequence is called out explicitly.
 
