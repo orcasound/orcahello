@@ -22,5 +22,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\ModeratorFrontEnd\AIForOrcas\AIForOrcas.DTO\AIForOrcas.DTO.csproj" />
+    <ProjectReference Include="..\NotificationSystem.ServiceDefaults\NotificationSystem.ServiceDefaults.csproj" />
   </ItemGroup>
 </Project>
