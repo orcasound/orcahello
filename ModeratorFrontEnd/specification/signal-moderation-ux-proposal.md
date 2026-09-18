@@ -457,8 +457,7 @@ same signals and server state (mirrors bout-spec §8.2).
 
 ```mermaid
 flowchart LR
-  I[New detection / annotation<br/>from reporter or model] --> G[Wait for 15-min<br/>no-detection gap]
-  G --> Q[Logged bout enters<br/>review queue]
+  I[New detection / annotation<br/>from reporter or model] --> Q[Logged bout enters<br/>review queue]
   Q --> R{Moderator action}
   R -- approve existing label --> C[Confirmed + authoritative<br/>membership unchanged]
   R -- change label/species --> K[Corrected + authoritative]
