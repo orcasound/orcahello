@@ -56,7 +56,7 @@ delivery mechanics (bout-spec §9), and storage-engine choice (bout-spec §6b.5)
 
 ## 3. Why the current overlay is not enough
 
-The current overlay
+The currently proposed overlay
 ![moderator workbench](images/moderator-workbench.svg)
 encodes **reporter identity** with lane + color (Reporter A human / Reporter B
 model). That answers "who said this?" but not:
