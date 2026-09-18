@@ -12,14 +12,14 @@
   <rect x="20" y="60" width="820" height="620" rx="6" class="panel"/>
   <rect x="20" y="60" width="820" height="36" rx="6" class="navy"/>
   <text x="36" y="84" class="title">Evidence &#183; Southern Residents calling</text>
-  <text x="38" y="126" class="small">Confirmed species overlay &#183; 12 signals</text>
+  <text x="38" y="126" class="small">Confirmed species overlay &#183; 12 annotations</text>
   <rect x="38" y="140" width="784" height="250" rx="3" fill="url(#spec)"/>
   <g stroke="#30434f" stroke-width=".7" opacity=".55"><line x1="38" y1="202" x2="822" y2="202"/><line x1="38" y1="264" x2="822" y2="264"/><line x1="38" y1="326" x2="822" y2="326"/></g>
   <g fill="#d8f2fb"><rect x="104" y="182" width="7" height="154"/><rect x="158" y="210" width="5" height="114"/><rect x="226" y="174" width="8" height="170"/><rect x="316" y="198" width="6" height="130"/><rect x="418" y="166" width="8" height="180"/><rect x="536" y="205" width="6" height="122"/><rect x="648" y="180" width="7" height="158"/><rect x="750" y="214" width="5" height="108"/></g>
   <g fill="none" stroke="#1d9a75" stroke-width="2"><rect x="86" y="166" width="44" height="184" rx="4"/><rect x="140" y="194" width="42" height="144" rx="4"/><rect x="206" y="158" width="48" height="200" rx="4"/><rect x="296" y="182" width="46" height="160" rx="4"/><rect x="396" y="150" width="52" height="210" rx="4"/><rect x="514" y="188" width="48" height="154" rx="4"/><rect x="626" y="164" width="50" height="188" rx="4"/><rect x="730" y="198" width="46" height="140" rx="4"/></g>
   <text x="42" y="408" class="tiny">09:38</text><text x="230" y="408" class="tiny">09:40</text><text x="422" y="408" class="tiny">09:42</text><text x="614" y="408" class="tiny">09:44</text><text x="784" y="408" class="tiny">09:46</text>
   <circle cx="64" cy="450" r="18" class="button"/><path d="M59 441l14 9-14 9z" fill="#fff"/>
-  <text x="94" y="447" class="label">Play confirmed signals</text><text x="94" y="466" class="small">Clear calls &#183; low vessel noise &#183; audio synchronized</text>
+  <text x="94" y="447" class="label">Play confirmed annotations</text><text x="94" y="466" class="small">Clear calls &#183; low vessel noise &#183; audio synchronized</text>
   <rect x="38" y="494" width="784" height="76" rx="5" fill="#f5f8fa" stroke="#c9d3dc"/>
   <text x="54" y="518" class="label" font-weight="700">Review history</text>
   <text x="54" y="540" class="small">09:48 &#183; Kai confirmed boundaries and tags</text>

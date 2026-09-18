@@ -10,7 +10,7 @@
   </defs>
   <rect width="1200" height="620" fill="#eef3f6"/>
   <rect width="1200" height="44" class="navy"/>
-  <text x="18" y="28" class="title" font-size="17">Post-bout Signal Approval console (moderator-only) · timeline scrubber (S2)</text>
+  <text x="18" y="28" class="title" font-size="17">Post-bout Annotation Tagging (moderator-only) · timeline scrubber (S2)</text>
   <text x="980" y="27" class="title" font-size="12">Orcasound Lab · logged bout</text>
 
   <rect x="20" y="58" width="1160" height="544" rx="6" class="panel"/>
@@ -19,7 +19,7 @@
   <text x="34" y="88" class="small" font-weight="700">Zoom</text>
   <g>
     <rect x="80" y="72" width="52" height="24" rx="4" fill="#fff" stroke="#aebdc9"/><text x="106" y="88" class="small" text-anchor="middle">10 s</text>
-    <rect x="136" y="72" width="52" height="24" rx="4" class="button"/><text x="162" y="88" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">1 min</text>
+    <rect x="136" y="72" width="52" height="24" rx="4" class="button"/><text x="162" y="88" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">2 min</text>
     <rect x="192" y="72" width="56" height="24" rx="4" fill="#fff" stroke="#aebdc9"/><text x="220" y="88" class="small" text-anchor="middle">15 min</text>
     <rect x="252" y="72" width="46" height="24" rx="4" fill="#fff" stroke="#aebdc9"/><text x="275" y="88" class="small" text-anchor="middle">1 h</text>
   </g>
@@ -28,16 +28,19 @@
   <circle cx="998" cy="84" r="5" class="green"/><text x="1010" y="88" class="ok">CLOSED BOUTS · 6 pending</text>
 
   <!-- default span note -->
-  <rect x="80" y="104" width="220" height="22" rx="4" class="callout"/><text x="92" y="120" class="calloutText">Default span = 1 minute</text>
+  <rect x="80" y="104" width="392" height="22" rx="4" class="callout"/><text x="92" y="120" class="calloutText">2 min default = 30 s before + full parent minute + 30 s after</text>
+  <rect x="600" y="104" width="116" height="22" rx="4" fill="#fff" stroke="#4d93ad"/><text x="658" y="119" class="tiny" text-anchor="middle">Fit start boundary</text>
+  <rect x="724" y="104" width="116" height="22" rx="4" fill="#fff" stroke="#4d93ad"/><text x="782" y="119" class="tiny" text-anchor="middle">Fit end boundary</text>
+  <text x="852" y="119" class="tiny">15 min outside + 1 min inside</text>
 
-  <!-- spectrogram with selectable signal blocks -->
+  <!-- spectrogram with selectable annotation blocks -->
   <rect x="34" y="136" width="1130" height="170" rx="3" fill="url(#spec)"/>
   <g class="grid"><line x1="34" y1="186" x2="1164" y2="186"/><line x1="34" y1="236" x2="1164" y2="236"/><line x1="34" y1="286" x2="1164" y2="286"/></g>
-  <g class="tiny" fill="#a9c4d1"><text x="34" y="300">08:03:00</text><text x="315" y="300">08:03:15</text><text x="596" y="300">08:03:30</text><text x="877" y="300">08:03:45</text><text x="1095" y="300">08:04:00</text></g>
+  <g class="tiny" fill="#a9c4d1"><text x="34" y="300">08:02:30</text><text x="315" y="300">08:03:00</text><text x="596" y="300">08:03:30</text><text x="877" y="300">08:04:00</text><text x="1095" y="300">08:04:30</text></g>
 
-  <!-- signal blocks: empty boxes around always-visible bursts -->
+  <!-- annotation blocks: empty boxes around always-visible bursts -->
   <g opacity=".9" fill="#dcf1f8"><rect x="150" y="158" width="6" height="124" rx="2"/><rect x="160" y="176" width="4" height="96" rx="2" fill="#bfe6f4"/><rect x="276" y="168" width="6" height="104" rx="2"/><rect x="404" y="164" width="6" height="112" rx="2"/><rect x="498" y="172" width="6" height="96" rx="2"/><rect x="746" y="166" width="6" height="106" rx="2"/><rect x="924" y="178" width="5" height="84" rx="2"/></g>
-  <!-- confirmed human: signal-type color, solid source outline, state glyph -->
+  <!-- confirmed human: annotation-label color, solid source outline, state glyph -->
   <rect x="120" y="150" width="70" height="140" rx="4" fill="none" stroke="#39b98f" stroke-width="2.5"/><text x="128" y="166" fill="#bff0d3" font-size="11">✓</text>
   <!-- proposed model (dashed) -->
   <rect x="250" y="160" width="60" height="120" rx="4" fill="none" stroke="#7f8ff0" stroke-width="2.5" stroke-dasharray="6 4"/><text x="256" y="176" fill="#fff" font-size="11">□</text>
@@ -53,16 +56,16 @@
 
   <!-- action bar for selection -->
   <rect x="34" y="322" width="1130" height="60" rx="6" fill="#f5f8fa" stroke="#c9d3dc"/>
-  <text x="48" y="346" class="label" font-weight="700">Selection · 2 signals · 08:03:19–08:03:26</text>
+  <text x="48" y="346" class="label" font-weight="700">Selection · 2 annotations · 08:03:19–08:03:26</text>
   <circle cx="60" cy="364" r="13" class="button"/><path d="M56 357l11 7-11 7z" fill="#fff"/><text x="84" y="368" class="small">Listen (scoped playback)</text>
   <rect x="300" y="352" width="190" height="26" rx="4" fill="#fff" stroke="#b9c6cf"/><text x="312" y="369" class="small">Tag: transient (Biggs) ▾</text>
-  <rect x="510" y="352" width="120" height="26" rx="4" class="green"/><text x="570" y="369" fill="#fff" font-size="12" font-weight="700" text-anchor="middle">Approve</text>
-  <rect x="642" y="352" width="242" height="26" rx="4" class="button"/><text x="763" y="369" fill="#fff" font-size="12" font-weight="700" text-anchor="middle">Change label</text>
-  <text x="900" y="369" class="tiny">Approve/Change → confirmed + authoritative ✓</text>
+  <rect x="510" y="352" width="120" height="26" rx="4" class="green"/><text x="570" y="369" fill="#fff" font-size="12" font-weight="700" text-anchor="middle">Confirm tags</text>
+  <rect x="642" y="352" width="242" height="26" rx="4" class="button"/><text x="763" y="369" fill="#fff" font-size="12" font-weight="700" text-anchor="middle">Change labels</text>
+  <text x="900" y="369" class="tiny">Confirm/Change → annotation authoritative ✓</text>
 
   <!-- legend -->
   <rect x="34" y="398" width="470" height="92" rx="5" fill="#f5f8fa" stroke="#c9d3dc"/>
-  <text x="46" y="418" class="small" font-weight="700">Block legend · color = signal type</text>
+  <text x="46" y="418" class="small" font-weight="700">Annotation legend · color = label</text>
   <rect x="46" y="428" width="18" height="14" rx="3" fill="none" stroke="#607483" stroke-width="2"/><rect x="76" y="428" width="18" height="14" rx="3" fill="none" stroke="#607483" stroke-width="2" stroke-dasharray="5 3"/><rect x="106" y="428" width="18" height="14" rx="3" fill="none" stroke="#607483" stroke-width="2" stroke-dasharray="1 3"/><text x="136" y="440" class="small">source: human / model / unknown</text>
   <text x="46" y="462" class="small">corner: □ unmoderated · ✓ confirmed</text>
   <text x="46" y="482" class="small">× false positive · ? needs confirmation</text>
@@ -75,12 +78,12 @@
 
   <path class="leader" d="M458 294 C458 320 300 322 300 322"/><circle cx="458" cy="294" r="3" class="cdot"/>
   <rect x="524" y="452" width="640" height="38" rx="5" class="callout"/>
-  <text x="536" y="470" class="calloutText">Select one or many → Listen → Tag → Approve. Batch-approve consecutive signals.</text>
-  <text x="536" y="484" class="calloutText">Every decision writes to the main database (detection/annotation reviews) — no side store.</text>
+  <text x="536" y="470" class="calloutText">Select annotations → Listen → Tag → Confirm. Confirm multiple consecutive intervals.</text>
+  <text x="536" y="484" class="calloutText">Writes annotation reviews to the main database; bout approval stays separate.</text>
 
   <!-- feedback note -->
   <rect x="34" y="506" width="1130" height="82" rx="6" fill="#fff" stroke="#c9d3dc"/>
   <text x="48" y="528" class="label" font-weight="700">Downstream effects</text>
-  <text x="48" y="550" class="small">• Label change: atomically update affected bouts (split / merge / resize). Approval alone preserves membership and boundaries.</text>
-  <text x="48" y="570" class="small">• Write a model-feedback row (approve / change label) for retraining &amp; eval; withhold “unknown” (open issues U-1…U-7).</text>
+  <text x="48" y="550" class="small">• Label change: atomically update affected bouts. Confirming existing annotation tags preserves boundaries.</text>
+  <text x="48" y="570" class="small">• Write model feedback (confirm / change label) for retraining; bout approval remains a separate action.</text>
 </svg>

@@ -19,7 +19,7 @@
   <text x="34" y="86" class="small" font-weight="700">Session minimap · density + change markers</text>
   <text x="700" y="85" class="small" font-weight="700">Bout limits</text>
   <rect x="770" y="66" width="142" height="24" rx="4" fill="#fff" stroke="#4d93ad"/>
-  <text x="841" y="82" class="small" text-anchor="middle">All signal types ▾</text>
+  <text x="841" y="82" class="small" text-anchor="middle">All annotation labels ▾</text>
   <rect x="924" y="66" width="146" height="24" rx="4" fill="#fff" stroke="#b05b22"/>
   <text x="997" y="82" class="amber" text-anchor="middle">Force merge bouts…</text>
   <text x="1080" y="82" class="tiny">compatible only</text>
@@ -40,7 +40,7 @@
   <g fill="#fff" font-size="14" font-weight="700"><text x="214" y="180">✓</text><text x="364" y="180">✓</text><text x="554" y="180">✓</text><text x="504" y="184">□</text><text x="654" y="184">□</text><text x="754" y="184">×</text><text x="864" y="212">?</text></g>
   <g class="tiny" fill="#a9c4d1"><text x="34" y="314">07:55</text><text x="270" y="314">08:00</text><text x="520" y="314">08:05</text><text x="770" y="314">08:10</text><text x="1000" y="314">08:15</text></g>
 
-  <!-- alignment guides: signal boxes line up with lower lane markers -->
+  <!-- alignment guides: annotation boxes line up with lower lane markers -->
   <g stroke="#61a9ff" stroke-width="1" stroke-dasharray="2 4" opacity=".4"><line x1="230" y1="300" x2="230" y2="366"/><line x1="380" y1="300" x2="380" y2="366"/><line x1="570" y1="300" x2="570" y2="366"/><line x1="520" y1="300" x2="520" y2="418"/><line x1="670" y1="300" x2="670" y2="418"/><line x1="770" y1="300" x2="770" y2="418"/><line x1="880" y1="300" x2="880" y2="464"/></g>
 
   <!-- Humpback lane (bout 1) -->
@@ -71,7 +71,7 @@
   <!-- legend -->
   <rect x="34" y="486" width="470" height="96" rx="5" fill="#f5f8fa" stroke="#c9d3dc"/>
   <text x="46" y="506" class="small" font-weight="700">Shared marker vocabulary</text>
-  <text x="46" y="530" class="small">Color = signal type · outline: solid human / dashed model / dotted unknown</text>
+  <text x="46" y="530" class="small">Color = annotation label · outline: solid human / dashed model / dotted unknown</text>
   <text x="46" y="558" class="small">Corner: □ unmoderated · ✓ confirmed · × false positive · ? needs confirmation</text>
 
   <!-- change-alert banner -->
@@ -83,12 +83,12 @@
   <text x="536" y="557" class="calloutText">The label and resulting valid boundaries save atomically.</text>
   <text x="536" y="572" class="calloutText">Save stays disabled if the timeframe invariant cannot be met.</text>
 
-  <!-- integrated M2-A approval bar -->
+  <!-- integrated M2-A annotation tagging bar -->
   <rect x="34" y="610" width="1130" height="62" rx="6" fill="#e8f4f8" stroke="#4d93ad" stroke-width="1.5"/>
-  <text x="50" y="633" class="label" font-weight="700">M2-A inline approval · 2 proposed signals selected · 08:04:10–08:04:18</text>
+  <text x="50" y="633" class="label" font-weight="700">M2-A annotation tagging · 2 proposed annotations selected · 08:04:10–08:04:18</text>
   <text x="50" y="655" class="small">Selection remains visible in species lanes and spectrogram</text>
   <rect x="650" y="623" width="92" height="34" rx="4" fill="#fff" stroke="#607483"/><text x="696" y="645" class="label" text-anchor="middle">▶ Listen</text>
   <rect x="752" y="623" width="118" height="34" rx="4" fill="#fff" stroke="#607483"/><text x="811" y="645" class="label" text-anchor="middle">Tag: transient</text>
-  <rect x="880" y="623" width="122" height="34" rx="4" fill="#17864b"/><text x="941" y="645" fill="#fff" font-size="13" font-weight="700" text-anchor="middle">✓ Approve (2)</text>
-  <rect x="1012" y="623" width="136" height="34" rx="4" fill="#fff" stroke="#b05b22"/><text x="1080" y="645" class="amber" text-anchor="middle">Change label</text>
+  <rect x="880" y="623" width="122" height="34" rx="4" fill="#17864b"/><text x="941" y="645" fill="#fff" font-size="13" font-weight="700" text-anchor="middle">✓ Confirm (2)</text>
+  <rect x="1012" y="623" width="136" height="34" rx="4" fill="#fff" stroke="#b05b22"/><text x="1080" y="645" class="amber" text-anchor="middle">Change labels</text>
 </svg>

@@ -58,7 +58,7 @@
 
   <path class="leader" d="M660 88 C660 120 700 128 700 128"/>
   <rect x="34" y="360" width="310" height="60" rx="5" class="callout"/>
-  <text x="46" y="380" class="calloutText">Facets hide/show whole classes of signals</text>
+  <text x="46" y="380" class="calloutText">Facets hide/show annotation classes</text>
   <text x="46" y="395" class="calloutText">(here: false positives are off) so the canvas</text>
   <text x="46" y="410" class="calloutText">stays readable while keeping data underneath.</text>
 

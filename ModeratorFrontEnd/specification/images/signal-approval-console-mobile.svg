@@ -9,17 +9,17 @@
   </defs>
   <rect width="390" height="844" fill="#eef3f6"/>
   <rect width="390" height="48" fill="#0c4968"/>
-  <text x="16" y="30" class="white" font-size="15">Signal Approval · closed bouts</text>
+  <text x="16" y="30" class="white" font-size="15">Annotation Tagging · closed bouts</text>
   <circle cx="330" cy="24" r="6" class="green"/><text x="344" y="28" fill="#fff" font-size="11">6</text>
 
   <!-- zoom + span -->
   <rect x="12" y="60" width="366" height="40" rx="6" class="panel"/>
   <text x="20" y="84" class="small">Zoom</text>
   <rect x="62" y="68" width="46" height="24" rx="4" fill="#fff" stroke="#aebdc9"/><text x="85" y="84" class="small" text-anchor="middle">10s</text>
-  <rect x="112" y="68" width="46" height="24" rx="4" class="button"/><text x="135" y="84" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">1m</text>
+  <rect x="112" y="68" width="46" height="24" rx="4" class="button"/><text x="135" y="84" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">2m</text>
   <rect x="162" y="68" width="50" height="24" rx="4" fill="#fff" stroke="#aebdc9"/><text x="187" y="84" class="small" text-anchor="middle">15m</text>
   <rect x="216" y="68" width="40" height="24" rx="4" fill="#fff" stroke="#aebdc9"/><text x="236" y="84" class="small" text-anchor="middle">1h</text>
-  <text x="270" y="84" class="tiny">08:03–08:04</text>
+  <text x="270" y="84" class="tiny">30s context each side</text>
 
   <!-- spectrogram, pinch/scrub -->
   <rect x="12" y="110" width="366" height="200" rx="6" class="panel"/>
@@ -38,7 +38,7 @@
 
   <!-- multi-select list -->
   <rect x="12" y="320" width="366" height="150" rx="6" class="panel"/>
-  <text x="24" y="342" class="label" font-weight="700">Selection · 3 signals</text>
+  <text x="24" y="342" class="label" font-weight="700">Selection · 3 annotations</text>
   <rect x="250" y="326" width="118" height="26" rx="4" class="chip"/><text x="262" y="344" class="small">Select all in view</text>
   <!-- rows with checkboxes -->
   <g>
@@ -56,7 +56,7 @@
     <text x="52" y="426" class="small">08:03:26 · model 0.88 · □ unmoderated</text>
     <rect x="324" y="419" width="12" height="12" rx="2" class="b"/>
   </g>
-  <text x="24" y="452" class="tiny">Tag applied to all selected on approve/change</text>
+  <text x="24" y="452" class="tiny">Tags apply to all selected on confirm/change</text>
 
   <!-- listen + tag -->
   <rect x="12" y="482" width="366" height="86" rx="6" class="panel"/>
@@ -68,16 +68,16 @@
   <!-- callouts -->
   <path class="leader" d="M222 256 C222 300 300 356 300 356"/>
   <rect x="12" y="584" width="366" height="40" rx="6" class="callout"/>
-  <text x="24" y="601" class="calloutText">Multi-select approve: Approve or Change label applies to the</text>
-  <text x="24" y="615" class="calloutText">whole selection. Confirmed items require an audited revision.</text>
+  <text x="24" y="601" class="calloutText">Multi-select tagging: Confirm tags or Change labels applies to the</text>
+  <text x="24" y="615" class="calloutText">whole annotation selection. Confirmed items require an audit.</text>
 
   <rect x="12" y="634" width="366" height="60" rx="6" class="panel"/>
   <text x="24" y="655" class="label" font-weight="700">Logged-bout queue</text>
   <text x="24" y="675" class="small">Bouts enter after the 15-minute closing gap; the badge updates.</text>
-  <text x="24" y="689" class="tiny">Approve = authoritative ✓ · writes to the main database (no side store)</text>
+  <text x="24" y="689" class="tiny">Confirm tags = authoritative ✓ · bout approval is separate</text>
 
   <!-- sticky bottom bar -->
   <rect x="0" y="766" width="390" height="78" fill="#fff" stroke="#c8d3dc"/>
-  <rect x="12" y="780" width="150" height="50" rx="5" class="green"/><text x="30" y="810" class="white">Approve all (3)</text>
-  <rect x="170" y="780" width="208" height="50" rx="5" fill="#087c8c"/><text x="274" y="810" class="white" text-anchor="middle">Change label</text>
+  <rect x="12" y="780" width="150" height="50" rx="5" class="green"/><text x="87" y="810" class="white" text-anchor="middle">Confirm tags (3)</text>
+  <rect x="170" y="780" width="208" height="50" rx="5" fill="#087c8c"/><text x="274" y="810" class="white" text-anchor="middle">Change labels</text>
 </svg>

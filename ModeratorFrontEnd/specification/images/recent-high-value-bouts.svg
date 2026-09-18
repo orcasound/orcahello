@@ -12,7 +12,7 @@
 
   <rect x="20" y="60" width="1160" height="680" rx="6" class="panel"/>
   <text x="40" y="94" class="heading">Recent bouts</text>
-  <text x="40" y="116" class="small">Listen to moderator-confirmed examples and calibrate signal quality.</text>
+  <text x="40" y="116" class="small">Listen to moderator-confirmed examples and calibrate annotation quality.</text>
 
   <rect x="40" y="136" width="178" height="32" rx="4" class="outline"/>
   <text x="52" y="157" class="label">High value first</text><text x="198" y="157" class="small">&#9662;</text>
@@ -36,7 +36,7 @@
   <g fill="#d8f2fb"><rect x="104" y="255" width="5" height="40"/><rect x="156" y="264" width="4" height="29"/><rect x="238" y="251" width="6" height="46"/><rect x="318" y="260" width="5" height="34"/><rect x="404" y="253" width="5" height="43"/></g>
   <circle cx="480" cy="274" r="18" class="button"/><path d="M475 265l14 9-14 9z" fill="#fff"/>
   <text x="514" y="258" class="small">srkw &#183; J-pod &#183; S04</text>
-  <text x="514" y="279" class="label">12 confirmed signals &#183; reviewed by Kai</text>
+  <text x="514" y="279" class="label">12 confirmed annotations &#183; reviewed by Kai</text>
   <text x="514" y="300" class="small">Quality note: Clear calls with low vessel noise</text>
   <rect x="1010" y="252" width="126" height="34" rx="4" class="button"/>
   <text x="1073" y="274" fill="#fff" font-size="12" font-weight="700" text-anchor="middle">Review bout</text>
@@ -52,7 +52,7 @@
   <g fill="#d8f2fb"><rect x="124" y="419" width="4" height="29"/><rect x="196" y="407" width="5" height="45"/><rect x="300" y="416" width="4" height="33"/><rect x="382" y="410" width="5" height="40"/></g>
   <circle cx="480" cy="430" r="18" class="button"/><path d="M475 421l14 9-14 9z" fill="#fff"/>
   <text x="514" y="414" class="small">seal &#183; corrected-identification</text>
-  <text x="514" y="435" class="label">4 confirmed signals &#183; reviewed by Mina</text>
+  <text x="514" y="435" class="label">4 confirmed annotations &#183; reviewed by Mina</text>
   <text x="514" y="456" class="small">Quality note: Useful orca-to-seal correction example</text>
   <rect x="1010" y="408" width="126" height="34" rx="4" class="button"/>
   <text x="1073" y="430" fill="#fff" font-size="12" font-weight="700" text-anchor="middle">Review bout</text>
@@ -64,7 +64,7 @@
   <rect x="64" y="544" width="300" height="52" rx="3" fill="url(#spec)"/>
   <g fill="#d8f2fb"><rect x="116" y="554" width="5" height="34"/><rect x="188" y="562" width="4" height="24"/><rect x="280" y="550" width="5" height="40"/></g>
   <circle cx="388" cy="570" r="16" class="button"/><path d="M384 562l12 8-12 8z" fill="#fff"/>
-  <text x="420" y="560" class="small">humpback</text><text x="420" y="583" class="label">7 confirmed signals &#183; reviewed by Dave</text>
+  <text x="420" y="560" class="small">humpback</text><text x="420" y="583" class="label">7 confirmed annotations &#183; reviewed by Dave</text>
   <rect x="1010" y="544" width="126" height="34" rx="4" class="outline"/>
   <text x="1073" y="566" class="label" font-weight="700" text-anchor="middle">Review bout</text>
 

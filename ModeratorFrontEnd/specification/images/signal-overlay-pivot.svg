@@ -73,7 +73,7 @@
   <path class="leader" d="M103 344 C103 400 300 470 300 470"/><circle cx="103" cy="344" r="3" class="cdot"/>
   <path class="leader" d="M695 344 C695 470 560 500 560 500"/><circle cx="695" cy="344" r="3" class="cdot"/>
   <rect x="300" y="470" width="270" height="40" rx="5" class="callout"/>
-  <text x="312" y="486" class="calloutText">Same signal, re-grouped by the toggle —</text>
+  <text x="312" y="486" class="calloutText">Same annotation, re-grouped by the toggle —</text>
   <text x="312" y="501" class="calloutText">color, outline pattern, and corner glyph stay unchanged</text>
 
   <path class="leader" d="M632 405 C600 405 585 452 612 452"/>

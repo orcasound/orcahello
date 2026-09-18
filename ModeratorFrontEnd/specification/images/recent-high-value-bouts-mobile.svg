@@ -18,7 +18,7 @@
   <text x="34" y="239" class="label" font-weight="700">Southern Residents calling</text><text x="34" y="257" class="small">Sunset Bay &#183; Today 09:42</text>
   <rect x="34" y="272" width="214" height="58" rx="3" fill="url(#spec)"/><g fill="#d8f2fb"><rect x="70" y="282" width="4" height="38"/><rect x="112" y="290" width="4" height="27"/><rect x="164" y="279" width="5" height="44"/><rect x="218" y="287" width="4" height="32"/></g>
   <circle cx="278" cy="301" r="22" class="button"/><path d="M272 290l17 11-17 11z" fill="#fff"/>
-  <text x="34" y="351" class="small">srkw &#183; J-pod &#183; S04 &#183; 12 signals</text>
+  <text x="34" y="351" class="small">srkw &#183; J-pod &#183; S04 &#183; 12 annotations</text>
   <text x="34" y="370" class="label">"Clear calls with low vessel noise"</text>
   <text x="310" y="370" class="small">Review &#8250;</text>
 
@@ -28,7 +28,7 @@
   <text x="34" y="475" class="label" font-weight="700">Harbor seal calls</text><text x="34" y="493" class="small">Orcasound Lab &#183; Yesterday 18:16</text>
   <rect x="34" y="508" width="214" height="58" rx="3" fill="url(#spec)"/><g fill="#d8f2fb"><rect x="82" y="524" width="4" height="30"/><rect x="132" y="516" width="5" height="42"/><rect x="192" y="522" width="4" height="33"/></g>
   <circle cx="278" cy="537" r="22" class="button"/><path d="M272 526l17 11-17 11z" fill="#fff"/>
-  <text x="34" y="587" class="small">seal &#183; corrected identification &#183; 4 signals</text>
+  <text x="34" y="587" class="small">seal &#183; corrected ID &#183; 4 annotations</text>
   <text x="34" y="606" class="label">"Orca-to-seal correction example"</text>
   <text x="310" y="606" class="small">Review &#8250;</text>
 
