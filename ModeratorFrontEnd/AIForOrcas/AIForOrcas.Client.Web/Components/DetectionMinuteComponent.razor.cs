@@ -1,3 +1,4 @@
+using AIForOrcas.Client.BL.Helpers;
 using AIForOrcas.Client.Web.Models;
 using System.Text.RegularExpressions;
 
@@ -99,6 +100,16 @@ public partial class DetectionMinuteComponent
     private bool IsSubmitDisabled { get => _submitting || string.IsNullOrWhiteSpace(DetectionMinute.Found); }
 
     private string WasFound { get => _ti.ToTitleCase(DetectionMinute.Found); }
+
+    // The minute's Moderator joins each reviewer's identity with a comma;
+    // ExtractName only handles a single identity, so extract per identity
+    // before joining, or a two-moderator minute would show only the first name.
+    private string ModeratorNames
+    {
+        get => string.Join(", ", (DetectionMinute.Moderator ?? string.Empty)
+            .Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(identity => EmailHelper.ExtractName(identity.Trim())));
+    }
 
     private string LinkUrl { get => $"{NavigationManager.BaseUri}detections/detection/{DetectionMinute.Id}"; }
 

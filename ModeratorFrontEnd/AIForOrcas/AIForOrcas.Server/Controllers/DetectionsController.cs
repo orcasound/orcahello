@@ -60,11 +60,10 @@ public class DetectionsController : ControllerBase
             throw new ArgumentNullException("Page");
         }
 
-        // One of RecordsPerPage or MinutesPerPage must be non-zero, but not both.
-        if ((queryParameters.RecordsPerPage == 0) == (queryParameters.MinutesPerPage == 0))
-        {
-            throw new ArgumentNullException("RecordsPerPage");
-        }
+        // Pagination precedence: recordsPerPage wins when non-zero,
+        // minutesPerPage applies when recordsPerPage is zero, and both zero
+        // falls back to the default records page size. Any combination is
+        // valid, so nothing to validate here.
     }
 
     private static void ApplyOptionalLocationAndHydrophoneFilters(ref IQueryable<Metadata> queryable, DetectionQueryParameters queryParameters)

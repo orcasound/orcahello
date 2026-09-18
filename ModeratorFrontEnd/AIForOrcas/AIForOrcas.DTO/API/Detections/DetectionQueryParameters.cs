@@ -70,7 +70,10 @@ namespace AIForOrcas.DTO.API
             }
         }
 
-        private int _recordsPerPage = 10;
+        // Zero means "not specified": a request sending only minutesPerPage
+        // then pages by minutes, and a request sending neither falls back to
+        // the server's default records page size.
+        private int _recordsPerPage = 0;
         private readonly int _maxRecordsPerPage = 50;
 
         /// <summary>

@@ -78,7 +78,16 @@ public partial class SingleDetection : ComponentBase, IDisposable
             };
 
             var result = await Service.GetDetectionsAsync(pagination, filter);
-            var allDetections = result?.Response ?? new List<Detection>();
+
+            // A null response is a failed request, not an empty minute. Show
+            // the error state instead of quietly degrading to a one-detection
+            // minute whose submit would skip the siblings.
+            if (result?.Response == null)
+            {
+                isUnavailable = true;
+                return;
+            }
+            var allDetections = result.Response;
 
             // Initialize detectionMinute using the returned detection set. The factory groups by minute+location;
             // when the hydrophone falls back to "all", several hydrophones can share the minute, so pick the
