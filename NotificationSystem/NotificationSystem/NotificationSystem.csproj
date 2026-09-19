@@ -6,6 +6,7 @@
   <ItemGroup>
     <PackageReference Include="AWSSDK.S3" Version="4.0.103.3" />
     <PackageReference Include="AWSSDK.SimpleEmail" Version="4.0.100.14" />
+    <PackageReference Include="Azure.Data.Tables" Version="12.12.0" />
     <PackageReference Include="Azure.Storage.Queues" Version="12.27.1" />
     <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.63.1" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="2.52.0" />
