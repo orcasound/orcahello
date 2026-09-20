@@ -206,7 +206,26 @@ namespace AIForOrcas.Client.BL.Services
                 try
                 {
                     var detections = JsonSerializer.Deserialize<List<Detection>>(responseString, defaultJsonSerializerOptions);
-                    await FixTimestampsAsync(detections);
+
+                    // Attempt to fix timestamps, but do not let S3/network errors
+                    // or other non-JSON exceptions break the caller. If fixing
+                    // timestamps fails, return the original detections so the
+                    // UI can still render the page instead of killing the
+                    // Blazor circuit.
+                    try
+                    {
+                        if (detections != null)
+                        {
+                            await FixTimestampsAsync(detections);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Catch broad exceptions here intentionally; failures
+                        // could be AmazonS3Exception, TaskCanceledException, etc.
+                        _logger.LogWarning(ex, "Failed to correct timestamps for detections; returning unmodified detections. URL: {Url}", url);
+                    }
+
                     return new PaginatedResponseDTO<List<Detection>>
                     {
                         Response = detections,
@@ -225,7 +244,6 @@ namespace AIForOrcas.Client.BL.Services
             {
                 return new PaginatedResponseDTO<List<Detection>> { Response = null, TotalAmountPages = 0, TotalNumberRecords = 0, TotalNumberMinutes = 0 };
             }
-
         }
 
         // Call the root GET (api/detections?...) so callers can request arbitrary date/location filtered sets.
