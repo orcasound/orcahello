@@ -35,6 +35,25 @@ namespace AIForOrcas.Client.BL.Services
             _logger = logger;
         }
 
+        /// <summary>
+        /// Wrapper for unauthenticated GET requests that centralizes error
+        /// handling for unreachable or timed-out APIs. Returns null on
+        /// network-level failure so callers can degrade gracefully.
+        /// </summary>
+        private async Task<HttpResponseMessage> SendUnauthenticatedGetAsync(string url)
+        {
+            var httpClient = _httpClientFactory.CreateClient("UnauthenticatedAPI");
+            try
+            {
+                return await httpClient.GetAsync(url);
+            }
+            catch (Exception exception) when (exception is HttpRequestException || exception is TaskCanceledException)
+            {
+                _logger.LogError(exception, "Unable to reach the detections API at {Url}", url);
+                return null;
+            }
+        }
+
         Dictionary<string, List<string>> _s3FoldersCache = new Dictionary<string, List<string>>();
 
         /// <summary>
@@ -98,66 +117,76 @@ namespace AIForOrcas.Client.BL.Services
         {
             foreach (var detection in detections)
             {
-                // Get the timestamp that OrcaHello listed in the detection.
-                // This is what was used to find the clips, but does not align
-                // with the start of a clip.
-                DateTime? originalDateTime = detection.Timestamp;
-                if (originalDateTime == null)
+                try
                 {
-                    continue;
-                }
-
-                // If the timestamp is in the current epoch, it is already correct.
-                if ((_currentEpochStart != null) && (originalDateTime >= _currentEpochStart))
-                {
-                    continue;
-                }
-
-                // Convert dateTime to Unix time (seconds since 1970-01-01).
-                var originalDateTimeOffset = new DateTimeOffset(originalDateTime.Value);
-                long originalUnixTimeSeconds = originalDateTimeOffset.ToUnixTimeSeconds();
-
-                // Fix the Unix time.  The originalDateTime is incorrect and
-                // was computed based on clips being 11 seconds long instead
-                // of 10 seconds long.  It is also based on the audio stream
-                // starting as of the .ts folder date, instead of about 2 seconds
-                // afterwards.  We can correct these once we know the
-                // .ts folder date to start calculating the drift based on.
-
-                string locationIdString = detection.Location.Id;
-                if (string.IsNullOrEmpty(locationIdString))
-                {
-                    continue;
-                }
-
-                List<string> folders = await GetPublicS3FoldersAsync(locationIdString);
-
-                // Find the most recent folder older than originalUnixTimeSeconds.
-                long folderTimeSeconds = 0;
-                foreach (var folderName in folders)
-                {
-                    if (long.TryParse(folderName, out long unixTime))
+                    // Get the timestamp that OrcaHello listed in the detection.
+                    // This is what was used to find the clips, but does not align
+                    // with the start of a clip.
+                    DateTime? originalDateTime = detection.Timestamp;
+                    if (originalDateTime == null)
                     {
-                        if (unixTime <= originalUnixTimeSeconds && unixTime > folderTimeSeconds)
+                        continue;
+                    }
+
+                    // If the timestamp is in the current epoch, it is already correct.
+                    if ((_currentEpochStart != null) && (originalDateTime >= _currentEpochStart))
+                    {
+                        continue;
+                    }
+
+                    // Convert dateTime to Unix time (seconds since 1970-01-01).
+                    var originalDateTimeOffset = new DateTimeOffset(originalDateTime.Value);
+                    long originalUnixTimeSeconds = originalDateTimeOffset.ToUnixTimeSeconds();
+
+                    // Fix the Unix time.  The originalDateTime is incorrect and
+                    // was computed based on clips being 11 seconds long instead
+                    // of 10 seconds long.  It is also based on the audio stream
+                    // starting as of the .ts folder date, instead of about 2 seconds
+                    // afterwards.  We can correct these once we know the
+                    // .ts folder date to start calculating the drift based on.
+
+                    string locationIdString = detection.Location.Id;
+                    if (string.IsNullOrEmpty(locationIdString))
+                    {
+                        continue;
+                    }
+
+                    List<string> folders = await GetPublicS3FoldersAsync(locationIdString);
+
+                    // Find the most recent folder older than originalUnixTimeSeconds.
+                    long folderTimeSeconds = 0;
+                    foreach (var folderName in folders)
+                    {
+                        if (long.TryParse(folderName, out long unixTime))
                         {
-                            folderTimeSeconds = unixTime;
+                            if (unixTime <= originalUnixTimeSeconds && unixTime > folderTimeSeconds)
+                            {
+                                folderTimeSeconds = unixTime;
+                            }
                         }
                     }
+                    if (folderTimeSeconds == 0)
+                    {
+                        // No folder found.
+                        continue;
+                    }
+
+                    // Compute the correct timestamp of the start of the 60 second clip.
+                    long originalSecondsIntoFolder = originalUnixTimeSeconds - folderTimeSeconds;
+                    long originalClipIndex = originalSecondsIntoFolder / 11;
+                    long correctedSecondsIntoFolder = originalClipIndex * 10 + 2;
+                    long correctedUnixTimeSeconds = folderTimeSeconds + correctedSecondsIntoFolder;
+                    DateTimeOffset correctedDateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(correctedUnixTimeSeconds);
+                    DateTime correctedDateTime = correctedDateTimeOffset.UtcDateTime;
+                    detection.Timestamp = correctedDateTime;
                 }
-                if (folderTimeSeconds == 0)
+                catch (Exception ex)
                 {
-                    // No folder found.
+                    // Log and continue so a single S3 or network failure doesn't
+                    // break the whole timestamp-fixing process or the caller.
+                    _logger.LogWarning(ex, "Failed to correct timestamp for detection {Id}; leaving original timestamp.", detection?.Id);
                     continue;
                 }
-
-                // Compute the correct timestamp of the start of the 60 second clip.
-                long originalSecondsIntoFolder = originalUnixTimeSeconds - folderTimeSeconds;
-                long originalClipIndex = originalSecondsIntoFolder / 11;
-                long correctedSecondsIntoFolder = originalClipIndex * 10 + 2;
-                long correctedUnixTimeSeconds = folderTimeSeconds + correctedSecondsIntoFolder;
-                DateTimeOffset correctedDateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(correctedUnixTimeSeconds);
-                DateTime correctedDateTime = correctedDateTimeOffset.UtcDateTime;
-                detection.Timestamp = correctedDateTime;
             }
         }
 
@@ -165,23 +194,16 @@ namespace AIForOrcas.Client.BL.Services
         // Get detections based on passed view, pagination options, and filter options
         private async Task<PaginatedResponseDTO<List<Detection>>> GetDetectionsAsync(string viewName, PaginationOptionsDTO paginationOptions, IFilterOptions filterOptions)
         {
-            var prefix = api.Contains("?") ? $"{api}/{viewName}&" : $"{api}/{viewName}?";
+            // Build prefix depending on whether a viewName (e.g., "unreviewed") was requested.
+            string prefix = string.IsNullOrWhiteSpace(viewName)
+                ? $"{api}?"
+                : $"{api}/{viewName}?";
+
             var url = $"{prefix}{paginationOptions.QueryString}&{filterOptions.QueryString}";
 
-            // Create client on-demand from the current scope.
-            var httpClient = _httpClientFactory.CreateClient("UnauthenticatedAPI");
-
-            HttpResponseMessage httpResponseMessage;
-            try
+            var httpResponseMessage = await SendUnauthenticatedGetAsync(url);
+            if (httpResponseMessage == null)
             {
-                httpResponseMessage = await httpClient.GetAsync(url);
-            }
-            catch (Exception exception) when (exception is HttpRequestException || exception is TaskCanceledException)
-            {
-                // An unreachable or hung API must degrade like a failed status
-                // code; an unhandled exception here would take down the whole
-                // circuit.
-                _logger.LogError(exception, "Unable to reach the detections API at {Url}", url);
                 return new PaginatedResponseDTO<List<Detection>> { Response = null, TotalAmountPages = 0, TotalNumberRecords = 0, TotalNumberMinutes = 0 };
             }
 
@@ -206,24 +228,9 @@ namespace AIForOrcas.Client.BL.Services
                 try
                 {
                     var detections = JsonSerializer.Deserialize<List<Detection>>(responseString, defaultJsonSerializerOptions);
-
-                    // Attempt to fix timestamps, but do not let S3/network errors
-                    // or other non-JSON exceptions break the caller. If fixing
-                    // timestamps fails, return the original detections so the
-                    // UI can still render the page instead of killing the
-                    // Blazor circuit.
-                    try
+                    if (detections != null)
                     {
-                        if (detections != null)
-                        {
-                            await FixTimestampsAsync(detections);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        // Catch broad exceptions here intentionally; failures
-                        // could be AmazonS3Exception, TaskCanceledException, etc.
-                        _logger.LogWarning(ex, "Failed to correct timestamps for detections; returning unmodified detections. URL: {Url}", url);
+                        await FixTimestampsAsync(detections);
                     }
 
                     return new PaginatedResponseDTO<List<Detection>>
@@ -249,57 +256,9 @@ namespace AIForOrcas.Client.BL.Services
         // Call the root GET (api/detections?...) so callers can request arbitrary date/location filtered sets.
         public async Task<PaginatedResponseDTO<List<Detection>>> GetDetectionsAsync(PaginationOptionsDTO paginationOptions, IFilterOptions filterOptions)
         {
-            // Build URL for root GET: api/detections?{pagination}&{filters}
-            var url = $"{api}?{paginationOptions.QueryString}&{filterOptions.QueryString}";
-            var httpClient = _httpClientFactory.CreateClient("UnauthenticatedAPI");
-
-            HttpResponseMessage httpResponseMessage;
-            try
-            {
-                httpResponseMessage = await httpClient.GetAsync(url);
-            }
-            catch (Exception exception) when (exception is HttpRequestException || exception is TaskCanceledException)
-            {
-                _logger.LogError(exception, "Unable to reach the detections API at {Url}", url);
-                return new PaginatedResponseDTO<List<Detection>> { Response = null, TotalAmountPages = 0, TotalNumberRecords = 0, TotalNumberMinutes = 0 };
-            }
-
-            if (httpResponseMessage.IsSuccessStatusCode)
-            {
-                var responseString = await httpResponseMessage.Content.ReadAsStringAsync();
-
-                if (string.IsNullOrWhiteSpace(responseString))
-                {
-                    return new PaginatedResponseDTO<List<Detection>> { Response = new List<Detection>(), TotalAmountPages = 0, TotalNumberRecords = 0, TotalNumberMinutes = 0 };
-                }
-
-                httpResponseMessage.Headers.TryGetValues("totalAmountPages", out var pageValues);
-                httpResponseMessage.Headers.TryGetValues("totalNumberRecords", out var recordValues);
-                httpResponseMessage.Headers.TryGetValues("totalNumberMinutes", out var minuteValues);
-                int.TryParse(pageValues?.FirstOrDefault(), out var totalAmountPages);
-                int.TryParse(recordValues?.FirstOrDefault(), out var totalNumberRecords);
-                int.TryParse(minuteValues?.FirstOrDefault(), out var totalNumberMinutes);
-
-                try
-                {
-                    return new PaginatedResponseDTO<List<Detection>>
-                    {
-                        Response = JsonSerializer.Deserialize<List<Detection>>(responseString, defaultJsonSerializerOptions),
-                        TotalAmountPages = totalAmountPages,
-                        TotalNumberRecords = totalNumberRecords,
-                        TotalNumberMinutes = totalNumberMinutes
-                    };
-                }
-                catch (JsonException exception)
-                {
-                    _logger.LogError(exception, "Malformed response from the detections API at {Url}", url);
-                    return new PaginatedResponseDTO<List<Detection>> { Response = null, TotalAmountPages = 0, TotalNumberRecords = 0 };
-                }
-            }
-            else
-            {
-                return new PaginatedResponseDTO<List<Detection>> { Response = null, TotalAmountPages = 0, TotalNumberRecords = 0 };
-            }
+            // Delegate to the shared implementation; pass null viewName to
+            // call the root endpoint (api/detections?...).
+            return await GetDetectionsAsync(null, paginationOptions, filterOptions);
         }
 
         // Get unreviewed detections
@@ -371,20 +330,11 @@ namespace AIForOrcas.Client.BL.Services
         public async Task<Detection> GetDetectionAsync(string id)
         {
             var url = $"{api}/{id}";
-
-            // Create client on-demand from the current scope.
-            var httpClient = _httpClientFactory.CreateClient("UnauthenticatedAPI");
-
-            HttpResponseMessage httpResponseMessage;
-            try
-            {
-                httpResponseMessage = await httpClient.GetAsync(url);
-            }
-            catch (Exception exception) when (exception is HttpRequestException || exception is TaskCanceledException)
+            var httpResponseMessage = await SendUnauthenticatedGetAsync(url);
+            if (httpResponseMessage == null)
             {
                 // Null means the API could not be reached, so the page can say
                 // so instead of misreporting the detection as missing.
-                _logger.LogError(exception, "Unable to reach the detections API at {Url}", url);
                 return null;
             }
 
@@ -400,6 +350,10 @@ namespace AIForOrcas.Client.BL.Services
                 try
                 {
                     var response = JsonSerializer.Deserialize<Detection>(responseString, defaultJsonSerializerOptions);
+                    if (response != null)
+                    {
+                        await FixTimestampsAsync(new List<Detection> { response });
+                    }
 
                     return response ?? new Detection();
                 }
