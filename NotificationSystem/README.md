@@ -231,8 +231,22 @@ dotnet user-secrets set "SenderEmail" "<email address>"
 Settings that are not set are simply omitted, so email/Orcasite calls fail only if you
 actually exercise those code paths without supplying them.
 
-An optional natural next step is a `ServiceDefaults` project for shared OpenTelemetry
-configuration.
+### Telemetry (`ServiceDefaults`)
+
+The `NotificationSystem.ServiceDefaults` project provides a shared `AddServiceDefaults()`
+call (wired into the Functions app's host builder) that enables OpenTelemetry logging,
+metrics and tracing, and fans the signals out to whichever backends the environment is
+configured for:
+
+- **OTLP** — when `OTEL_EXPORTER_OTLP_ENDPOINT` is set (the Aspire app host injects it
+  automatically), signals flow into the Aspire dashboard locally, or any OTLP collector.
+- **Azure Monitor / Application Insights** — when `APPLICATIONINSIGHTS_CONNECTION_STRING`
+  is set, signals are exported straight to App Insights.
+
+Both can be active at once, so the same code lights up the dashboard locally and App
+Insights when deployed. `host.json` sets `"telemetryMode": "OpenTelemetry"` so the Functions
+host emits through this same OpenTelemetry pipeline rather than its legacy Application
+Insights SDK — host and worker signals are correlated and not double-counted.
 
 ## Run on Azure
 

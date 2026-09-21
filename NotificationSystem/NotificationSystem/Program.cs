@@ -3,10 +3,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NotificationSystem;
 using NotificationSystem.Models;
+using NotificationSystem.ServiceDefaults;
 using NotificationSystem.Utilities;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
+    .AddServiceDefaults()
     .ConfigureAppConfiguration(config =>
     {
         config.AddEnvironmentVariables();

@@ -2,6 +2,7 @@
   <Project Path="NotificationSystem.Tests.Integration/NotificationSystem.Tests.Integration.csproj" />
   <Project Path="NotificationSystem.Tests.Unit/NotificationSystem.Tests.Unit.csproj" />
   <Project Path="NotificationSystem.AppHost/NotificationSystem.AppHost.csproj" />
+  <Project Path="NotificationSystem.ServiceDefaults/NotificationSystem.ServiceDefaults.csproj" />
   <Project Path="NotificationSystem/NotificationSystem.csproj" />
   <Project Path="PostBackfillToOrcasite/PostBackfillToOrcasite.csproj" />
 </Solution>
