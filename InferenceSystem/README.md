@@ -72,6 +72,18 @@ global_prediction: 0
 2026-03-20 15:38:02,964 DEBUG Sleeping for 57.0s until 1774046340
 ```
 
+## Releasing the live inference system
+
+Run [InferenceSystem-deploy](../.github/workflows/InferenceSystem-deploy.yaml) manually. Select a branch or tag in **Use workflow from** (normally `main`), enter an unused release version such as `v2.2.0`, and check every hydrophone location you want to deploy. The build uses the exact commit selected for the run; no separate source argument is needed. The workflow publishes the image and records its immutable digest, then waits for approval before deploying that same image to all selected locations in the same run.
+
+A repository administrator must first configure required reviewers on the **inference-production** environment. Without that protection rule, the deployment job will not pause. After publishing, review the image summary and select **Review deployments > Approve and deploy**. You do not need to copy a publish run ID.
+
+Deployment applies the namespace's ConfigMap and full deployment manifest, stops the old pods, and starts the published image. Failures attempt to restore the saved configuration and deployment. Verify pod health, logs, and the [Orcanode monitor](https://orcanodemonitor.azurewebsites.net/OrcaHelloOverview), then update each selected namespace's repository manifest to match the deployed image digest.
+
+ConfigMap changes pushed to `main` automatically start **InferenceSystem-deploy-configmaps**. It applies the ConfigMaps changed in the latest commit and restarts their existing images without an approval step. A manual run applies all ConfigMaps. Image and ConfigMap deployments share one global lock and run sequentially.
+
+See [DEVELOPMENT.md](DEVELOPMENT.md#deployment) for environment setup, release instructions, and the manual fallback, and [AzurePlaybook.md](AzurePlaybook.md) for troubleshooting.
+
 ## Development
 
 For local scripts, testing, Docker, deployment, and contributing: [DEVELOPMENT.md](DEVELOPMENT.md)

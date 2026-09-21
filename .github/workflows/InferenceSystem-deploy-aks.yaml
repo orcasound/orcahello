@@ -1,0 +1,88 @@
+---
+name: InferenceSystem-deploy-aks
+
+on:
+  workflow_call:
+    inputs:
+      namespace:
+        required: true
+        type: string
+    secrets:
+      KUBE_CONFIG:
+        required: true
+      ACR_USERNAME:
+        required: true
+      ACR_PASSWORD:
+        required: true
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: inference-system-aks-deployment
+  cancel-in-progress: false
+  queue: max
+
+jobs:
+  deploy:
+    name: Deploy ${{ inputs.namespace }}
+    # Before running: GitHub repo Settings > Environments > inference-production >
+    # Deployment protection rules: enable Required reviewers, add a reviewer, and save.
+    # Without this rule, deployment proceeds without approval.
+    environment: inference-production
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      NAMESPACE: ${{ inputs.namespace }}
+    steps:
+      - uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c  # v2.21.0
+        with:
+          egress-policy: audit
+
+      - name: Resolve published image
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          # The caller waits for publishing to succeed; the overall run is still in progress.
+          gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name inference-release --dir "$RUNNER_TEMP/inference-release"
+          image=$(cat "$RUNNER_TEMP/inference-release/inference-image.txt")
+          [[ "$image" =~ ^orcaconservancycr\.azurecr\.io/live-inference-system:[a-zA-Z0-9_][a-zA-Z0-9_.-]*@sha256:[a-f0-9]{64}$ ]] || { echo "The publish artifact must contain the expected ACR image with a SHA-256 digest" >&2; exit 1; }
+          printf 'IMAGE=%s\n' "$image" >> "$GITHUB_ENV"
+          printf 'Deploying `%s` from successful publish run `%s`\n' "$image" "$GITHUB_RUN_ID" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Checkout deployment manifests
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@829323503d1be3d00ca8346e5391ca0b07a9ab0d  # v5.1.0
+
+      - name: Set Kubernetes context
+        uses: azure/k8s-set-context@8698eba2499e9012f0d5085f8798077cce4bc526  # v5.0.1
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBE_CONFIG }}
+
+      - name: Verify published image
+        env:
+          ACR_USERNAME: ${{ secrets.ACR_USERNAME }}
+          ACR_PASSWORD: ${{ secrets.ACR_PASSWORD }}
+        run: |
+          set -euo pipefail
+          test -n "$ACR_USERNAME"
+          test -n "$ACR_PASSWORD"
+          printf '%s' "$ACR_PASSWORD" | docker login orcaconservancycr.azurecr.io -u "$ACR_USERNAME" --password-stdin
+          tagged_image=${IMAGE%@*}
+          docker manifest inspect "${tagged_image%:*}@${IMAGE##*@}" > /dev/null
+
+      - name: Deploy selected hydrophone
+        id: rollout
+        run: bash .github/scripts/deploy-inference.sh
+
+      - name: Show deployment diagnostics on failure
+        if: failure() && steps.rollout.outcome == 'failure'
+        run: |
+          kubectl get deployment/inference-system -n "$NAMESPACE" -o wide || true
+          kubectl get pods -n "$NAMESPACE" -l app=inference-system -o wide || true
+          kubectl describe deployment/inference-system -n "$NAMESPACE" || true

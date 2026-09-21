@@ -2,7 +2,7 @@
 
 public static class MetadataFilters
 {
-    public static int DefaultRecordsPerPage = 5;
+    public static int DefaultRecordsPerPage = 10;
 
     public static void ApplyTimeframeFilter(ref IQueryable<Metadata> queryable, string timeframe, DateTime? dateFrom = null, DateTime? dateTo = null)
     {

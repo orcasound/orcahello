@@ -55,6 +55,8 @@ namespace AIForOrcas.DTO.API
         /// <example>all</example>
         public string HydrophoneId { get; set; } = "all";
 
+        private static int Clamp(int value, int min, int max) => value < min ? min : value > max ? max : value;
+
         /// <summary>
         /// Number of records per page to retrieve.
         /// </summary>
@@ -64,11 +66,30 @@ namespace AIForOrcas.DTO.API
             get => _recordsPerPage;
             set
             {
-                _recordsPerPage = (value > _maxRecordsPerPage) ? _maxRecordsPerPage : value;
+                _recordsPerPage = Clamp(value, 0, _maxRecordsPerPage);
             }
         }
 
-        private int _recordsPerPage = 10;
+        // Zero means "not specified": a request sending only minutesPerPage
+        // then pages by minutes, and a request sending neither falls back to
+        // the server's default records page size.
+        private int _recordsPerPage = 0;
         private readonly int _maxRecordsPerPage = 50;
+
+        /// <summary>
+        /// Number of minutes per page to retrieve.
+        /// </summary>
+        /// <example>0</example>
+        public int MinutesPerPage
+        {
+            get => _minutesPerPage;
+            set
+            {
+                _minutesPerPage = Clamp(value, 0, _maxMinutesPerPage);
+            }
+        }
+
+        private int _minutesPerPage = 0;
+        private readonly int _maxMinutesPerPage = 50;
     }
 }

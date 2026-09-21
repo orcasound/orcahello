@@ -44,7 +44,7 @@ namespace AIForOrcas.DTO.API
         public List<Annotation> Annotations { get; set; } = new List<Annotation>();
 
         /// <summary>
-        /// Flag indicating whether or not the dection has been reviewed by a human moderator.
+        /// Flag indicating whether or not the detection has been reviewed by a human moderator.
         /// </summary>
         /// <example>true</example>
         public bool Reviewed { get; set; }

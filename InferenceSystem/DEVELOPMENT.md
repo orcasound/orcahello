@@ -211,34 +211,45 @@ docker run --rm -it --env-file .env ^
   --max_live_iterations 2
 ```
 
-The GitHub repository contains a workflow [`InferenceSystem-deploy.yaml`](../.github/workflows/InferenceSystem-deploy.yaml) that automatically builds and pushes the latest image to ACR when the main branch is tagged with a tag of the form `InferenceSystem.v#.#.#`.
-
+The [release workflow](../.github/workflows/InferenceSystem-deploy.yaml) is started manually from Actions. It publishes an image, waits for production approval, then calls the [AKS deployment workflow](../.github/workflows/InferenceSystem-deploy-aks.yaml) to deploy that run's digest-pinned image. Git pushes and tags do not start a release.
 
 ### Deployment
 
-Updating containers in production follows steps below. There isn't automatic CD workflow for this yet https://github.com/orcasound/orcahello/issues/322.
+#### One-time GitHub setup
 
-1. Tag a new release off main branch:
-```bash
-git tag -a "InferenceSystem.v2.x.y" -m "Notes"
-git push --tags
-```
-2. This auto-triggers the [InferenceSystem-deploy workflow](https://github.com/orcasound/orcahello/actions/workflows/InferenceSystem-deploy.yaml), which pushes a Docker container with tag `live-inference-system:[DATE].v2.x.y`
-3. Update that tag in `deploy/*.yaml` files as `image: orcaconservancycr.azurecr.io/live-inference-system:[DATE].v2.x.y`
-4. Deploy to Kubernetes:
-```bash
-NAMESPACE=andrews-bay  # or bush-point, mast-center, north-sjc, orcasound-lab, point-robinson, port-townsend, sunset-bay
-kubectl apply -f deploy/$NAMESPACE-configmap.yaml
-kubectl scale deployment inference-system -n $NAMESPACE --replicas=0
-kubectl apply -f deploy/$NAMESPACE.yaml
-```
-5. Make a PR with the updated `deploy/*.yaml` config files
+Before running a release, a repository administrator must configure **Settings > Environments > inference-production**:
 
-**Deployment Tips** (there is no staging/dev environment):
-- Deploy to one node location first and check status on the [Orcanode monitor](https://orcanodemonitor.azurewebsites.net/OrcaHelloOverview)
-- Then deploy to all node locations
-- This is not a zero-downtime deployment — due to memory limits on nodes, we scale down to 0 replicas first and then scale back up to 1
+- Enable **Required reviewers** and select the people or team who approve deployments. Merely naming the environment in YAML does not create an approval rule; without this setting, deployment proceeds automatically after publishing.
+- Configure **Deployment branches and tags** to allow the branches or tags you intend to release (normally `main`). Other release branches or tags must also be permitted by this environment. Disable administrator bypass if approval must be enforced for administrators too.
+- Leave **Prevent self-review** disabled only if the person starting a release should also be allowed to approve it.
+- Make `ACR_USERNAME` and `ACR_PASSWORD` available as repository or organization Actions secrets for the publish job. Supply `KUBE_CONFIG` as a repository or organization Actions secret so both workflows can access it. An `inference-production` environment secret alone only supports image releases; the ConfigMap workflow does not use that environment. It must authenticate non-interactively and permit deployment and recovery operations in the target namespace. The GitHub runner must be able to reach the cluster API.
 
+See [GitHub's environment setup documentation](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments). Environment approval rules are repository settings and are not installed by merging this code.
+
+#### Release procedure
+
+There is no staging environment. Select only the locations you intend to update; after approval, the selected locations deploy one at a time.
+
+1. Run **InferenceSystem-deploy** from the Actions tab, selecting a branch or tag in **Use workflow from**. Normally select `main`. Enter an unused `release_tag` such as `v2.2.0` and check the target hydrophone locations. At least one checkbox must be selected. The selected revision must contain the release workflows; no separate source argument is needed.
+2. Wait for **Publish image** to succeed. It pushes an image tagged like `orcaconservancycr.azurecr.io/live-inference-system:MM-DD-YYYY.v2.2.0` and uploads its immutable `@sha256:` reference in the `inference-release` artifact. Review the image reference in the run summary.
+3. In the same run, select **Review deployments**, review the selected locations, and choose **Approve and deploy** for `inference-production`. Rejecting approval leaves the image published but does not change AKS. No second workflow dispatch or publish run ID is needed.
+4. Each approved deployment job downloads the same artifact from this run, verifies the image, applies the selected namespace's ConfigMap, stops the old pods, and applies the deployment manifest with the published image. It restores one replica and waits for rollout. Workflow logic, deployment manifests, and the image source all use the exact commit selected for the run (`github.sha`), even if the branch moves while the run is queued.
+5. Check the selected location on the [Orcanode monitor](https://orcanodemonitor.azurewebsites.net/OrcaHelloOverview) and inspect its logs. A successful Kubernetes rollout does not prove that audio inference is healthy.
+6. Update each selected namespace's image in `deploy/<namespace>.yaml` through a PR to the exact digest from the run summary. The workflow does not edit repository manifests; applying an outdated manifest could restore its old image.
+
+Each release run builds and publishes once, then deploys that exact image digest to every selected namespace. Each location has its own deployment job and recovery; a failure at one location does not cancel the others. To repeat a completed deployment with the exact same image, re-run only its deployment job and approve it again. Re-running all jobs rebuilds the image. Artifacts are retained for 30 days, so approval and deployment retries must occur while the artifact is available.
+
+**Deployment behavior:**
+
+- The existing deployment must have one desired replica and an existing `hydrophone-configs` ConfigMap.
+- Deployment is not zero-downtime: memory limits require stopping the old pods before starting replacements.
+- Configuration is applied even when the image is unchanged. Before changing anything, the script saves the live ConfigMap and deployment. Failure triggers an attempt to restore both objects and one replica.
+- Cancellation recovery is best effort. A forced runner shutdown can interrupt restoration; inspect the namespace and use the manual fallback below with the last known good image and configuration if needed.
+- Image releases and ConfigMap updates share one global deployment lock. They queue without canceling active deployments; only one deployment runs at a time across all locations.
+
+#### ConfigMap-only updates
+
+ConfigMap changes pushed to `main` automatically start [InferenceSystem-deploy-configmaps](../.github/workflows/InferenceSystem-deploy-configmaps.yaml). It applies ConfigMaps changed in the latest commit and restarts their deployments, waiting for each rollout. A manual run applies all ConfigMaps. This workflow keeps the existing images and does not require environment approval or use the image-release recovery script. It shares the global deployment lock with image releases.
 
 ### Monitoring
 
@@ -249,20 +260,26 @@ Check deployment status and logs at: https://orcanodemonitor.azurewebsites.net/O
 <details>
 <summary>Push to Azure Container Registry</summary>
 
-The GitHub workflow handles this automatically on tag push. To push manually:
+The GitHub workflow handles publishing through a manual Actions run. An image pushed directly from your terminal has no workflow release artifact, so it cannot be deployed with the AKS release workflow. Use the manual AKS procedure below if you must publish an image this way.
 
 1. Login to the Azure CLI: `az login --tenant adminorcasound.onmicrosoft.com`
 2. Login to ACR: `az acr login --name orcaconservancycr`
-3. Tag and push:
-```bash
-docker tag live-inference-system orcaconservancycr.azurecr.io/live-inference-system:<date>.<version>
-docker push orcaconservancycr.azurecr.io/live-inference-system:<date>.<version>
-```
+3. Tag and push, replacing `v2.2.0` with an unused release version:
+
+   ```bash
+   RELEASE_TAG=v2.2.0
+   IMAGE="orcaconservancycr.azurecr.io/live-inference-system:$(date +%m-%d-%Y).$RELEASE_TAG"
+   docker tag live-inference-system "$IMAGE"
+   docker push "$IMAGE"
+   ```
 
 </details>
 
 <details>
 <summary>Deploy to Azure Kubernetes Service</summary>
+
+This is a manual fallback for a published image. The normal image release uses the [release workflow](../.github/workflows/InferenceSystem-deploy.yaml).
+Run the `deploy/...` commands below from `InferenceSystem/`.
 
 Prerequisites:
 - Container image pushed to ACR
@@ -275,10 +292,13 @@ az login
 az aks get-credentials -g LiveSRKWNotificationSystem -n inference-system-AKS
 kubectl get nodes  # verify connection
 
-# 2. Apply configmap and deployment
+# 2. Update the image in deploy/$NAMESPACE.yaml, then apply the manifests
+NAMESPACE=andrews-bay  # deploy and verify one location before continuing
 kubectl apply -f deploy/$NAMESPACE-configmap.yaml
 kubectl scale deployment inference-system -n $NAMESPACE --replicas=0
 kubectl apply -f deploy/$NAMESPACE.yaml
+kubectl scale deployment inference-system -n $NAMESPACE --replicas=1
+kubectl rollout status deployment inference-system -n $NAMESPACE --timeout=10m
 
 # 3. Verify
 kubectl get pods -n $NAMESPACE
@@ -305,6 +325,11 @@ kubectl logs -n $NAMESPACE -l app=inference-system
     kubectl apply -f deploy/<namespace>-configmap.yaml
     kubectl apply -f deploy/<namespace>.yaml
     ```
+
+The deployment workflows currently support eight hydrophone namespaces. To support a new hydrophone, add its namespace in two places, then merge the changes to `main`:
+
+- The location checkboxes in [InferenceSystem-deploy.yaml](../.github/workflows/InferenceSystem-deploy.yaml).
+- The namespace check in [deploy-inference.sh](../.github/scripts/deploy-inference.sh).
 
 The Docker container image is common across all hydrophones. Each hydrophone's configuration is stored in a namespace-scoped ConfigMap mounted at `/config/`.
 

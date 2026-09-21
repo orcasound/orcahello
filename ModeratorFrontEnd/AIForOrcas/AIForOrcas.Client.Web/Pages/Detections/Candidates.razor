@@ -1,7 +1,7 @@
 ﻿@page "/"
 @page "/detections/candidates"
 <!-- Page Header / Title -->
-<PageHeadingComponent Title="Candidates for Review" PillCount=@pagination.TotalNumberOfRecords />
+<PageHeadingComponent Title="Candidates for Review" PillCount=@pagination.TotalNumberOfMinutes />
 
 <!-- Filter -->
 <CandidateFilterComponent FilterOptions=@filterOptions
@@ -14,25 +14,25 @@
 else
 {
     <!-- Pagination -->
-        @if (detections != null && detections.Count > 0)
-        {
-                <div class="col-12 text-left px-0">
-                        <PaginationComponent PaginationOptions=@paginationOptions
-                                             PaginationResults="@pagination"
-                                             SelectPageCallback="ActOnSelectPageCallback" />
-                </div>
-        }
+    @if (detectionMinutes != null && detectionMinutes.Count > 0)
+    {
+        <div class="col-12 text-left px-0">
+            <PaginationComponent PaginationOptions=@paginationOptions
+                                 PaginationResults="@pagination"
+                                 SelectPageCallback="ActOnSelectPageCallback" />
+        </div>
+    }
 
     <!-- Cards -->
-    @for (var i = 0; i < detections.Count(); i++)
+    @for (var i = 0; i < detectionMinutes.Count(); i++)
     {
-        <DetectionComponent SubmitCallback="ActOnSubmitCallback"
-                            Detection=@detections[i] />
+        <DetectionMinuteComponent SubmitCallback="ActOnSubmitCallback"
+                                  DetectionMinute=@detectionMinutes[i] />
     }
 }
 
 <!-- Pagination -->
-@if (detections != null && detections.Count > 0)
+@if (detectionMinutes != null && detectionMinutes.Count > 0)
 {
     <div class="col-12 text-left px-0">
         <PaginationComponent PaginationOptions=@paginationOptions

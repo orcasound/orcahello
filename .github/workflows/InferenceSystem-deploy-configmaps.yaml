@@ -10,10 +10,10 @@ on:
   workflow_dispatch:  # Allow manual workflow invocation from the Github Actions UI
 
 concurrency:
-  # Cancel any CI/CD workflow currently in progress for the same PR.
-  # Allow running concurrently with any other commits.
-  group: InferenceSystem-deploy-configmaps-${{ github.event.pull_request.number || github.sha }}
-  cancel-in-progress: true
+  # Serialize ConfigMap updates with image deployments.
+  group: inference-system-aks-deployment
+  cancel-in-progress: false
+  queue: max
 
 permissions:  # added using https://github.com/step-security/secure-repo
   contents: read
@@ -49,11 +49,11 @@ jobs:
           else
             CHANGED=$(git diff --name-only HEAD~1 HEAD -- 'InferenceSystem/deploy/*-configmap.yaml')
           fi
-          echo "files=$CHANGED" >> $GITHUB_OUTPUT
+          printf '%s\n' "$CHANGED" > "$RUNNER_TEMP/configmap-files.txt"
 
       - name: Apply configmaps and restart deployments
         run: |
-          CHANGED="${{ steps.changed-files.outputs.files }}"
+          CHANGED=$(cat "$RUNNER_TEMP/configmap-files.txt")
           if [ -z "$CHANGED" ]; then
             echo "No configmap files to apply."
             exit 0
@@ -65,4 +65,5 @@ jobs:
             NAMESPACE=$(basename "$FILE" -configmap.yaml)
             echo "Restarting deployment/inference-system in namespace $NAMESPACE"
             kubectl rollout restart deployment/inference-system -n "$NAMESPACE"
+            kubectl rollout status deployment/inference-system -n "$NAMESPACE" --timeout=10m
           done
