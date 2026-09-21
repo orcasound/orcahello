@@ -1,4 +1,4 @@
-# Moderator Overlay + Post-bout Annotation Tagging — UX Proposal (Draft v0.1)
+# Moderator Overlay + Post-bout Annotation Tagging — UX Proposal (Draft v0.2)
 
 > Status: **DRAFT / EXPLORATORY** — companion to
 > [bout-spec.md](bout-spec.md). This document proposes UX options; it does not
@@ -24,10 +24,10 @@ Two related goals:
 2. **Add post-bout annotation tagging alongside bout approval** — primarily as
   an inline mode of the M2
   Moderator Workbench overlay, with dedicated queue/compare views retained as
-  alternatives (§6). After a bout is closed and logged, a moderator approves the
-  bout and can tag or correct its approximately 3-second annotations, including
+  alternatives (§6). As soon as a bout begins, a moderator can open it and tag or
+  correct its approximately 3-second annotations, including
   annotations not yet assigned to a species/source bout, without leaving the
-  overlay. A confirmed annotation becomes authoritative; later reporter/model input is
+  overlay; final approval remains available once the bout is closed. A confirmed annotation becomes authoritative; later reporter/model input is
   preserved as a separate proposal rather than overwriting it. Whether the API
   also hard-locks confirmed annotations is unresolved pending the override policy in
   U-3. The flow is **time-first** (default 2-minute contextual viewing span, zoomable) and
@@ -352,6 +352,11 @@ zoomable out to hours or in to seconds.
 
 ### Shared requirements (all options)
 
+- **No waiting (KPI1):** moderation and notification workflows MUST become
+  available as soon as qualifying activity is detected. No design may wait for
+  the 15-minute no-detection gap, bout closure, or another timer before exposing
+  the active bout and its evidence for moderator action. Later evidence may
+  extend or recompute its boundaries without blocking initial review.
 - **Initial inspection framing:** when opened from a model report whose parent
   window is `[D.start, D.end]` (60 seconds in v1), show
   `[D.start − 30 s, D.end + 30 s]`. This symmetric 2-minute viewport is centered
@@ -631,9 +636,10 @@ Design:
 
 ### 8.3 Activity resumes after closure: moderator force merge
 
-Ordinary bout creation waits for the 15-minute no-detection gap, then logs the
-closed bout for moderation. If relevant activity resumes after that closure, the
-new activity starts a separate bout under bout-spec R1. The Workbench offers an
+Ordinary bout creation exposes the active bout for moderation as soon as qualifying
+activity is detected; it does not wait for the 15-minute no-detection gap. That gap
+only determines when the bout closes. If relevant activity resumes after closure,
+the new activity immediately starts a separate bout under bout-spec R1. The Workbench offers an
 explicit **Force merge bouts** action when a moderator determines that adjacent
 bouts on the same node and with the same species/source represent one continuous
 real-world event.
@@ -772,7 +778,7 @@ Add these to bout-spec **Appendix A** if adopted.
 | U-1 | **Atomic recompute failure handling:** if the system cannot compute a valid post-change bout set, what recovery detail should the moderator see? | Direction decided: preview the automatic result and disable Save until the label change and all affected bouts can commit atomically. Confirmation alone never changes a boundary. Open detail: error/retry presentation. |
 | U-3 | **Confirmed-annotation write policy:** is append-only authority sufficient (reporter/model input becomes a separate proposal and moderators revise through audited actions), or should the API additionally hard-lock confirmed records? If hard locking is adopted, who may override it and with what precedence? | The baseline in this proposal uses append-only authority to match the bout spec's guidance to avoid hard locking. A padlock/`locked` field MUST NOT be implemented unless stakeholders choose the stronger alternative and define moderator override, takeover, and audit behavior. |
 | U-4 | **What is fed back to models, and when?** confirmed labels, corrected labels (including humpback↔transient and false-positive→non-target/source), and boundary-adjacent negatives — in what format and cadence, and how are `unknown`/ambiguous items excluded? | Drives retraining quality (KPI 3). Proposed: export `model_feedback` where `export_state = pending` and decision ∈ {confirm, change}; withhold `unknown`. |
-| U-5 | **Post-bout queue latency & force-merge policy:** when does a bout enter moderation after its 15-minute closing gap, and should the audited force-merge exception have a maximum gap or require a second moderator? | Baseline: enqueue once the bout is closed and logged; no realtime annotation requirement. Resumed same-node, same-species/source activity creates a new bout that a moderator may explicitly force-merge (§8.3). Adopting this requires a narrow normative exception to bout-spec R1 and the timeframe invariant. |
+| U-5 | **Force-merge policy:** should the audited force-merge exception have a maximum gap or require a second moderator? | Queue timing is decided: KPI1 requires the active bout to enter moderation immediately, without waiting for its 15-minute closing gap. Resumed same-node, same-species/source activity creates a new bout immediately; a moderator may explicitly force-merge it (§8.3). Adopting force merge requires a narrow normative exception to bout-spec R1 and the timeframe invariant. |
 | U-6 | **`unknown` / `SRKWFound` semantics:** how does annotation-level `unknown` map to the bout spec's `SRKWFound` scope question (Appendix A item C)? | An annotation changed from SRKW may still be valid *other-species* or source evidence; the replacement label must identify what is present. |
 | U-7 | **Does approving a logged bout notify subscribers immediately, or only when it is explicitly published** (bout-spec §9)? | Annotation tagging never notifies. Keeping notification exclusively on the bout's publish action prevents duplicate notifications and preserves the normative publish gate. |
 
