@@ -1,4 +1,4 @@
-﻿using static System.Runtime.InteropServices.JavaScript.JSType;
+﻿using Ganss.Xss;
 
 namespace OrcaHello.Web.UI.Services
 {
@@ -50,7 +50,12 @@ namespace OrcaHello.Web.UI.Services
                 Longitude = hydrophone.Longitude,
                 Latitude = hydrophone.Latitude,
                 ImageUrl = hydrophone.ImageUrl,
-                IntroHtml = hydrophone.IntroHtml
+                IntroHtml = SanitizeIntroHtml(hydrophone.IntroHtml)
             };
+
+        private static string SanitizeIntroHtml(string introHtml) =>
+            string.IsNullOrWhiteSpace(introHtml)
+                ? introHtml
+                : new HtmlSanitizer().Sanitize(introHtml);
     }
 }
