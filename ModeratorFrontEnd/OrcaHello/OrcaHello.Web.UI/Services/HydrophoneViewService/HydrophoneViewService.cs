@@ -10,7 +10,7 @@ namespace OrcaHello.Web.UI.Services
     /// <param name="logger">The logger.</param>
     public partial class HydrophoneViewService : IHydrophoneViewService
     {
-        private static readonly HtmlSanitizer IntroHtmlSanitizer = new();
+        private static readonly ThreadLocal<HtmlSanitizer> IntroHtmlSanitizer = new(() => new HtmlSanitizer());
 
         private readonly IHydrophoneService _hydrophoneService = null!;
 
@@ -58,6 +58,6 @@ namespace OrcaHello.Web.UI.Services
         private static string SanitizeIntroHtml(string introHtml) =>
             string.IsNullOrWhiteSpace(introHtml)
                 ? introHtml
-                : IntroHtmlSanitizer.Sanitize(introHtml);
+                : IntroHtmlSanitizer.Value!.Sanitize(introHtml);
     }
 }
