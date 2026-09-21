@@ -50,12 +50,23 @@
 
 /* Wavesurfer additions */
 
-/* Detected regions over the spectrogram: outline only, a magenta 2px edge with a
-   thin dark halo so it reads on both the dark and the light parts of the image at
-   any size (the fill colour from the component is transparent) */
+/* Detected regions over the spectrogram: outline only, a 2px edge with a thin
+   dark halo so it reads on both the dark and the light parts of the image at
+   any size (the fill colour from the component is transparent). The edge color
+   is per AI model via --region-color; the magenta fallback is the original
+   single-model color */
 .wavesurfer-region {
-	border: 2px solid rgba(214, 51, 132, 0.95) !important;
+	border: 2px solid var(--region-color, rgba(214, 51, 132, 0.95)) !important;
 	box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3);
+}
+
+/* Model names on the minute card double as the region legend: each name is
+   underlined in its model's region color (border-bottom-color inline). The
+   thin dark line under the underline is the same halo the region strips get,
+   so a white underline stays visible on the white card */
+.model-region-legend {
+	border-bottom: 3px solid transparent;
+	box-shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
 }
 
 /* Not sure if these help or not */

@@ -55,10 +55,10 @@
         <div class="col-12 col-md-2 col-lg-2">
             <div class="form-group mb-0">
                 <label class="col-form-label mb-0 py-0">Location:</label>
-                <InputSelect id="location" class="form-control" @bind-Value="FilterOptions.Location">
-                    @foreach (var location in AllLocations)
+                <InputSelect id="location" class="form-control" @bind-Value="FilterOptions.HydrophoneId">
+                    @foreach (var location in Locations)
                     {
-                        <option value="@location">@location</option>
+                        <option value="@location.Value">@location.Key</option>
                     }
                     <option value="all">All</option>
                 </InputSelect>

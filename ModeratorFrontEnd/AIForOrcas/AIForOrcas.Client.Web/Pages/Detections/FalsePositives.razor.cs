@@ -1,4 +1,6 @@
-﻿namespace AIForOrcas.Client.Web.Pages.Detections;
+﻿using AIForOrcas.Client.Web.Models;
+
+namespace AIForOrcas.Client.Web.Pages.Detections;
 
 public partial class FalsePositives : IDisposable
 {
@@ -19,12 +21,13 @@ public partial class FalsePositives : IDisposable
 
     private string _userId;
     private List<Detection> detections = null;
+    private List<DetectionMinute> detectionMinutes = null;
 
     private PaginationOptionsDTO paginationOptions =
-        new PaginationOptionsDTO() { RecordsPerPage = 5, Page = 1 };
+        new PaginationOptionsDTO() { RecordsPerPage = 0, MinutesPerPage = 5, Page = 1 };
 
     private ReviewedFilterOptionsDTO filterOptions =
-        new ReviewedFilterOptionsDTO() { SortBy = "timestamp", SortOrder = "desc", Timeframe = "24h", Location = "all" };
+        new ReviewedFilterOptionsDTO() { SortBy = "timestamp", SortOrder = "desc", Timeframe = "24h", Location = "all", HydrophoneId = "all" };
 
     private PaginationResultsDTO pagination = new PaginationResultsDTO();
 
@@ -46,6 +49,7 @@ public partial class FalsePositives : IDisposable
         var paginatedResponse = await Service.GetFalseDetectionsAsync(paginationOptions, filterOptions);
 
         pagination.TotalNumberOfRecords = paginatedResponse.TotalNumberRecords;
+        pagination.TotalNumberOfMinutes = paginatedResponse.TotalNumberMinutes;
         pagination.TotalNumberOfPages = paginatedResponse.TotalAmountPages;
 
         if (pagination.TotalNumberOfPages > 0 && paginationOptions.Page > pagination.TotalNumberOfPages)
@@ -53,6 +57,7 @@ public partial class FalsePositives : IDisposable
             paginationOptions.Page = pagination.TotalNumberOfPages;
             paginatedResponse = await Service.GetFalseDetectionsAsync(paginationOptions, filterOptions);
             pagination.TotalNumberOfRecords = paginatedResponse.TotalNumberRecords;
+            pagination.TotalNumberOfMinutes = paginatedResponse.TotalNumberMinutes;
             pagination.TotalNumberOfPages = paginatedResponse.TotalAmountPages;
         }
 
@@ -71,6 +76,8 @@ public partial class FalsePositives : IDisposable
             loadStatus = null;
             detections = paginatedResponse.Response;
         }
+
+        detectionMinutes = DetectionMinute.CreateDetectionMinutes(detections);
     }
 
     private async Task ActOnSelectPageCallback(PaginationOptionsDTO returnedPaginationOptions)
@@ -96,8 +103,6 @@ public partial class FalsePositives : IDisposable
 
         List<string> leafTags = Detection.GetLeafTags(request.Tags);
         TagCache.SetTags(_userId, leafTags);
-
-        ToastService.ShowSuccess("Detection successfully updated.");
 
         await LoadDetections();
     }

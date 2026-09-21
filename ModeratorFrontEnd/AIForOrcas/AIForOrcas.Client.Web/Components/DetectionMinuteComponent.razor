@@ -1,11 +1,11 @@
 ﻿<!-- Card -->
 
-<EditForm Model="Detection" class="card shadow mb-4 ">
+<EditForm Model="DetectionMinute" class="card shadow mb-4 ">
 
     <!-- Header -->
     <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
         <!-- Title -->
-        <h6 class="m-0 font-weight-bold text-primary">Id: @Detection.Id</h6>
+        <h6 class="m-0 font-weight-bold text-primary">Id: @DetectionMinute.Id</h6>
         <!-- Right-Side Dropdown (Ellipsis) -->
         <div class="dropdown no-arrow">
             <a class="dropdown-toggle" href="#"
@@ -19,8 +19,8 @@
                 <a class="dropdown-item"
                    href="@LinkUrl"
                    data-modal-target="#@ModalSpectrogramPanelId"
-                   data-detection-id="@Detection.Id"
-                   data-audio-uri="@Detection.AudioUri"
+                   data-detection-id="@DetectionMinute.Id"
+                   data-audio-uri="@DetectionMinute.AudioUri"
                    onclick="return OpenSpectrogramModal(event, this)">View Spectrogram Details</a>
                 <a class="dropdown-item"
                    href="#@ModalMapPanelId"
@@ -42,10 +42,10 @@
                     <div class="col-12 px-0">
                         <img class="img-fluid w-100"
                              id=@CardSpectrogramId
-                             src=@Detection.SpectrogramUri />
+                             src=@DetectionMinute.SpectrogramUri />
                         <div class="card-img-overlay p-0"
-                             data-detection-id="@Detection.Id"
-                             data-audio-uri="@Detection.AudioUri"
+                             data-detection-id="@DetectionMinute.Id"
+                             data-audio-uri="@DetectionMinute.AudioUri"
                              onclick="CardSpectrogramTouch(event, this)">
                             <div id=@CardWaveformId class="d-block"></div>
                         </div>
@@ -69,10 +69,10 @@
                 <!-- Datetime & Location -->
                 <div class="row">
                     <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
-                        <p><i class="fas fa-clock pr-2"></i>@DateHelper.UTCToPDTFull(Detection.Timestamp)</p>
+                        <p><i class="fas fa-clock pr-2"></i>@DateHelper.UTCToPDTFull(DetectionMinute.Timestamp)</p>
                     </div>
                     <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
-                        <p><i class="fas fa-map-marked-alt pr-2"></i>@Detection.Location?.Name</p>
+                        <p><i class="fas fa-map-marked-alt pr-2"></i>@DetectionMinute.Location?.Name</p>
                     </div>
                 </div>
                 <!-- Count & Average Confidence -->
@@ -81,25 +81,31 @@
                         <p><i class="fas fa-headphones-alt pr-2"></i>@DetectionCount</p>
                     </div>
                     <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
-                        <p><i class="fas fa-signal pr-2"></i>@AverageConfidence</p>
+                        <p><i class="fas fa-signal pr-2"></i>@Confidence</p>
                     </div>
                 </div>
 
-                @if (Detection.Reviewed)
+                @if (DetectionMinute.Reviewed)
                 {
                     <div class="row">
                         <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
-                            <p><i class="fas fa-calendar-day pr-2"></i>@DateHelper.UTCToPDTFull(@Detection.Moderated)</p>
+                            <p><i class="fas fa-calendar-day pr-2"></i>@DateHelper.UTCToPDTFull(@DetectionMinute.Moderated)</p>
                         </div>
                         <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
-                            <p><i class="fas fa-user pr-2"></i>@EmailHelper.ExtractName(@Detection.Moderator)</p>
+                            <p><i class="fas fa-user pr-2"></i>@ModeratorNames</p>
                         </div>
                     </div>
                 }
 
                 <div class="row">
                     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                        <p><i class="fas fa-robot pr-2"></i>@Detection.AIModel</p>
+                        <p>
+                            <i class="fas fa-robot pr-2"></i>
+                            @foreach (var modelColor in ModelColors)
+                            {
+                                <span class="model-region-legend mr-2" style="border-bottom-color: @modelColor.Value">@modelColor.Key</span>
+                            }
+                        </p>
                     </div>
                 </div>
 
@@ -112,12 +118,12 @@
                                 <div class="detection-options">
                                     @foreach (var option in optionList)
                                     {
-                                        <label class="btn btn-sm btn-outline-primary @(Detection.Found.ToLower() == option.ToLower() ? "active" : "")">
+                                        <label class="btn btn-sm btn-outline-primary @(DetectionMinute.Found.ToLower() == option.ToLower() ? "active" : "")">
                                             <input type="radio"
                                                name="found"
                                                value="@option"
-                                               checked="@(Detection.Found.ToLower() == option.ToLower())"
-                                               id=@(Detection.Id + "-" + option)
+                                               checked="@(DetectionMinute.Found.ToLower() == option.ToLower())"
+                                               id=@(DetectionMinute.Id + "-" + option)
                                                @onchange="(() => SetFoundValue(option))" />
                                             @option
                                         </label>
@@ -130,7 +136,7 @@
                             <div class="col-12 form-group detection-section">
                                 <label class="detection-section-title">Tags</label>
                                 <div class="row">
-                                    @foreach (var suggestion in GetSuggestedTagList(Detection))
+                                    @foreach (var suggestion in GetSuggestedTagList(DetectionMinute))
                                     {
                                         @* Keyed by the tag: without it Blazor matches these buttons by
                                            position, so adding one leaves the clicked element in place with
@@ -146,12 +152,12 @@
                                 </div>
                                 <div class="row">
                                     <InputText class="form-control" placeholder="Separated by commas or semicolons"
-                                               Value="@Detection.Tags"
+                                               Value="@DetectionMinute.Tags"
                                                ValueChanged="@OnTagsChanged"
-                                               ValueExpression="(() => Detection.Tags)" />
+                                               ValueExpression="(() => DetectionMinute.Tags)" />
                                 </div>
                                 <div class="row">
-                                    @foreach (var tag in Detection.TagList)
+                                    @foreach (var tag in DetectionMinute.TagList)
                                     {
                                         <button type="button"
                                                 class="btn btn-sm btn-outline-primary"
@@ -171,14 +177,14 @@
                                 <div>
                                     <InputTextArea class="form-control"
                                                    placeholder="Add comments"
-                                                   @bind-Value="@Detection.Comments" />
+                                                   @bind-Value="@DetectionMinute.Comments" />
 
                                 </div>
                             </div>
                         </div>
                     </Authorized>
                     <NotAuthorized Context="Auth">
-                        @if (Detection.Reviewed)
+                        @if (DetectionMinute.Reviewed)
                         {
                             <div class="row">
                                 <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
@@ -188,7 +194,7 @@
                         }
                         <div class="row">
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                                <p><i class="fas fa-tags pr-2"></i>@Detection.Tags</p>
+                                <p><i class="fas fa-tags pr-2"></i>@DetectionMinute.Tags</p>
                             </div>
                         </div>
                         <div class="row">
@@ -196,7 +202,7 @@
                                 <div class="d-flex">
                                     <i class="fas fa-comment pr-2"></i>
                                     <div style="white-space: pre-wrap; margin-top: -5px;">
-                                        @Detection.Comments
+                                        @DetectionMinute.Comments
                                     </div>
                                 </div>
                             </div>
@@ -229,8 +235,8 @@
            role="button"
            class="btn btn-outline-success"
            data-modal-target="#@ModalSpectrogramPanelId"
-           data-detection-id="@Detection.Id"
-           data-audio-uri="@Detection.AudioUri"
+           data-detection-id="@DetectionMinute.Id"
+           data-audio-uri="@DetectionMinute.AudioUri"
            onclick="return OpenSpectrogramModal(event, this)"><i class="fas fa-wave-square pr-2" aria-hidden="true"></i>Details</a>
 
         <a href="#@ModalMapPanelId"
@@ -248,7 +254,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
-                    @Detection.Location?.Name (@Detection.Location?.Latitude, @Detection.Location?.Longitude)
+                    @DetectionMinute.Location?.Name (@DetectionMinute.Location?.Latitude, @DetectionMinute.Location?.Longitude)
                 </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">×</span>
@@ -271,7 +277,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
-                    @Detection.Id
+                    @DetectionMinute.Id
                 </h5>
                 <button type="button"
                         class="close"
@@ -286,7 +292,7 @@
                     <div class="col px-0">
                         <img class="img-fluid"
                              id=@ModalSpectrogramId
-                             src=@Detection.SpectrogramUri />
+                             src=@DetectionMinute.SpectrogramUri />
                         <div class="card-img-overlay p-0">
                             <div id=@ModalWaveformId class="d-block"></div>
                         </div>
@@ -342,16 +348,16 @@
                 <div class="form-group">
                     <label class="col-form-label-lg">Link to Audio File:</label>
                     <div>
-                        <a class="h5 text-break" href="@Detection.AudioUri"
-                           target="_blank">@Detection.AudioUri</a>
+                        <a class="h5 text-break" href="@DetectionMinute.AudioUri"
+                           target="_blank">@DetectionMinute.AudioUri</a>
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label class="col-form-label-lg">Link to Spectrogram:</label>
                     <div>
-                        <a class="h5 text-break" href="@Detection.SpectrogramUri"
-                           target="_blank">@Detection.SpectrogramUri</a>
+                        <a class="h5 text-break" href="@DetectionMinute.SpectrogramUri"
+                           target="_blank">@DetectionMinute.SpectrogramUri</a>
                     </div>
                 </div>
             </div>

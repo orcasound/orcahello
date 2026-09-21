@@ -1,12 +1,14 @@
+using AIForOrcas.Client.BL.Helpers;
+using AIForOrcas.Client.Web.Models;
 using System.Text.RegularExpressions;
 
 namespace AIForOrcas.Client.Web.Components;
 
-public partial class DetectionComponent
+public partial class DetectionMinuteComponent
 {
     private string _id;
     private string _userId;
-    private Detection _initializedDetection;
+    private DetectionMinute _initializedDetectionMinute;
     private bool _submitting;
     private TextInfo _ti = new CultureInfo("en-US", false).TextInfo;
 
@@ -32,7 +34,7 @@ public partial class DetectionComponent
     IToastService ToastService { get; set; }
 
     [Parameter]
-    public Detection Detection { get; set; }
+    public DetectionMinute DetectionMinute { get; set; }
 
     [Parameter]
     public EventCallback<DetectionUpdate> SubmitCallback { get; set; }
@@ -57,30 +59,74 @@ public partial class DetectionComponent
 
     private string ModalLinkId { get => $"link-panel-modal-{_id}"; }
 
-    private string DetectionCount { get => (Detection.Annotations.Count == 1) ? "1 detection" : $"{Detection.Annotations.Count} detections"; }
+    private string DetectionCount
+    {
+        get
+        {
+            if (DetectionMinute.Annotations.Count == 1)
+            {
+                return "1 detection";
+            }
+            string value = string.Empty;
+            foreach (var d in DetectionMinute.Detections)
+            {
+                if (!string.IsNullOrEmpty(value))
+                {
+                    value += ", ";
+                }
+                value += $"{d.Annotations.Count}";
+            }
+            return $"{value} detections";
+        }
+    }
 
-    private string AverageConfidence { get => $"{Detection.Confidence.ToString("00.##")}% average confidence"; }
+    private string Confidence
+    {
+        get
+        {
+            string value = string.Empty;
+            foreach (var d in DetectionMinute.Detections)
+            {
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    value += ", ";
+                }
+                value += $"{d.Confidence.ToString("00.##")}%";
+            }
+            return $"{value} average confidence";
+        }
+    }
 
-    private bool IsSubmitDisabled { get => _submitting || string.IsNullOrWhiteSpace(Detection.Found); }
+    private bool IsSubmitDisabled { get => _submitting || string.IsNullOrWhiteSpace(DetectionMinute.Found); }
 
-    private string WasFound { get => _ti.ToTitleCase(Detection.Found); }
+    private string WasFound { get => _ti.ToTitleCase(DetectionMinute.Found); }
 
-    private string LinkUrl { get => $"{NavigationManager.BaseUri}detections/detection/{Detection.Id}"; }
+    // The minute's Moderator joins each reviewer's identity with a comma;
+    // ExtractName only handles a single identity, so extract per identity
+    // before joining, or a two-moderator minute would show only the first name.
+    private string ModeratorNames
+    {
+        get => string.Join(", ", (DetectionMinute.Moderator ?? string.Empty)
+            .Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(identity => EmailHelper.ExtractName(identity.Trim())));
+    }
 
-    public List<string> GetSuggestedTagList(Detection d)
+    private string LinkUrl { get => $"{NavigationManager.BaseUri}detections/detection/{DetectionMinute.Id}"; }
+
+    public List<string> GetSuggestedTagList(DetectionMinute dm)
     {
         var suggestedTags = new List<string>();
 
         // Add any tags not in TagList that were leaf tags in the most recently moderated detection.
         foreach (var tag in TagCache.GetTags(_userId))
         {
-            if (!d.TagList.Contains(tag, StringComparer.OrdinalIgnoreCase))
+            if (!dm.TagList.Contains(tag, StringComparer.OrdinalIgnoreCase))
             {
                 suggestedTags.Add(tag);
             }
         }
 
-        foreach (var tag in d.SuggestedTagList)
+        foreach (var tag in dm.SuggestedTagList)
         {
             if (!suggestedTags.Contains(tag, StringComparer.OrdinalIgnoreCase))
             {
@@ -94,7 +140,7 @@ public partial class DetectionComponent
         {
             foreach (var tag in defaultTagSuggestions.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
             {
-                if (!d.TagList.Contains(tag, StringComparer.OrdinalIgnoreCase) &&
+                if (!dm.TagList.Contains(tag, StringComparer.OrdinalIgnoreCase) &&
                     !suggestedTags.Contains(tag, StringComparer.OrdinalIgnoreCase))
                 {
                     suggestedTags.Add(tag);
@@ -107,7 +153,7 @@ public partial class DetectionComponent
 
     protected override async Task OnParametersSetAsync()
     {
-        _id = Detection.Id;
+        _id = DetectionMinute.Id;
 
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
@@ -124,20 +170,31 @@ public partial class DetectionComponent
         // parent re-render with the same Detection instance, and resetting
         // then would wipe a verdict the moderator already selected (e.g., right
         // after a failed submit shows its retry toast).
-        if (!Detection.Reviewed && !ReferenceEquals(Detection, _initializedDetection))
+        if (!DetectionMinute.Reviewed && !ReferenceEquals(DetectionMinute, _initializedDetectionMinute))
         {
-            _initializedDetection = Detection;
-            Detection.Found = string.Empty;
+            _initializedDetectionMinute = DetectionMinute;
 
-            if (string.IsNullOrEmpty(Detection.Tags))
+            // A partially reviewed minute keeps the reviewed detection's verdict
+            // visible, so the moderator can see what a submit would overwrite.
+            // A fully unreviewed minute still starts unselected.
+            DetectionMinute.Found =
+                DetectionMinute.Detections?.FirstOrDefault(d => d.Reviewed)?.Found ?? string.Empty;
+
+            if (string.IsNullOrEmpty(DetectionMinute.Tags))
             {
-                if (Detection.GlobalPredictionLabel == "transient")
+                // Check every model's label, not just the first detection's:
+                // a model with an empty label sorting first must not hide
+                // another model's transient or humpback prediction.
+                foreach (var label in DetectionMinute.GlobalPredictionLabels)
                 {
-                    AddTag("transient");
-                }
-                else if (Detection.GlobalPredictionLabel == "humpback")
-                {
-                    AddTag("humpback");
+                    if (label == "transient")
+                    {
+                        AddTag("transient");
+                    }
+                    else if (label == "humpback")
+                    {
+                        AddTag("humpback");
+                    }
                 }
 
                 // Don't add the "srkw" tag here because we want the user
@@ -145,9 +202,9 @@ public partial class DetectionComponent
             }
 
             // If Comments is of the form "AI: A and B", then parse out the B and add it too.
-            if (!string.IsNullOrEmpty(Detection.Comments))
+            if (!string.IsNullOrEmpty(DetectionMinute.Comments))
             {
-                var match = Regex.Match(Detection.Comments, @"AI:\s*(?<a>.*?)\s*and\s*(?<b>.*)");
+                var match = Regex.Match(DetectionMinute.Comments, @"AI:\s*(?<a>.*?)\s*and\s*(?<b>.*)");
                 if (match.Success)
                 {
                     string b = match.Groups["b"].Value;
@@ -160,7 +217,7 @@ public partial class DetectionComponent
             // selects SRKW=yes, so strip "resident" during initialization to avoid an extra tag.
             // If we later need to map other model labels (e.g., "transient" -> "biggs"), do it here.
             // This does not block moderators from manually entering "resident" later.
-            if (Detection.TagList.Contains("resident", StringComparer.OrdinalIgnoreCase))
+            if (DetectionMinute.TagList.Contains("resident", StringComparer.OrdinalIgnoreCase))
             {
                 RemoveTag("resident");
 
@@ -176,7 +233,7 @@ public partial class DetectionComponent
         // Invoked on every render because the card may not be in the DOM yet on the
         // first render (e.g. while the single detection page is still loading the record);
         // the JS side is idempotent and exits early once the shades exist.
-        await JSRuntime.InvokeVoidAsync("DrawRegionShades", _id, Detection.AudioUri, RegionsJson);
+        await JSRuntime.InvokeVoidAsync("DrawRegionShades", _id, DetectionMinute.AudioUri, RegionsJson);
 
         // Once per card is enough: the JS wires its listeners on the first call and
         // re-evaluates every card on each scroll and resize after that.
@@ -188,7 +245,7 @@ public partial class DetectionComponent
 
     private void SetFoundValue(string found)
     {
-        Detection.Found = found;
+        DetectionMinute.Found = found;
 
         switch (found)
         {
@@ -212,7 +269,7 @@ public partial class DetectionComponent
         {
             return;
         }
-        var tagList = Detection.TagList;
+        var tagList = DetectionMinute.TagList;
         if (tagList.Contains(tag, StringComparer.OrdinalIgnoreCase))
         {
             // Nothing to do.
@@ -237,7 +294,7 @@ public partial class DetectionComponent
         {
             tagList.Add(tag);
         }
-        Detection.Tags = string.Join(";", tagList);
+        DetectionMinute.Tags = string.Join(";", tagList);
 
         // Add parent tag if not already present.
         if (!string.IsNullOrEmpty(parentTag))
@@ -245,7 +302,7 @@ public partial class DetectionComponent
             AddTag(parentTag);
         }
 
-        if (tag.Equals("srkw", StringComparison.OrdinalIgnoreCase) && Detection.Found != "Yes")
+        if (tag.Equals("srkw", StringComparison.OrdinalIgnoreCase) && DetectionMinute.Found != "Yes")
         {
             SetFoundValue("Yes");
         }
@@ -262,7 +319,7 @@ public partial class DetectionComponent
         {
             return;
         }
-        var tagList = Detection.TagList;
+        var tagList = DetectionMinute.TagList;
         if (!tagList.Contains(tag, StringComparer.OrdinalIgnoreCase))
         {
             // Nothing to do.
@@ -270,7 +327,7 @@ public partial class DetectionComponent
         }
 
         tagList.RemoveAll(t => t.Equals(tag, StringComparison.OrdinalIgnoreCase));
-        Detection.Tags = string.Join(";", tagList);
+        DetectionMinute.Tags = string.Join(";", tagList);
 
         // Remove child tags if they exist in the hierarchy.
         foreach (var pair in Detection.TagHierarchy)
@@ -283,7 +340,7 @@ public partial class DetectionComponent
 
         // If we just removed the SRKW tag and the radio button says
         // SRKW=yes, clear that.
-        if (tag.Equals("srkw", StringComparison.OrdinalIgnoreCase) && Detection.Found == "Yes")
+        if (tag.Equals("srkw", StringComparison.OrdinalIgnoreCase) && DetectionMinute.Found == "Yes")
         {
             SetFoundValue(string.Empty);
         }
@@ -301,7 +358,7 @@ public partial class DetectionComponent
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList();
 
-        var existingTags = Detection.TagList.ToList();
+        var existingTags = DetectionMinute.TagList.ToList();
         var tagsToRemove = existingTags
             .Where(tag => !normalizedTags.Contains(tag, StringComparer.OrdinalIgnoreCase))
             .ToList();
@@ -319,7 +376,7 @@ public partial class DetectionComponent
             AddTag(tag);
         }
 
-        Detection.Tags = string.Join(";", Detection.TagList);
+        DetectionMinute.Tags = string.Join(";", DetectionMinute.TagList);
     }
 
     private async Task SubmitUpdate()
@@ -332,20 +389,34 @@ public partial class DetectionComponent
         }
         _submitting = true;
 
+        var submitted = 0;
         try
         {
-            var request = new DetectionUpdate()
-            {
-                Id = Detection.Id,
-                Comments = Detection.Comments,
-                Tags = Detection.Tags,
-                Moderator = await AccountService.GetUsername(),
-                Moderated = DateTime.Now,
-                Reviewed = true,
-                Found = Detection.Found
-            };
+            var detections = DetectionMinute.Detections.ToList();
+            var comments = DetectionMinute.Comments;
+            var tags = DetectionMinute.Tags;
+            var found = DetectionMinute.Found;
+            var moderator = await AccountService.GetUsername();
+            var moderated = DateTime.Now;
 
-            await SubmitCallback.InvokeAsync(request);
+            foreach (var d in detections)
+            {
+                var request = new DetectionUpdate()
+                {
+                    Id = d.Id,
+                    Comments = comments,
+                    Tags = tags,
+                    Moderator = moderator,
+                    Moderated = moderated,
+                    Reviewed = true,
+                    Found = found
+                };
+
+                await SubmitCallback.InvokeAsync(request);
+                submitted++;
+            }
+
+            ToastService.ShowSuccess("Detection successfully updated.");
         }
         catch (Exception exception) when (exception is HttpRequestException || exception is TaskCanceledException)
         {
@@ -353,7 +424,11 @@ public partial class DetectionComponent
             // card and the moderator's selections untouched for a retry. The
             // wording stays generic: the same exception covers an unreachable
             // server and an error response, and the service logs the detail.
-            ToastService.ShowError("The verdict was not saved. Please try again.");
+            // Updates are sent one detection at a time, so a failure partway
+            // through a minute means the earlier detections did save.
+            ToastService.ShowError(submitted == 0
+                ? "The verdict was not saved. Please try again."
+                : "Only part of the minute was saved. Please submit again to finish.");
         }
         finally
         {
@@ -363,7 +438,7 @@ public partial class DetectionComponent
 
     private async Task ToggleCardPlayer()
     {
-        await JSRuntime.InvokeVoidAsync("CardSpectrogram", _id, Detection.AudioUri);
+        await JSRuntime.InvokeVoidAsync("CardSpectrogram", _id, DetectionMinute.AudioUri);
     }
 
     private async Task ToggleModalPlayer()
@@ -378,27 +453,92 @@ public partial class DetectionComponent
         await JSRuntime.InvokeVoidAsync("ToggleModalSpectrogram");
     }
 
-    private string RegionsJson =>
-        JsonSerializer.Serialize(Detection.Annotations.Select(annotation => new
+    // Each known model keeps one color on every card, so color means model
+    // across the whole queue: OrcaHello keeps the legacy magenta, PODS-AI the
+    // Okabe-Ito orange chosen for contrast on the blue spectrogram and
+    // separability under color vision deficiency.
+    private static readonly Dictionary<string, string> ModelColorRegistry =
+        new(StringComparer.OrdinalIgnoreCase)
         {
-            start = annotation.StartTime,
-            end = annotation.EndTime,
-            // Outline only (border in ai-for-orcas.css): a fill all but vanished on a small spectrogram
-            color = "rgba(0, 0, 0, 0)"
-        }));
+            ["OrcaHello"] = "rgba(214, 51, 132, 0.95)",
+            ["PODS-AI"] = "rgba(230, 159, 0, 0.95)"
+        };
+
+    // Fallback colors for models not in the registry: white, then vermillion
+    // D55E00 (also Okabe-Ito).
+    private static readonly string[] FallbackColorPalette =
+    {
+        "rgba(255, 255, 255, 0.95)",
+        "rgba(213, 94, 0, 0.95)"
+    };
+
+    // Distinct models sorted by name, each paired with its color: registry
+    // color when the model is known, else a fallback slot by sorted position,
+    // so an unknown model still gets the same color on every card.
+    private List<KeyValuePair<string, string>> ModelColors
+    {
+        get
+        {
+            var models = DetectionMinute.Detections
+                .Where(d => !string.IsNullOrWhiteSpace(d?.AIModel))
+                .Select(d => d.AIModel.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(m => m, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            var fallbackIndex = 0;
+            var pairs = new List<KeyValuePair<string, string>>();
+            foreach (var model in models)
+            {
+                var color = ModelColorRegistry.TryGetValue(model, out var registered)
+                    ? registered
+                    : FallbackColorPalette[fallbackIndex++ % FallbackColorPalette.Length];
+                pairs.Add(new KeyValuePair<string, string>(model, color));
+            }
+            return pairs;
+        }
+    }
+
+    private string RegionColorFor(string model)
+    {
+        var pair = ModelColors.FirstOrDefault(p =>
+            p.Key.Equals(model?.Trim(), StringComparison.OrdinalIgnoreCase));
+        if (pair.Key != null)
+        {
+            return pair.Value;
+        }
+
+        return ModelColorRegistry.TryGetValue(model?.Trim() ?? string.Empty, out var registered)
+            ? registered
+            : ModelColorRegistry["OrcaHello"];
+    }
+
+    private string RegionsJson =>
+        JsonSerializer.Serialize(DetectionMinute.Detections
+            .Where(detection => detection?.Annotations != null)
+            .SelectMany(detection => detection.Annotations.Select(annotation => new
+            {
+                start = annotation.StartTime,
+                end = annotation.EndTime,
+                // Outline only (border in ai-for-orcas.css): a fill all but vanished on a small spectrogram
+                color = "rgba(0, 0, 0, 0)",
+                borderColor = RegionColorFor(detection.AIModel),
+                model = detection.AIModel
+            })));
 
     private async Task InitializeModalPlayer()
     {
         await JSRuntime.InvokeVoidAsync("DestroyActivePlayer");
         await JSRuntime.InvokeVoidAsync("InitializeModalSpectrogram", _id,
-            Detection.AudioUri);
+            DetectionMinute.AudioUri);
     }
 
     private async Task InitializeModalMap()
     {
         await JSRuntime.InvokeVoidAsync("DestroyActivePlayer");
         await JSRuntime.InvokeVoidAsync("LoadBingMap", _id,
-            Detection.Location?.Latitude, Detection.Location?.Longitude);
+            DetectionMinute.Location?.Latitude,
+            DetectionMinute.Location?.Longitude);
     }
 
     private async Task KillPlayer()

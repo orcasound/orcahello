@@ -2,7 +2,7 @@
 
 public static class DetectionFilters
 {
-    public static int DefaultRecordsPerPage = 5;
+    public static int DefaultRecordsPerPage = 10;
 
     public static void ApplyTimestampSortFilter(ref List<Detection> list, string sortOrder)
     {

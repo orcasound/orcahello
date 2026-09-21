@@ -547,6 +547,14 @@ function DrawRegionShades(detectionId, audioUrl, regionsJson) {
 				strip.style.left = (region.start / duration * 100) + '%';
 				strip.style.width = ((region.end - region.start) / duration * 100) + '%';
 				strip.style.backgroundColor = region.color;
+				if (region.borderColor) {
+					// Custom property because the border in ai-for-orcas.css is
+					// !important; the var carries the per-model color through it.
+					strip.style.setProperty('--region-color', region.borderColor);
+				}
+				if (region.model) {
+					strip.title = region.model;
+				}
 				shades.appendChild(strip);
 			});
 

@@ -14,5 +14,8 @@ namespace AIForOrcas.Client.BL.Services
 
         Task<Detection> GetDetectionAsync(string id);
         Task UpdateRequestAsync(DetectionUpdate request);
+
+        // Fetch detections using the root GET endpoint with arbitrary filter options (e.g. date range + location).
+        Task<PaginatedResponseDTO<List<Detection>>> GetDetectionsAsync(PaginationOptionsDTO paginationOptions, IFilterOptions filterOptions);
     }
 }

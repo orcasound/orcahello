@@ -11,15 +11,23 @@ public partial class ReviewedFilterComponent
     [Inject]
     public AppSettings AppSettings { get; set; }
 
-    private List<string> AllLocations = new List<string>();
+    private List<KeyValuePair<string, string>> Locations = new List<KeyValuePair<string, string>>();
 
     protected override void OnInitialized()
     {
-        AllLocations = HydrophoneLocations.Locations.ToList();
+        Locations = HydrophoneLocations.Locations
+            .Select(location => new KeyValuePair<string, string>(location, HydrophoneLocations.GetIdByLocation(location)))
+            .Where(location => location.Value != null)
+            .ToList();
+
+        FilterOptions.Location = "all";
+        FilterOptions.HydrophoneId ??= "all";
     }
 
     private async Task ApplyFilter()
     {
+        FilterOptions.Location = "all";
+        FilterOptions.HydrophoneId ??= "all";
         await ApplyFilterCallback.InvokeAsync(FilterOptions);
     }
 }

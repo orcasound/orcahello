@@ -1,4 +1,6 @@
-﻿namespace AIForOrcas.Client.Web.Pages.Detections;
+﻿using AIForOrcas.Client.Web.Models;
+
+namespace AIForOrcas.Client.Web.Pages.Detections;
 
 public partial class Unknown : IDisposable
 {
@@ -19,9 +21,10 @@ public partial class Unknown : IDisposable
 
     private string _userId;
     private List<Detection> detections = null;
+    private List<DetectionMinute> detectionMinutes = null;
 
     private PaginationOptionsDTO paginationOptions =
-        new PaginationOptionsDTO() { RecordsPerPage = 5, Page = 1 };
+        new PaginationOptionsDTO() { RecordsPerPage = 0, MinutesPerPage = 5, Page = 1 };
 
     private CandidateFilterOptionsDTO filterOptions =
         new CandidateFilterOptionsDTO() { SortBy = "timestamp", SortOrder = "desc", Timeframe = "24h", Location = "all", HydrophoneId = "all" };
@@ -46,6 +49,7 @@ public partial class Unknown : IDisposable
         var paginatedResponse = await Service.GetUnconfirmedDetectionsAsync(paginationOptions, filterOptions);
 
         pagination.TotalNumberOfRecords = paginatedResponse.TotalNumberRecords;
+        pagination.TotalNumberOfMinutes = paginatedResponse.TotalNumberMinutes;
         pagination.TotalNumberOfPages = paginatedResponse.TotalAmountPages;
 
         if (pagination.TotalNumberOfPages > 0 && paginationOptions.Page > pagination.TotalNumberOfPages)
@@ -53,6 +57,7 @@ public partial class Unknown : IDisposable
             paginationOptions.Page = pagination.TotalNumberOfPages;
             paginatedResponse = await Service.GetUnconfirmedDetectionsAsync(paginationOptions, filterOptions);
             pagination.TotalNumberOfRecords = paginatedResponse.TotalNumberRecords;
+            pagination.TotalNumberOfMinutes = paginatedResponse.TotalNumberMinutes;
             pagination.TotalNumberOfPages = paginatedResponse.TotalAmountPages;
         }
 
@@ -71,6 +76,8 @@ public partial class Unknown : IDisposable
             loadStatus = null;
             detections = paginatedResponse.Response;
         }
+
+        detectionMinutes = DetectionMinute.CreateDetectionMinutes(detections);
     }
 
     private async Task ActOnSelectPageCallback(PaginationOptionsDTO returnedPaginationOptions)
@@ -96,8 +103,6 @@ public partial class Unknown : IDisposable
 
         List<string> leafTags = Detection.GetLeafTags(request.Tags);
         TagCache.SetTags(_userId, leafTags);
-
-        ToastService.ShowSuccess("Detection successfully updated.");
 
         await LoadDetections();
     }

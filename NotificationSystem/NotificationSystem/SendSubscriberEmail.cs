@@ -96,10 +96,13 @@ namespace NotificationSystem
                     await _emailService.SendEmailAsync(email);
                 }
 
-                await tableClient.UpsertEntityAsync(new SubscriberNotificationCooldownEntity(cooldownKey)
+                if (subscribers.Count > 0)
                 {
-                    LastSentAt = DateTimeOffset.UtcNow
-                });
+                    await tableClient.UpsertEntityAsync(new SubscriberNotificationCooldownEntity(cooldownKey)
+                    {
+                        LastSentAt = DateTimeOffset.UtcNow
+                    });
+                }
             }
         }
 

@@ -5,5 +5,6 @@
         public T Response { get; set; }
         public int TotalAmountPages { get; set; }
         public int TotalNumberRecords { get; set; }
+        public int TotalNumberMinutes { get; set; }
     }
 }
