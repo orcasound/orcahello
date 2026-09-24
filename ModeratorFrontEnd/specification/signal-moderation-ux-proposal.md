@@ -579,7 +579,7 @@ current state and authoritative tag set come from the newest review and its
 
 | Field | Table | Type | Purpose |
 | ----- | ----- | ---- | ------- |
-| `model_feedback` | new table | rows | `{id, annotation_id, model_reporter_id, model_label, model_confidence, moderator_label, decision: confirm\|change, at, export_state}`. The clean supervised annotation for retraining/eval (§9); a false positive is represented by `change` plus the moderator's non-target/source label. |
+| `model_feedback` | new table | rows | `{id, annotation_id, model_reporter_id, model_tag_ids[], model_confidence, moderator_tag_ids[], decision: confirm\|change, at, export_state}`. Stores the complete proposed and moderator tag sets for retraining/evaluation; a false positive uses the moderator's non-target/source tag set. |
 | `export_state` | `model_feedback` | enum | `pending` \| `exported` \| `excluded`. Lets ambiguous/unknown items be withheld from training. |
 
 ---
