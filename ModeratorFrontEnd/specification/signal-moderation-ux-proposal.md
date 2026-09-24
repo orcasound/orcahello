@@ -712,6 +712,7 @@ stateDiagram-v2
   needs_confirmation --> false_positive: change to non-target/source label
   confirmed --> confirmed: change label (audited)
   false_positive --> confirmed: revise label (audited)
+  false_positive --> [*]
   confirmed --> [*]
 ```
 
