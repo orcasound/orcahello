@@ -224,8 +224,8 @@ and can be tagged with the same controls. **Approve bout** remains a separate bo
 action after annotation review; none of these controls approves a 1-minute
 detection.
 
-The bout enters the review queue only after 15 minutes with no applicable
-detections closes and logs it. Its annotations then appear as unmoderated markers.
+The active bout is available for review as soon as qualifying activity is detected. It enters the closed-bout review queue only after the automatic 15-minute
+no-detection gap closes and the bout is logged; closure controls queue intake, not initial evidence access.
 After an action, the marker updates in place to the shared corner-glyph styling
 and the next unmoderated annotation may be selected. Group selection uses the same
 action bar and requires an explicit audited revision for any confirmed member
