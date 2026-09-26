@@ -3,18 +3,21 @@ using AIForOrcas.DTO.API;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+
 
 namespace AIForOrcas.Client.BL.Services
 {
     public class MetricsService : IMetricsService
     {
-        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly ILogger<MetricsService> _logger;
+        private readonly IApiClientHelper _apiClientHelper;
         private string api = "api/metrics";
-        private JsonSerializerOptions defaultJsonSerializerOptions => new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
 
-        public MetricsService(IHttpClientFactory httpClientFactory)
+        public MetricsService(ILogger<MetricsService> logger, IApiClientHelper apiClientHelper)
         {
-            _httpClientFactory = httpClientFactory;
+            _logger = logger;
+            _apiClientHelper = apiClientHelper ?? throw new System.ArgumentNullException(nameof(apiClientHelper));
         }
 
         public async Task<ModeratorMetrics> GetModeratorMetricsAsync(IFilterOptions filterOptions)
@@ -22,27 +25,30 @@ namespace AIForOrcas.Client.BL.Services
             var prefix = api.Contains("?") ? $"{api}/moderator&" : $"{api}/moderator?";
             var url = $"{prefix}{filterOptions.QueryString}";
 
-            var httpClient = _httpClientFactory.CreateClient("UnauthenticatedAPI");
-            var httpResponseMessage = await httpClient.GetAsync(url);
+            var (value, response) = await _apiClientHelper.GetJsonAsync<ModeratorMetrics>("UnauthenticatedAPI", url);
 
-            if (httpResponseMessage.IsSuccessStatusCode)
+            if (response == null)
             {
-                var responseString = await httpResponseMessage.Content.ReadAsStringAsync();
+                return new ModeratorMetrics() { HasContent = false };
+            }
 
-                if (httpResponseMessage.StatusCode == System.Net.HttpStatusCode.NoContent)
+            if (response.StatusCode == System.Net.HttpStatusCode.NoContent)
+            {
+                return new ModeratorMetrics() { HasContent = false };
+            }
+
+            if (response.IsSuccessStatusCode)
+            {
+                if (value == null)
                 {
                     return new ModeratorMetrics() { HasContent = false };
                 }
 
-                var response = JsonSerializer.Deserialize<ModeratorMetrics>(responseString, defaultJsonSerializerOptions);
-                response.HasContent = true;
+                value.HasContent = true;
+                return value;
+            }
 
-                return response;
-            }
-            else
-            {
-                return new ModeratorMetrics() { HasContent = false };
-            }
+            return new ModeratorMetrics() { HasContent = false };
         }
 
         public async Task<Metrics> GetSiteMetricsAsync(IFilterOptions filterOptions)
@@ -50,27 +56,30 @@ namespace AIForOrcas.Client.BL.Services
             var prefix = api.Contains("?") ? $"{api}/system&" : $"{api}/system?";
             var url = $"{prefix}{filterOptions.QueryString}";
 
-            var httpClient = _httpClientFactory.CreateClient("UnauthenticatedAPI");
-            var httpResponseMessage = await httpClient.GetAsync(url);
+            var (value, response) = await _apiClientHelper.GetJsonAsync<Metrics>("UnauthenticatedAPI", url);
 
-            if (httpResponseMessage.IsSuccessStatusCode)
+            if (response == null)
             {
-                var responseString = await httpResponseMessage.Content.ReadAsStringAsync();
+                return new Metrics() { HasContent = false };
+            }
 
-                if (httpResponseMessage.StatusCode == System.Net.HttpStatusCode.NoContent)
+            if (response.StatusCode == System.Net.HttpStatusCode.NoContent)
+            {
+                return new Metrics() { HasContent = false };
+            }
+
+            if (response.IsSuccessStatusCode)
+            {
+                if (value == null)
                 {
                     return new Metrics() { HasContent = false };
                 }
 
-                var response = JsonSerializer.Deserialize<Metrics>(responseString, defaultJsonSerializerOptions);
-                response.HasContent = true;
+                value.HasContent = true;
+                return value;
+            }
 
-                return response;
-            }
-            else
-            {
-                return new Metrics() { HasContent = false };
-            }
+            return new Metrics() { HasContent = false };
         }
     }
 }

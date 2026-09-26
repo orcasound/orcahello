@@ -1,5 +1,6 @@
 ﻿using AIForOrcas.Client.BL.Services;
 using Microsoft.AspNetCore.Components.Server.Circuits;
+using Microsoft.Extensions.Logging;
 
 namespace AIForOrcas.Client.Web.Extensions;
 
@@ -37,8 +38,10 @@ public static class Services
             client.BaseAddress = new Uri(apiUrl);
             client.Timeout = TimeSpan.FromSeconds(30);
         });
-
         builder.Services.AddScoped<IDetectionService, DetectionService>();
+
+        // Register IApiClientHelper in DI for reuse by services needing HTTP helpers.
+        builder.Services.AddScoped<IApiClientHelper>(sp => new ApiClientHelper(sp.GetRequiredService<IHttpClientFactory>(), sp.GetRequiredService<ILogger<ApiClientHelper>>()));
 
         builder.Services.AddScoped<IMetricsService, MetricsService>();
         builder.Services.AddScoped<ITagService, TagService>();

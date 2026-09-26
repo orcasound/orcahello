@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
+using Microsoft.Extensions.Logging;
 
 namespace AIForOrcas.Client.BL.Services
 {
@@ -13,13 +14,15 @@ namespace AIForOrcas.Client.BL.Services
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IAuthTokenProvider _authTokenProvider;
+        private readonly IApiClientHelper _apiClientHelper;
         private string api = "api/tags";
         private JsonSerializerOptions defaultJsonSerializerOptions => new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
 
-        public TagService(IHttpClientFactory httpClientFactory, IAuthTokenProvider authTokenProvider)
+        public TagService(IHttpClientFactory httpClientFactory, IAuthTokenProvider authTokenProvider, ILogger<TagService> logger, IApiClientHelper apiClientHelper)
         {
             _httpClientFactory = httpClientFactory;
             _authTokenProvider = authTokenProvider;
+            _apiClientHelper = apiClientHelper ?? throw new ArgumentNullException(nameof(apiClientHelper));
         }
 
         // Get the list of unique tags
@@ -51,12 +54,7 @@ namespace AIForOrcas.Client.BL.Services
             var dataJson = JsonSerializer.Serialize(payload);
             var stringContent = new StringContent(dataJson, Encoding.UTF8, "application/json");
 
-            var httpClient = _httpClientFactory.CreateClient("AuthenticatedAPI");
-            var httpRequest = new HttpRequestMessage(HttpMethod.Put, api) { Content = stringContent };
-
-            _authTokenProvider.ApplyToken(httpRequest);
-
-            var httpResponseMessage = await httpClient.SendAsync(httpRequest);
+            var httpResponseMessage = await _apiClientHelper.PutJsonAuthenticatedAsync("AuthenticatedAPI", api, payload, _authTokenProvider);
 
             if (httpResponseMessage.IsSuccessStatusCode)
             {
@@ -80,12 +78,10 @@ namespace AIForOrcas.Client.BL.Services
         {
             var url = $"{api}?tag={HttpUtility.UrlEncode(tag)}";
 
-            var httpClient = _httpClientFactory.CreateClient("AuthenticatedAPI");
-            var httpRequest = new HttpRequestMessage(HttpMethod.Delete, url);
+            var request = new HttpRequestMessage(HttpMethod.Delete, url);
+            _authTokenProvider.ApplyToken(request);
 
-            _authTokenProvider.ApplyToken(httpRequest);
-
-            var httpResponseMessage = await httpClient.SendAsync(httpRequest);
+            var httpResponseMessage = await _apiClientHelper.SendAuthenticatedAsync("AuthenticatedAPI", request);
 
             if (httpResponseMessage.IsSuccessStatusCode)
             {

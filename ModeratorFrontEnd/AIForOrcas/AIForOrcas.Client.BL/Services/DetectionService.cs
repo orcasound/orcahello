@@ -17,10 +17,9 @@ namespace AIForOrcas.Client.BL.Services
     public class DetectionService : IDetectionService
     {
         private string api = "api/detections";
-        private JsonSerializerOptions defaultJsonSerializerOptions => new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
-        private readonly IHttpClientFactory _httpClientFactory;
         private readonly IAuthTokenProvider _authTokenProvider;
         private readonly ILogger<DetectionService> _logger;
+        private readonly IApiClientHelper _apiClientHelper;
 
         /// <summary>
         /// Start of current timestamp epoch.  Any detection with a timestamp
@@ -28,30 +27,11 @@ namespace AIForOrcas.Client.BL.Services
         /// </summary>
         private readonly DateTime _currentEpochStart = new DateTime(2025, 10, 12, 14, 23, 00, DateTimeKind.Utc);
 
-        public DetectionService(IHttpClientFactory httpClientFactory, IAuthTokenProvider authTokenProvider, ILogger<DetectionService> logger)
+        public DetectionService(IAuthTokenProvider authTokenProvider, ILogger<DetectionService> logger, IApiClientHelper apiClientHelper)
         {
-            _httpClientFactory = httpClientFactory;
             _authTokenProvider = authTokenProvider;
             _logger = logger;
-        }
-
-        /// <summary>
-        /// Wrapper for unauthenticated GET requests that centralizes error
-        /// handling for unreachable or timed-out APIs. Returns null on
-        /// network-level failure so callers can degrade gracefully.
-        /// </summary>
-        private async Task<HttpResponseMessage> SendUnauthenticatedGetAsync(string url)
-        {
-            var httpClient = _httpClientFactory.CreateClient("UnauthenticatedAPI");
-            try
-            {
-                return await httpClient.GetAsync(url);
-            }
-            catch (Exception exception) when (exception is HttpRequestException || exception is TaskCanceledException)
-            {
-                _logger.LogError(exception, "Unable to reach the detections API at {Url}", url);
-                return null;
-            }
+            _apiClientHelper = apiClientHelper ?? throw new ArgumentNullException(nameof(apiClientHelper));
         }
 
         Dictionary<string, List<string>> _s3FoldersCache = new Dictionary<string, List<string>>();
@@ -201,56 +181,14 @@ namespace AIForOrcas.Client.BL.Services
 
             var url = $"{prefix}{paginationOptions.QueryString}&{filterOptions.QueryString}";
 
-            var httpResponseMessage = await SendUnauthenticatedGetAsync(url);
-            if (httpResponseMessage == null)
+            var paginated = await _apiClientHelper.GetPaginatedAsync<Detection>("UnauthenticatedAPI", url);
+
+            if (paginated.Response != null)
             {
-                return new PaginatedResponseDTO<List<Detection>> { Response = null, TotalAmountPages = 0, TotalNumberRecords = 0, TotalNumberMinutes = 0 };
+                await FixTimestampsAsync(paginated.Response);
             }
 
-            if (httpResponseMessage.IsSuccessStatusCode)
-            {
-                var responseString = await httpResponseMessage.Content.ReadAsStringAsync();
-
-                if (string.IsNullOrWhiteSpace(responseString))
-                {
-                    return new PaginatedResponseDTO<List<Detection>> { Response = new List<Detection>(), TotalAmountPages = 0, TotalNumberRecords = 0, TotalNumberMinutes = 0 };
-                }
-
-                // The pagination headers are not guaranteed; a response without
-                // them should not kill the page.
-                httpResponseMessage.Headers.TryGetValues("totalAmountPages", out var pageValues);
-                httpResponseMessage.Headers.TryGetValues("totalNumberRecords", out var recordValues);
-                httpResponseMessage.Headers.TryGetValues("totalNumberMinutes", out var minuteValues);
-                int.TryParse(pageValues?.FirstOrDefault(), out var totalAmountPages);
-                int.TryParse(recordValues?.FirstOrDefault(), out var totalNumberRecords);
-                int.TryParse(minuteValues?.FirstOrDefault(), out var totalNumberMinutes);
-
-                try
-                {
-                    var detections = JsonSerializer.Deserialize<List<Detection>>(responseString, defaultJsonSerializerOptions);
-                    if (detections != null)
-                    {
-                        await FixTimestampsAsync(detections);
-                    }
-
-                    return new PaginatedResponseDTO<List<Detection>>
-                    {
-                        Response = detections,
-                        TotalAmountPages = totalAmountPages,
-                        TotalNumberRecords = totalNumberRecords,
-                        TotalNumberMinutes = totalNumberMinutes
-                    };
-                }
-                catch (JsonException exception)
-                {
-                    _logger.LogError(exception, "Malformed response from the detections API at {Url}", url);
-                    return new PaginatedResponseDTO<List<Detection>> { Response = null, TotalAmountPages = 0, TotalNumberRecords = 0, TotalNumberMinutes = 0 };
-                }
-            }
-            else
-            {
-                return new PaginatedResponseDTO<List<Detection>> { Response = null, TotalAmountPages = 0, TotalNumberRecords = 0, TotalNumberMinutes = 0 };
-            }
+            return paginated;
         }
 
         // Call the root GET (api/detections?...) so callers can request arbitrary date/location filtered sets.
@@ -285,18 +223,11 @@ namespace AIForOrcas.Client.BL.Services
         public async Task UpdateRequestAsync(DetectionUpdate request)
         {
             var url = $"{api}/{request.Id}";
-            var dataJson = JsonSerializer.Serialize(request);
-            var stringContent = new StringContent(dataJson, Encoding.UTF8, "application/json");
-
-            var httpClient = _httpClientFactory.CreateClient("AuthenticatedAPI");
-            var httpRequest = new HttpRequestMessage(HttpMethod.Put, url) { Content = stringContent };
-
-            _authTokenProvider.ApplyToken(httpRequest);
 
             HttpResponseMessage httpResponseMessage;
             try
             {
-                httpResponseMessage = await httpClient.SendAsync(httpRequest);
+                httpResponseMessage = await _apiClientHelper.PutJsonAuthenticatedAsync("AuthenticatedAPI", url, request, _authTokenProvider);
             }
             catch (TaskCanceledException exception)
             {
@@ -330,40 +261,25 @@ namespace AIForOrcas.Client.BL.Services
         public async Task<Detection> GetDetectionAsync(string id)
         {
             var url = $"{api}/{id}";
-            var httpResponseMessage = await SendUnauthenticatedGetAsync(url);
-            if (httpResponseMessage == null)
+            var (value, response) = await _apiClientHelper.GetJsonAsync<Detection>("UnauthenticatedAPI", url);
+            if (response == null)
             {
                 // Null means the API could not be reached, so the page can say
                 // so instead of misreporting the detection as missing.
                 return null;
             }
 
-            if (httpResponseMessage.IsSuccessStatusCode)
+            if (response.IsSuccessStatusCode)
             {
-                var responseString = await httpResponseMessage.Content.ReadAsStringAsync();
-
-                if (string.IsNullOrWhiteSpace(responseString))
+                if (value == null)
                 {
                     return new Detection();
                 }
 
-                try
-                {
-                    var response = JsonSerializer.Deserialize<Detection>(responseString, defaultJsonSerializerOptions);
-                    if (response != null)
-                    {
-                        await FixTimestampsAsync(new List<Detection> { response });
-                    }
-
-                    return response ?? new Detection();
-                }
-                catch (JsonException exception)
-                {
-                    _logger.LogError(exception, "Malformed response from the detections API at {Url}", url);
-                    return null;
-                }
+                await FixTimestampsAsync(new List<Detection> { value });
+                return value;
             }
-            else if (httpResponseMessage.StatusCode == System.Net.HttpStatusCode.NotFound)
+            else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
                 // The API answered 404: this id genuinely has no detection.
                 return new Detection();
@@ -373,7 +289,7 @@ namespace AIForOrcas.Client.BL.Services
                 // Any other error status is the API failing, not a missing
                 // record; report it like an unreachable API.
                 _logger.LogError("The detections API returned {StatusCode} at {Url}",
-                    (int)httpResponseMessage.StatusCode, url);
+                    (int)response.StatusCode, url);
                 return null;
             }
         }
