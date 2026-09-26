@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
@@ -51,9 +50,6 @@ namespace AIForOrcas.Client.BL.Services
         // replace the current tag with a new one
         public async Task<int> UpdateTagAsync(TagUpdate payload)
         {
-            var dataJson = JsonSerializer.Serialize(payload);
-            var stringContent = new StringContent(dataJson, Encoding.UTF8, "application/json");
-
             var httpResponseMessage = await _apiClientHelper.PutJsonAuthenticatedAsync("AuthenticatedAPI", api, payload, _authTokenProvider);
 
             if (httpResponseMessage.IsSuccessStatusCode)
