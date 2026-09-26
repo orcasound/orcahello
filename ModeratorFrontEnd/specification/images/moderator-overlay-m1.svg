@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="520" viewBox="0 0 1180 520" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <style>
+      .panel{fill:#fff;stroke:#c9d3dc;stroke-width:1.5}.navy{fill:#0c4968}.title{fill:#fff;font-size:15px;font-weight:700}.label{fill:#263847;font-size:13px}.small{fill:#607483;font-size:11px}.tiny{fill:#718493;font-size:10px}.axis{stroke:#91a3b1;stroke-width:1}.grid{stroke:#30434f;stroke-width:.7;opacity:.55}
+      .callout{fill:#fff3e0;stroke:#c25a2b;stroke-width:1.2}.calloutText{fill:#8a3c15;font-size:11px;font-weight:600}.leader{stroke:#c25a2b;stroke-width:1.2;stroke-dasharray:3 2;fill:none}.cdot{fill:#c25a2b}
+      .ok{fill:#17864b;font-size:11px;font-weight:700}.amber{fill:#b05b22;font-size:11px;font-weight:700}
+    </style>
+    <linearGradient id="spec" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#09131c"/><stop offset=".55" stop-color="#152d39"/><stop offset="1" stop-color="#081018"/></linearGradient>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#eef2f5"/><line x1="0" y1="0" x2="0" y2="6" stroke="#9fb3c0" stroke-width="2"/></pattern>
+  </defs>
+  <rect width="1180" height="520" fill="#eef3f6"/>
+  <rect width="1180" height="44" class="navy"/>
+  <text x="18" y="28" class="title" font-size="17">Option M1 · status fill on toggleable lanes (evolutionary)</text>
+
+  <rect x="20" y="58" width="1140" height="444" rx="6" class="panel"/>
+  <text x="34" y="86" class="small">Toggle lanes by source or annotation label. State fill + corner glyph stay attached to each annotation.</text>
+  <rect x="760" y="66" width="370" height="24" rx="12" fill="#e8f4f8" stroke="#91bed0"/>
+  <rect x="763" y="69" width="178" height="18" rx="9" fill="#087c8c"/>
+  <text x="852" y="82" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">Reporting source</text>
+  <text x="1033" y="82" fill="#0c4968" font-size="11" font-weight="700" text-anchor="middle">Annotation label</text>
+
+  <!-- spectrogram -->
+  <rect x="34" y="98" width="900" height="110" rx="3" fill="url(#spec)"/>
+  <g class="grid"><line x1="34" y1="135" x2="934" y2="135"/><line x1="34" y1="172" x2="934" y2="172"/></g>
+  <g opacity=".9" fill="#dcf1f8"><rect x="162" y="116" width="5" height="80" rx="2"/><rect x="170" y="130" width="3" height="62" rx="2" fill="#bfe6f4"/><rect x="242" y="122" width="5" height="70" rx="2"/><rect x="337" y="120" width="5" height="72" rx="2"/><rect x="427" y="118" width="5" height="76" rx="2"/><rect x="557" y="124" width="5" height="66" rx="2"/><rect x="657" y="134" width="5" height="54" rx="2"/></g>
+  <g fill="none" stroke-width="2.5">
+    <rect x="151" y="108" width="28" height="92" rx="3" fill="#dff3e8" fill-opacity=".28" stroke="#17864b"/>
+    <rect x="231" y="112" width="28" height="86" rx="3" fill="#fff" fill-opacity=".08" stroke="#9fb6c4"/>
+    <rect x="326" y="112" width="28" height="86" rx="3" fill="#fff" fill-opacity=".08" stroke="#9fb6c4"/>
+    <rect x="416" y="110" width="28" height="90" rx="3" fill="#dff3e8" fill-opacity=".28" stroke="#17864b"/>
+    <rect x="546" y="110" width="28" height="90" rx="3" fill="#fff2cc" fill-opacity=".3" stroke="#b0873a"/>
+    <rect x="646" y="118" width="28" height="76" rx="3" fill="#fde8e5" fill-opacity=".3" stroke="#b84c3a"/>
+  </g>
+  <g fill="#fff" font-size="13" font-weight="700"><text x="155" y="123">✓</text><text x="235" y="127">□</text><text x="330" y="127">□</text><text x="420" y="125">✓</text><text x="550" y="125">?</text><text x="650" y="133">×</text></g>
+  <g stroke="#61a9ff" stroke-width="1" stroke-dasharray="2 4" opacity=".4"><line x1="165" y1="208" x2="165" y2="270"/><line x1="340" y1="208" x2="340" y2="270"/><line x1="560" y1="208" x2="560" y2="270"/><line x1="245" y1="208" x2="245" y2="328"/><line x1="430" y1="208" x2="430" y2="328"/><line x1="660" y1="208" x2="660" y2="328"/></g>
+
+  <!-- Reporter A lane -->
+  <text x="34" y="252" class="small">Human</text>
+  <rect x="120" y="236" width="814" height="34" rx="4" fill="#e8f7f2"/><line x1="120" y1="253" x2="934" y2="253" class="axis"/>
+  <!-- confirmed humpback -->
+  <g><rect x="150" y="242" width="30" height="22" rx="4" fill="#dff3e8" stroke="#17864b" stroke-width="2"/><text x="155" y="258" class="ok">✓</text></g>
+  <!-- proposed transient -->
+  <g><rect x="325" y="242" width="30" height="22" rx="4" fill="#fff" stroke="#607483" stroke-width="2"/><text x="330" y="258" class="small">□</text></g>
+  <!-- changed humpback with pulse + chip -->
+  <g><rect x="545" y="242" width="30" height="22" rx="4" fill="#fff2cc" stroke="#b0873a" stroke-width="2"/><text x="550" y="258" class="amber">?</text></g>
+  <circle cx="560" cy="253" r="20" fill="none" stroke="#df7b2d" stroke-width="2" opacity=".7"/><circle cx="560" cy="253" r="27" fill="none" stroke="#df7b2d" stroke-width="1.5" opacity=".4"/>
+  <circle cx="582" cy="238" r="9" fill="#df7b2d"/><text x="582" y="242" fill="#fff" font-size="10" font-weight="700" text-anchor="middle">2</text>
+
+  <!-- Reporter B lane -->
+  <text x="34" y="310" class="small">Model</text>
+  <rect x="120" y="294" width="814" height="34" rx="4" fill="#fff1e6"/><line x1="120" y1="311" x2="934" y2="311" class="axis"/>
+  <g><rect x="230" y="300" width="30" height="22" rx="4" fill="#fff" stroke="#607483" stroke-width="2"/><text x="235" y="316" class="small">□</text></g>
+  <g><rect x="415" y="300" width="30" height="22" rx="4" fill="#dff3e8" stroke="#17864b" stroke-width="2"/><text x="420" y="316" class="ok">✓</text></g>
+  <!-- changed label -->
+  <g><rect x="645" y="300" width="30" height="22" rx="4" fill="#fde8e5" stroke="#b84c3a" stroke-width="2"/><text x="650" y="316" fill="#9b3528" font-size="11" font-weight="700">×</text></g>
+
+  <!-- legend -->
+  <rect x="34" y="352" width="560" height="132" rx="5" fill="#f5f8fa" stroke="#c9d3dc"/>
+  <text x="46" y="372" class="small" font-weight="700">Moderation state stays stable when lanes toggle</text>
+  <rect x="46" y="384" width="24" height="18" rx="3" fill="#fff" stroke="#607483"/><text x="51" y="398" class="small">□</text><text x="78" y="398" class="small">unmoderated</text>
+  <rect x="178" y="384" width="24" height="18" rx="3" fill="#dff3e8" stroke="#17864b"/><text x="183" y="398" class="ok">✓</text><text x="210" y="398" class="small">confirmed</text>
+  <rect x="302" y="384" width="24" height="18" rx="3" fill="#fde8e5" stroke="#b84c3a"/><text x="307" y="398" fill="#9b3528" font-size="11" font-weight="700">×</text><text x="334" y="398" class="small">false positive</text>
+  <rect x="438" y="384" width="24" height="18" rx="3" fill="#fff2cc" stroke="#b0873a"/><text x="443" y="398" class="amber">?</text><text x="470" y="398" class="small">needs confirmation</text>
+  <text x="46" y="428" class="small">Lane mode supplies source or annotation label; no duplicate label indicator.</text>
+  <text x="46" y="450" class="tiny">Fill and glyph persist across regrouping.</text>
+
+  <!-- callouts -->
+  <path class="leader" d="M165 242 C165 220 210 210 210 210"/><circle cx="165" cy="242" r="3" class="cdot"/>
+  <rect x="200" y="196" width="250" height="34" rx="5" class="callout"/>
+  <text x="212" y="210" class="calloutText">State belongs to the annotation:</text>
+  <text x="212" y="223" class="calloutText">fill + glyph persist when its lane changes.</text>
+
+  <path class="leader" d="M582 232 C590 210 600 184 600 184"/>
+  <rect x="470" y="150" width="250" height="34" rx="5" class="callout"/>
+  <text x="482" y="164" class="calloutText">Change pulse + count chip appears</text>
+  <text x="482" y="177" class="calloutText">when an annotation changed since opening.</text>
+
+  <rect x="620" y="352" width="540" height="132" rx="5" fill="#fff6ee" stroke="#df7b2d"/>
+  <text x="632" y="374" class="amber">Trade-off (M1 con)</text>
+  <text x="632" y="398" class="small">Cheapest to build and reuses muscle memory. The active lane mode</text>
+  <text x="632" y="418" class="small">shows either source or annotation label, so comparing both dimensions</text>
+  <text x="632" y="438" class="small">requires toggling. State remains stable, and mixed-species overlap</text>
+  <text x="632" y="458" class="small">becomes structural when annotation-label lanes are selected.</text>
+</svg>

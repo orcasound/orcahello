@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Moderator UX Wireframes - Print Export</title>
+  <style>
+    @page {
+      size: A4 landscape;
+      margin: 10mm;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      background: #fff;
+      color: #172b38;
+      font-family: Georgia, "Times New Roman", serif;
+    }
+
+    .sheet {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      width: 100%;
+      height: 190mm;
+      break-after: page;
+      page-break-after: always;
+    }
+
+    .sheet:last-child {
+      break-after: auto;
+      page-break-after: auto;
+    }
+
+    h1 {
+      margin: 0 0 4mm;
+      font-size: 16pt;
+      letter-spacing: 0;
+    }
+
+    .artwork {
+      display: flex;
+      min-height: 0;
+      align-items: center;
+      justify-content: center;
+    }
+
+    img {
+      display: block;
+      max-width: 100%;
+      max-height: 170mm;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+    }
+
+    .mobile img {
+      max-width: 92mm;
+    }
+
+    footer {
+      margin-top: 3mm;
+      color: #526773;
+      font: 8pt "Segoe UI", sans-serif;
+      text-align: right;
+    }
+
+    @media screen {
+      body {
+        padding: 16px;
+        background: #dfe7eb;
+      }
+
+      .sheet {
+        max-width: 1120px;
+        margin: 0 auto 24px;
+        padding: 24px;
+        background: #fff;
+        box-shadow: 0 2px 12px rgb(26 52 66 / 18%);
+      }
+    }
+  </style>
+</head>
+<body>
+  <section class="sheet"><h1>Workflow: Today vs Proposed</h1><div class="artwork"><img src="../images/workflow-today-vs-proposed.svg" alt="Workflow today versus proposed"></div><footer>workflow-today-vs-proposed.svg</footer></section>
+  <section class="sheet"><h1>Who and What Overlay Layers</h1><div class="artwork"><img src="../images/overlay-who-what-layers.svg" alt="Who and What overlay layers"></div><footer>overlay-who-what-layers.svg</footer></section>
+  <section class="sheet"><h1>Annotation Overlay Pivot</h1><div class="artwork"><img src="../images/signal-overlay-pivot.svg" alt="Annotation overlay pivot"></div><footer>signal-overlay-pivot.svg</footer></section>
+  <section class="sheet"><h1>Moderator Workbench</h1><div class="artwork"><img src="../images/moderator-workbench.svg" alt="Moderator workbench"></div><footer>moderator-workbench.svg</footer></section>
+  <section class="sheet mobile"><h1>Moderator Workbench - Mobile</h1><div class="artwork"><img src="../images/moderator-workbench-mobile.svg" alt="Moderator workbench mobile"></div><footer>moderator-workbench-mobile.svg</footer></section>
+  <section class="sheet"><h1>Option M1: Toggleable Lanes</h1><div class="artwork"><img src="../images/moderator-overlay-m1.svg" alt="Option M1 toggleable lanes"></div><footer>moderator-overlay-m1.svg</footer></section>
+  <section class="sheet"><h1>Option M2: Species-first Overlay</h1><div class="artwork"><img src="../images/moderator-overlay-species.svg" alt="Option M2 species-first overlay"></div><footer>moderator-overlay-species.svg</footer></section>
+  <section class="sheet"><h1>Option M3: Layered Canvas</h1><div class="artwork"><img src="../images/moderator-overlay-m3.svg" alt="Option M3 layered canvas"></div><footer>moderator-overlay-m3.svg</footer></section>
+  <section class="sheet"><h1>Option S1: Time-rail Triage Inbox</h1><div class="artwork"><img src="../images/annotation-triage-inbox.svg" alt="Option S1 time-rail annotation triage inbox"></div><footer>annotation-triage-inbox.svg</footer></section>
+  <section class="sheet"><h1>Post-bout Annotation Tagging</h1><div class="artwork"><img src="../images/signal-approval-console.svg" alt="Post-bout annotation tagging console"></div><footer>signal-approval-console.svg</footer></section>
+  <section class="sheet mobile"><h1>Post-bout Annotation Tagging - Mobile</h1><div class="artwork"><img src="../images/signal-approval-console-mobile.svg" alt="Post-bout annotation tagging console on mobile"></div><footer>signal-approval-console-mobile.svg</footer></section>
+  <section class="sheet"><h1>Annotation Tagging Scrubber</h1><div class="artwork"><img src="../images/signal-approval-scrubber.svg" alt="Annotation tagging timeline scrubber"></div><footer>signal-approval-scrubber.svg</footer></section>
+  <section class="sheet"><h1>Mark Bout High Value</h1><div class="artwork"><img src="../images/mark-bout-high-value.svg" alt="Mark bout high value"></div><footer>mark-bout-high-value.svg</footer></section>
+  <section class="sheet"><h1>Recent High-value Bouts</h1><div class="artwork"><img src="../images/recent-high-value-bouts.svg" alt="Recent high-value bouts"></div><footer>recent-high-value-bouts.svg</footer></section>
+  <section class="sheet mobile"><h1>Recent High-value Bouts - Mobile</h1><div class="artwork"><img src="../images/recent-high-value-bouts-mobile.svg" alt="Recent high-value bouts mobile"></div><footer>recent-high-value-bouts-mobile.svg</footer></section>
+</body>
+</html>
