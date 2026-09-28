@@ -100,8 +100,8 @@ public partial class DetectionMinuteComponent
     private bool IsSubmitDisabled { get => _submitting || string.IsNullOrWhiteSpace(DetectionMinute.Found); }
 
     public bool IsViewMapDisabled =>
-        DetectionMinute?.Location.Latitude == null
-        || DetectionMinute?.Location.Longitude == null;
+        DetectionMinute?.Location?.Latitude == null
+        || DetectionMinute?.Location?.Longitude == null;
 
     private string WasFound { get => _ti.ToTitleCase(DetectionMinute.Found); }
 
