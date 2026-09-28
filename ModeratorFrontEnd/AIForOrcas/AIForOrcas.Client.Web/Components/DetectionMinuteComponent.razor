@@ -22,10 +22,13 @@
                    data-detection-id="@DetectionMinute.Id"
                    data-audio-uri="@DetectionMinute.AudioUri"
                    onclick="return OpenSpectrogramModal(event, this)">View Spectrogram Details</a>
-                <a class="dropdown-item"
-                   href="#@ModalMapPanelId"
-                   data-toggle="modal"
-                   @onclick="(()=>InitializeModalMap())">View Map</a>
+                @if (!IsViewMapDisabled)
+                {
+                    <a class="dropdown-item"
+                        href="#@ModalMapPanelId"
+                        data-toggle="modal"
+                        @onclick="(()=>InitializeModalMap())">View Map</a>
+                }
                 <div class="dropdown-divider"></div>
                 <a class="dropdown-item"
                    href="#@ModalLinkId"
@@ -239,11 +242,14 @@
            data-audio-uri="@DetectionMinute.AudioUri"
            onclick="return OpenSpectrogramModal(event, this)"><i class="fas fa-wave-square pr-2" aria-hidden="true"></i>Details</a>
 
-        <a href="#@ModalMapPanelId"
-           role="button"
-           class="btn btn-outline-info"
-           data-toggle="modal"
-           @onclick="(()=>InitializeModalMap())"><i class="fas fa-globe pr-2" aria-hidden="true"></i>Map</a>
+        @if (!IsViewMapDisabled)
+        {
+            <a href="#@ModalMapPanelId"
+                role="button"
+                class="btn btn-outline-info"
+                data-toggle="modal"
+                @onclick="(()=>InitializeModalMap())"><i class="fas fa-globe pr-2" aria-hidden="true"></i>Map</a>
+        }
     </div>
 </EditForm>
 
