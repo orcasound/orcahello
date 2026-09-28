@@ -1,114 +1,17 @@
 ﻿using AIForOrcas.Client.Web.Models;
+using Microsoft.AspNetCore.Components;
 
 namespace AIForOrcas.Client.Web.Pages.Detections;
 
-public partial class Confirmed : IDisposable
+public partial class Confirmed
 {
-    [Inject]
-    IJSRuntime JSRuntime { get; set; }
-
-    [Inject]
-    IDetectionService Service { get; set; }
-
-    [Inject]
-    IToastService ToastService { get; set; }
-
-    [Inject]
-    UserTagCache TagCache { get; set; }
-
-    [Inject]
-    AuthenticationStateProvider AuthenticationStateProvider { get; set; }
-
-    private string _userId;
-    private List<Detection> detections = null;
-    private List<DetectionMinute> detectionMinutes = null;
-
-    private PaginationOptionsDTO paginationOptions =
-        new PaginationOptionsDTO() { RecordsPerPage = 0, MinutesPerPage = 5, Page = 1 };
-
-    private ReviewedFilterOptionsDTO filterOptions =
-        new ReviewedFilterOptionsDTO() { SortBy = "timestamp", SortOrder = "desc", Timeframe = "24h", Location = "all", HydrophoneId = "all" };
-
-    private PaginationResultsDTO pagination = new PaginationResultsDTO();
-
-    private string loadStatus = null;
-
-    protected override async Task OnInitializedAsync()
+    public Confirmed()
     {
-        await LoadDetections();
-
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-        _userId = user.FindFirst("oid")?.Value;
+        filterOptions = new ReviewedFilterOptionsDTO() { SortBy = "timestamp", SortOrder = "desc", Timeframe = "24h", Location = "all", HydrophoneId = "all" };
     }
 
-    private async Task LoadDetections()
+    protected override async Task<PaginatedResponseDTO<List<Detection>>> FetchDetectionsAsync(PaginationOptionsDTO paginationOptions, ReviewedFilterOptionsDTO filterOptions)
     {
-        loadStatus = "Loading records...";
-        detections = null;
-        var paginatedResponse = await Service.GetConfirmedDetectionsAsync(paginationOptions, filterOptions);
-
-        pagination.TotalNumberOfRecords = paginatedResponse.TotalNumberRecords;
-        pagination.TotalNumberOfMinutes = paginatedResponse.TotalNumberMinutes;
-        pagination.TotalNumberOfPages = paginatedResponse.TotalAmountPages;
-
-        if (pagination.TotalNumberOfPages > 0 && paginationOptions.Page > pagination.TotalNumberOfPages)
-        {
-            paginationOptions.Page = pagination.TotalNumberOfPages;
-            paginatedResponse = await Service.GetConfirmedDetectionsAsync(paginationOptions, filterOptions);
-            pagination.TotalNumberOfRecords = paginatedResponse.TotalNumberRecords;
-            pagination.TotalNumberOfMinutes = paginatedResponse.TotalNumberMinutes;
-            pagination.TotalNumberOfPages = paginatedResponse.TotalAmountPages;
-        }
-
-        pagination.CurrentPage = paginationOptions.Page;
-
-        if (paginatedResponse.Response == null)
-        {
-            loadStatus = "An unknown error occurred while loading records...";
-        }
-        else if (paginatedResponse.Response.Count == 0)
-        {
-            loadStatus = "No records found for the selected filter options. Please select a different set of filter options...";
-        }
-        else
-        {
-            loadStatus = null;
-            detections = paginatedResponse.Response;
-        }
-
-        detectionMinutes = DetectionMinute.CreateDetectionMinutes(detections);
-    }
-
-    private async Task ActOnSelectPageCallback(PaginationOptionsDTO returnedPaginationOptions)
-    {
-        paginationOptions = returnedPaginationOptions;
-        await LoadDetections();
-        await JSRuntime.InvokeVoidAsync("DestroyActivePlayer");
-        StateHasChanged();
-    }
-
-    private async Task ActOnSubmitCallback(DetectionUpdate request)
-    {
-        await Service.UpdateRequestAsync(request);
-
-        List<string> leafTags = Detection.GetLeafTags(request.Tags);
-        TagCache.SetTags(_userId, leafTags);
-
-        await LoadDetections();
-    }
-
-    private async Task ActOnApplyFilterCallback(ReviewedFilterOptionsDTO returnedFilterOptions)
-    {
-        filterOptions = returnedFilterOptions;
-        paginationOptions.Page = 1;
-        await LoadDetections();
-        await JSRuntime.InvokeVoidAsync("DestroyActivePlayer");
-        StateHasChanged();
-    }
-
-    void IDisposable.Dispose()
-    {
-        JSRuntime.InvokeVoidAsync("DestroyActivePlayer");
+        return await Service.GetConfirmedDetectionsAsync(paginationOptions, filterOptions);
     }
 }
