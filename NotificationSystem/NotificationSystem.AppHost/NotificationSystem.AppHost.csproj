@@ -12,13 +12,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Hosting.AppHost" Version="13.5.4" />
-    <PackageReference Include="Aspire.Hosting.Azure.CosmosDB" Version="13.5.4" />
-    <PackageReference Include="Aspire.Hosting.Azure.Functions" Version="13.5.4" />
-    <PackageReference Include="Aspire.Hosting.Azure.Storage" Version="13.5.4" />
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="13.6.0" />
+    <PackageReference Include="Aspire.Hosting.Azure.CosmosDB" Version="13.6.0" />
+    <PackageReference Include="Aspire.Hosting.Azure.Functions" Version="13.6.0" />
+    <PackageReference Include="Aspire.Hosting.Azure.Storage" Version="13.6.0" />
     <PackageReference Include="Azure.Data.Tables" Version="12.13.0" />
-    <PackageReference Include="Azure.Storage.Queues" Version="12.27.1" />
-    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.63.1" />
+    <PackageReference Include="Azure.Storage.Queues" Version="12.28.0" />
+    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.63.2" />
   </ItemGroup>
 
   <ItemGroup>
