@@ -112,7 +112,14 @@ Given detections ordered by time on a single node:
 > minute). Such a minute contributes to more than one single-source bout, which is
 > exactly why different-species bouts may overlap (R3). Assignment occurs at the
 > tag or annotation level: the parent minute can be evidence for each applicable
-> bout without being duplicated. Ambiguous annotations remain an open issue.
+> bout without being duplicated. For a detection with child annotations, its
+> applicable species/source set is the union of the child annotations' effective
+> tags: moderator-confirmed tags when present, otherwise current proposed tags.
+> Parent detection tags do not independently preserve a species/source membership
+> once child annotations exist. For a detection with no child annotations, its
+> reviewed detection tags are the applicable set. The same detection may therefore
+> be a member of several single-source bouts, but the 15-minute clustering always
+> uses the parent detection timestamps, never child annotation offsets.
 
 ## 4. Detection input contract
 
@@ -320,10 +327,11 @@ remain in object storage; the database stores stable URIs and metadata only.
 | Table | Purpose and key fields |
 | ----- | ---------------------- |
 | `feeds` | Existing canonical node registry: `id`, `slug`, `name`, coordinates and storage/stream metadata. Preserve `orcahello_id` as an external alias during migration. |
-| `reporters` | Humans and models: `id`, `kind`, `name`, `model_version`, `created_at`, `updated_at`. A future reputation extension may add derived metrics without changing detection ownership. |
+| `reporters` | Humans and models: `id`, `kind`, `user_id`, `name`, `model_version`, `created_at`, `updated_at`. `user_id` is nullable and unique: it links a human reporter identity to an authenticated user; model reporters have no user. A future reputation extension may add derived metrics without changing detection ownership. |
 | `media_assets` | One shared clip/window per node and time: `id`, `feed_id`, `timestamp`, `duration_s`, `audio_uri`, `spectrogram_uri`; unique on `(feed_id, timestamp, duration_s)`. |
 | `detections` | One reporter's observation: `id`, `feed_id`, `timestamp`, `duration_s`, `reporter_id`, `media_asset_id`, `description`, `confidence`, `idempotency_key`, `source_system`, `source_record_id`, `raw_payload`, `created_at`, `updated_at`. |
-| `annotations` | Optional sub-interval evidence: `id`, `detection_id`, `start_offset_s`, `end_offset_s`, `confidence`, `label`; unique on `(detection_id, id)`. |
+| `annotations` | Optional sub-interval evidence: `id`, `detection_id`, `start_offset_s`, `end_offset_s`, `confidence`; unique on `(detection_id, id)`. |
+| `annotation_proposals` / `annotation_proposal_tags` | Append-only source proposals: `{id, annotation_id, reporter_id, confidence, created_at}` plus normalized `{proposal_id, tag_id}` rows. The latest proposal by `(created_at, id)` is the current proposal before moderation; later proposals never overwrite confirmed tags. |
 | `tags` / `detection_tags` | Existing normalized vocabulary and many-to-many detection assignments; never store a delimited tag string in the target schema. |
 | `detection_reviews` | Append-only moderator decisions: `id`, `detection_id`, `status`, `comment`, `reviewed_by`, `reviewed_at`, `created_at`. The current decision is the newest review, not a set of independently mutable flags. |
 | `candidate_bouts` / `candidate_bout_detections` | Generated grouping, workflow, editable type/title/tags, algorithm version, and member detections from §5. |
@@ -368,7 +376,7 @@ while the .NET API can map its current PascalCase properties at the boundary.
 | `review_comment` | None distinct from description | `Comments` | Store as `detection_reviews.comment`, not on `detections`. |
 | `reviewed_by` | Moderator user relation where available | `Moderator` | Reporter/user FK where resolvable; retain original identity for audit. |
 | `reviewed_at` | Audit timestamp where available | `Moderated` | UTC review event time. |
-| `annotations[]` | None | `Annotations` | Child rows using `start_offset_s`, `end_offset_s`, `confidence`, `label`. |
+| `annotations[]` | None | `Annotations` | Child intervals use `start_offset_s`/`end_offset_s`; each imported `label` and confidence becomes the initial append-only `annotation_proposals` row and normalized `annotation_proposal_tags`. |
 | `source_system` | Constant `orcasite` | Constant `orcahello` | Ingestion provenance: the upstream store a row was imported from, paired with `source_record_id` as the idempotent `(source_system, source_record_id)` dedup key (§6b.2). Orthogonal to `reporter_id` (authorship), not derivable from it: Orcasite's own `source` already carries both `human` and `machine`, and after cutover one model's `reporter_id` can appear under different `source_system` values. Not a substitute for `reporter_id`. |
 
 Moderator text is `review_comment`; API responses may temporarily return
@@ -389,6 +397,8 @@ adapters during migration rather than forcing both applications to switch at onc
 | `POST /api/v1/detections` | Idempotently submit a human or model observation, optional annotations and media reference. |
 | `GET /api/v1/detections/{id}` | Return one detection with reporter, media, tags, annotations, and current review; use explicit `include` parameters for larger relations. |
 | `POST /api/v1/detections/{id}/reviews` | Append a moderator decision. Do not use a broad replacement `PUT` for review history. |
+| `POST /api/v1/annotations` | Transactionally create a moderator-originated interval under an existing detection and append its initial annotation review. The server derives moderator identity, requires stable media through the parent detection, and rejects orphan intervals. |
+| `POST /api/v1/annotation-reviews` | Append one or more annotation-level moderator decisions as one atomic, idempotent batch. Each item carries its annotation id, expected revision, action, and complete resulting tag set; any invalid or conflicting item rejects the whole request. |
 | `GET /api/v1/candidate-bouts` | Work queue filtered by status, node, time, tag, confidence, or assignee. |
 | `PATCH /api/v1/candidate-bouts/{id}` | Autosave workflow and moderator fields with optimistic concurrency. |
 | `POST /api/v1/candidate-bouts/{id}/publish` | Transactionally create/update the authoritative bout and record reviewer/audit data. |
@@ -400,6 +410,13 @@ and `/unknowns` become saved filters over `status`, not separate implementations
 Metrics are projections/queries over the same review data, not mutable detection
 properties. Dates accept ISO-8601 UTC ranges; do not continue the locale-specific
 `mm/dd/yyyy` API convention.
+
+`POST /api/v1/annotation-reviews` returns one result per requested annotation
+with `annotation_id`, new `revision`, and new `moderation_state`. It also returns
+the affected bout ids and before/after boundary, tag, and membership snapshots for
+tag-changing actions; a tag-preserving confirmation returns no affected bouts.
+The endpoint uses the shared error envelope and returns `409 Conflict` for any
+stale expected revision, rejecting the entire batch.
 
 ### 6b.5 Storage-engine decision
 
@@ -643,14 +660,22 @@ operate on the same candidate URL and server state.
 ```mermaid
 stateDiagram-v2
   [*] --> new
+  note right of new: Created on first qualifying detection; may still be active
   new --> claimed: Claim bout
   claimed --> needs_review: boundaries adjusted
-  needs_review --> published: Verify 15-min gaps / Publish / Confirm & notify
+  needs_review --> published: Closed + verify 15-min gaps / Publish
   claimed --> rejected: final tags saved
   needs_review --> rejected
   published --> [*]
   rejected --> [*]
 ```
+
+A candidate enters the same Moderator Workbench queue on its first qualifying
+detection. While detections can still extend it, the queue marks it **active**;
+moderators may inspect and annotate its evidence, but approval/publication remains
+disabled. After a 15-minute no-detection gap closes it, the same candidate becomes
+approval-ready without moving to a second queue or changing identity. `active` is
+a derived boundary condition, not another `status` value.
 
 ## 9. Cross-cutting improvements from community feedback
 
@@ -752,7 +777,6 @@ not repeated here.
 
 | ID | Open question | Why it matters / proposed direction |
 | -- | ------------- | ----------------------------------- |
-| A | **Mixed-source annotation assignment:** when one 1-minute parent has tags or 3-second annotations for several species/sources, which annotations belong to each overlapping bout, and how are ambiguous untagged intervals handled? (review #12, #13; 2.1 #40) | The parent detection may reference multiple bouts without duplication, but membership needs a deterministic annotation/tag rule and a moderator override. |
 | B | **Boundary evidence persistence:** now that stored `start_evidence_status` / `end_evidence_status` fields are removed, boundary evidence is **recomputed** on demand from detection timestamps plus the `algorithm_version`'s fixed 15-minute gap. Open: is recomputation always sufficient, or are there cases (e.g. sources without full detection history) where a snapshot must be persisted? (second review #11–#13) | Proposed: rely on `algorithm_version` for reproducibility and recompute the 15-minute boundary status live rather than storing it. |
 | C | **`SRKWFound` semantics:** does `no` mean no SRKW specifically or no relevant whale sound at all? (second review #23) | Blocks safe mapping of Cosmos `SRKWFound` / API `found` to generic `confirmed` and `false_positive`; another species may still be present. |
 | D | **Confidence aggregation:** how is bout `confidence` calculated across reporters and annotations? | Needed for ranking, moderator display, evaluation, and reproducible API behavior. Do not hide per-detection values behind an average. |
