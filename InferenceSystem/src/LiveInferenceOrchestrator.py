@@ -219,14 +219,67 @@ def apply_model_config_overrides(model_config, overrides, logger):
     return DetectorInferenceConfig.from_dict(config_dict)
 
 
-def load_model(orch_config, logger):
-    """Load OrcaHelloSRKWDetectorV1 from HuggingFace (or local cache if HF_HUB_OFFLINE=1), applying any model_config_overrides from orch_config."""
-    model_config = DetectorInferenceConfig.from_yaml(orch_config["model_config_path"])
+def parse_config(raw_config):
+    """Parse YAML config into (orch_config, locations).
 
-    overrides = orch_config.get("model_config_overrides")
-    if overrides:
-        logger.info(f"Applying model config overrides: {overrides}")
-        model_config = apply_model_config_overrides(model_config, overrides, logger)
+    Expects the new multi-location format::
+
+        orchestrator_config:
+            model_id: ...
+            model_config_path: ...
+            ...
+        location_config:
+            - location_id: "rpi_orcasound_lab"
+              hls_hydrophone_id: "rpi_orcasound_lab"
+              model_config_overrides: { ... }
+
+    Returns
+    -------
+    orch_config : dict
+        Shared orchestrator settings (from ``orchestrator_config`` key).
+    locations : list[dict]
+        Per-location dicts.  Each has at least ``location_id`` and
+        ``hls_hydrophone_id``, plus optional ``model_config_overrides``.
+    """
+    orch_config = raw_config["orchestrator_config"]
+    locations = raw_config["location_config"]
+    for loc in locations:
+        if "hls_hydrophone_id" not in loc:
+            loc["hls_hydrophone_id"] = loc["location_id"]
+    return orch_config, locations
+
+
+def resolve_location_model_config(base_model_config, orch_config, location, logger):
+    """Build a per-location DetectorInferenceConfig.
+
+    Applies two layers of overrides on top of ``base_model_config``:
+    1. Shared ``model_config_overrides`` from ``orchestrator_config`` (if any).
+    2. Per-location ``model_config_overrides`` from the location entry (if any).
+
+    Location-level values take precedence over orchestrator-level values.
+    """
+    config = base_model_config
+
+    shared_overrides = orch_config.get("model_config_overrides")
+    if shared_overrides:
+        config = apply_model_config_overrides(config, shared_overrides, logger)
+
+    loc_overrides = location.get("model_config_overrides")
+    if loc_overrides:
+        loc_id = location["location_id"]
+        logger.debug(f"[{loc_id}] Applying location model config overrides: {loc_overrides}")
+        config = apply_model_config_overrides(config, loc_overrides, logger)
+
+    return config
+
+
+def load_model(orch_config, logger):
+    """Load OrcaHelloSRKWDetectorV1 from HuggingFace (or local cache if HF_HUB_OFFLINE=1).
+
+    Model is loaded once with the base model config (no per-location overrides).
+    Per-location overrides are applied at inference time via resolve_location_model_config().
+    """
+    model_config = DetectorInferenceConfig.from_yaml(orch_config["model_config_path"])
 
     repo_id = orch_config.get(
         "model_hf_repo_id", "orcasound/orcahello-srkw-detector-v1"
@@ -345,17 +398,17 @@ def _process_segment(
     model,
     model_config,
     orch_config,
+    hls_hydrophone_id,
     blob_service_client,
     cosmos_client,
     logger,
     model_id,
     local_dir,
+    log_prefix="",
 ):
     """Process a single HLS segment: download, inference, upload."""
-    hls_hydrophone_id = orch_config["hls_hydrophone_id"]
-
     logger.info(
-        f"Segment: folder={segment.folder_epoch}, "
+        f"{log_prefix}Segment: folder={segment.folder_epoch}, "
         f"indices=[{segment.start_index}:{segment.end_index}), "
         f"start={segment.start_iso}, duration={segment.duration_s:.1f}s"
     )
@@ -364,12 +417,12 @@ def _process_segment(
     try:
         clip_path = segment.download_as_wav(local_dir)
     except Exception as e:
-        logger.warning(f"Failed to download segment: {e}")
+        logger.warning(f"{log_prefix}Failed to download segment: {e}")
         return
 
     start_timestamp = segment.start_iso
     logger.info(
-        f"Processing clip: {os.path.basename(clip_path)}, "
+        f"{log_prefix}Processing clip: {os.path.basename(clip_path)}, "
         f"start_timestamp={start_timestamp}"
     )
 
@@ -378,7 +431,7 @@ def _process_segment(
     result.print_summary(verbose=False)
 
     logger.info(
-        f"Inference: prediction={result.global_prediction}, "
+        f"{log_prefix}Inference: prediction={result.global_prediction}, "
         f"confidence={result.global_confidence:.3f}, "
         f"positive_segments={sum(result.local_predictions)}/{len(result.local_predictions)}",
         extra={"custom_dimensions": {"Hydrophone ID": hls_hydrophone_id}},
@@ -387,13 +440,13 @@ def _process_segment(
     # Generate spectrogram only when it will be used.
     if result.global_prediction == 1 or not orch_config["delete_local_wavs"]:
         spectrogram_path = spectrogram_visualizer.write_spectrogram(clip_path)
-        logger.debug(f"Generated spectrogram: {spectrogram_path}")
+        logger.debug(f"{log_prefix}Generated spectrogram: {spectrogram_path}")
     else:
         spectrogram_path = None
 
     if result.global_prediction == 1:
         logger.info(
-            f"Orca detected (confidence={result.global_confidence:.3f})",
+            f"{log_prefix}Orca detected (confidence={result.global_confidence:.3f})",
             extra={"custom_dimensions": {"Hydrophone ID": hls_hydrophone_id}},
         )
         if orch_config["upload_to_azure"]:
@@ -425,126 +478,173 @@ def _process_segment(
         if spectrogram_path is not None:
             os.remove(spectrogram_path)
             deleted.append(spectrogram_path)
-        logger.debug(f"Deleted local files: {', '.join(deleted)}")
+        logger.debug(f"{log_prefix}Deleted local files: {', '.join(deleted)}")
 
 
-def run_loop(
+def run_date_range(
     orcasound_client,
     model,
     model_config,
+    orch_config,
+    hls_hydrophone_id,
+    blob_service_client,
+    cosmos_client,
+    logger,
+    model_id,
+    max_segments=None,
+):
+    """Single-location DateRangeHLS processing."""
+    local_dir = "wav_dir"
+    os.makedirs(local_dir, exist_ok=True)
+
+    segment_size = orch_config.get("inference_segment_size", 60.0)
+    hls_start_time_pst = orch_config["hls_start_time_pst"]
+    hls_end_time_pst = orch_config["hls_end_time_pst"]
+
+    start_dt = datetime.strptime(hls_start_time_pst, "%Y-%m-%d %H:%M")
+    start_unix = int(pytz_tz("US/Pacific").localize(start_dt).timestamp())
+
+    end_dt = datetime.strptime(hls_end_time_pst, "%Y-%m-%d %H:%M")
+    end_unix = int(pytz_tz("US/Pacific").localize(end_dt).timestamp())
+
+    logger.debug(
+        f"DateRange: hydrophone={orcasound_client.hydrophone_id}, "
+        f"start_unix={start_unix}, end_unix={end_unix}, "
+        f"start_pst={hls_start_time_pst}, end_pst={hls_end_time_pst}"
+    )
+
+    logger.info(
+        f"Fetching DateRange segments: start_unix={start_unix}, "
+        f"end_unix={end_unix}, segment_size={segment_size}"
+    )
+    segments = orcasound_client.get_segments(
+        start_unix=start_unix,
+        end_unix=end_unix,
+        segment_size=segment_size,
+    )
+    if max_segments is not None:
+        segments = segments[:max_segments]
+    logger.info(f"Got {len(segments)} segments from date range")
+    for segment in segments:
+        _process_segment(
+            segment,
+            model,
+            model_config,
+            orch_config,
+            hls_hydrophone_id,
+            blob_service_client,
+            cosmos_client,
+            logger,
+            model_id,
+            local_dir,
+        )
+
+
+def run_live_hls(
+    locations,
+    model,
+    base_model_config,
     orch_config,
     blob_service_client,
     cosmos_client,
     logger,
     model_id,
     max_live_iterations=None,
-    max_segments=None,
 ):
-    """Main inference loop: fetch HLS segments via orcasound_client, run model, upload detections."""
+    """Multi-location LiveHLS loop.
+
+    Each iteration processes all locations sequentially within the same
+    time-aligned window, then sleeps until the next boundary.
+    """
     local_dir = "wav_dir"
     os.makedirs(local_dir, exist_ok=True)
 
-    hls_stream_type = orch_config["hls_stream_type"]
     segment_size = orch_config.get("inference_segment_size", 60.0)
     live_delay_buffer = orch_config.get("hls_live_delay_buffer", 60.0)
 
-    if hls_stream_type == "DateRangeHLS":
-        hls_start_time_pst = orch_config["hls_start_time_pst"]
-        hls_end_time_pst = orch_config["hls_end_time_pst"]
-
-        start_dt = datetime.strptime(hls_start_time_pst, "%Y-%m-%d %H:%M")
-        start_unix = int(pytz_tz("US/Pacific").localize(start_dt).timestamp())
-
-        end_dt = datetime.strptime(hls_end_time_pst, "%Y-%m-%d %H:%M")
-        end_unix = int(pytz_tz("US/Pacific").localize(end_dt).timestamp())
-
-        logger.debug(
-            f"DateRange: hydrophone={orcasound_client.hydrophone_id}, "
-            f"start_unix={start_unix}, end_unix={end_unix}, "
-            f"start_pst={hls_start_time_pst}, end_pst={hls_end_time_pst}"
+    # Pre-build per-location clients and model configs
+    loc_clients = {}
+    loc_model_configs = {}
+    for loc in locations:
+        loc_id = loc["location_id"]
+        loc_clients[loc_id] = OrcasoundHLSClient(
+            bucket=ORCASOUND_S3_BUCKET,
+            hydrophone_id=loc["hls_hydrophone_id"],
         )
+        loc_model_configs[loc_id] = resolve_location_model_config(
+            base_model_config, orch_config, loc, logger
+        )
+
+    location_ids = [loc["location_id"] for loc in locations]
+    logger.info(f"LiveHLS multi-location: {location_ids}")
+
+    def _align(ts: float, interval: float) -> float:
+        return (ts // interval) * interval
+
+    def _next_aligned_time(now: float, interval: float) -> float:
+        return _align(now, interval) + interval
+
+    live_iteration_count = 0
+    while True:
+        now = _align(datetime.now(timezone.utc).timestamp(), segment_size)
+        end_unix = now - live_delay_buffer
+        start_unix = end_unix - segment_size
 
         logger.info(
-            f"Fetching DateRange segments: start_unix={start_unix}, "
-            f"end_unix={end_unix}, segment_size={segment_size}"
+            f"--- [iter {live_iteration_count}] LiveHLS poll: "
+            f"[{start_unix:.0f}, {end_unix:.0f}] "
+            f"(now={now:.0f}, delay={live_delay_buffer}s, "
+            f"locations={len(locations)})"
         )
-        segments = orcasound_client.get_segments(
-            start_unix=start_unix,
-            end_unix=end_unix,
-            segment_size=segment_size,
-        )
-        if max_segments is not None:
-            segments = segments[:max_segments]
-        logger.info(f"Got {len(segments)} segments from date range")
-        for segment in segments:
-            _process_segment(
-                segment,
-                model,
-                model_config,
-                orch_config,
-                blob_service_client,
-                cosmos_client,
-                logger,
-                model_id,
-                local_dir,
-            )
 
-    elif hls_stream_type == "LiveHLS":
+        for loc in locations:
+            loc_id = loc["location_id"]
+            hls_hydrophone_id = loc["hls_hydrophone_id"]
+            log_prefix = f"[{loc_id}] "
+            client = loc_clients[loc_id]
+            model_config = loc_model_configs[loc_id]
 
-        def _next_aligned_time(now: float, interval: float) -> float:
-            """Next wall-clock boundary (e.g. XX:01:00 if now is XX:00:27 with 60s interval)."""
-            return _align(now, interval) + interval
-
-        def _align(ts: float, interval: float) -> float:
-            """Round down to the nearest `interval` boundary."""
-            return (ts // interval) * interval
-
-        live_iteration_count = 0
-        while True:
-            now = _align(datetime.now(timezone.utc).timestamp(), segment_size)
-            end_unix = now - live_delay_buffer
-            start_unix = end_unix - segment_size
-
-            logger.info(
-                f"--- [iter {live_iteration_count}] LiveHLS poll: fetching segments in "
-                f"[{start_unix:.0f}, {end_unix:.0f}] "
-                f"(now={now:.0f}, delay={live_delay_buffer}s)"
-            )
-            segments = orcasound_client.get_segments(
-                start_unix=start_unix,
-                end_unix=end_unix,
-                segment_size=segment_size,
-            )
-            logger.info(
-                f"[iter {live_iteration_count}] LiveHLS poll: got {len(segments)} segments"
-            )
-            for segment in segments:
-                _process_segment(
-                    segment,
-                    model,
-                    model_config,
-                    orch_config,
-                    blob_service_client,
-                    cosmos_client,
-                    logger,
-                    model_id,
-                    local_dir,
+            try:
+                segments = client.get_segments(
+                    start_unix=start_unix,
+                    end_unix=end_unix,
+                    segment_size=segment_size,
+                )
+                logger.info(
+                    f"{log_prefix}[iter {live_iteration_count}] "
+                    f"got {len(segments)} segments"
+                )
+                for segment in segments:
+                    _process_segment(
+                        segment,
+                        model,
+                        model_config,
+                        orch_config,
+                        hls_hydrophone_id,
+                        blob_service_client,
+                        cosmos_client,
+                        logger,
+                        model_id,
+                        local_dir,
+                        log_prefix=log_prefix,
+                    )
+            except Exception:
+                logger.warning(
+                    f"{log_prefix}Error processing location, skipping",
+                    exc_info=True,
                 )
 
-            live_iteration_count += 1
-            if max_live_iterations is not None and live_iteration_count >= max_live_iterations:
-                break
+        live_iteration_count += 1
+        if max_live_iterations is not None and live_iteration_count >= max_live_iterations:
+            break
 
-            # Sleep until the next wall-clock-aligned boundary
-            sleep_time = _next_aligned_time(now, segment_size) - time.time()
-            logger.debug(
-                f"Sleeping for {sleep_time:.1f}s until {_next_aligned_time(now, segment_size):.0f}"
-            )
-            if sleep_time > 0:
-                time.sleep(sleep_time)
-
-    else:
-        raise ValueError("hls_stream_type should be one of LiveHLS or DateRangeHLS")
+        sleep_time = _next_aligned_time(now, segment_size) - time.time()
+        logger.debug(
+            f"Sleeping for {sleep_time:.1f}s until "
+            f"{_next_aligned_time(now, segment_size):.0f}"
+        )
+        if sleep_time > 0:
+            time.sleep(sleep_time)
 
 
 if __name__ == "__main__":
@@ -553,7 +653,9 @@ if __name__ == "__main__":
     args = parse_args()
 
     with open(args.orch_config) as f:
-        orch_config = yaml.safe_load(f)
+        raw_config = yaml.safe_load(f)
+
+    orch_config, locations = parse_config(raw_config)
 
     app_insights_connection_string = os.getenv(
         "INFERENCESYSTEM_APPINSIGHTS_CONNECTION_STRING"
@@ -566,27 +668,55 @@ if __name__ == "__main__":
 
     model_id = orch_config.get("model_id", "orcasound/orcahello-srkw-detector-v1")
     logger.info(f"Model ID: {model_id}")
-    model, model_config = load_model(orch_config, logger)
+    model, base_model_config = load_model(orch_config, logger)
     logger.info("Model loaded")
 
     blob_service_client, cosmos_client = setup_azure_clients(orch_config)
     logger.info(f"Azure upload: {orch_config['upload_to_azure']}")
 
-    orcasound_client = build_orcasound_client(orch_config)
-    logger.info(
-        f"Starting inference loop: hydrophone={orch_config['hls_hydrophone_id']}, "
-        f"stream_type={orch_config['hls_stream_type']}"
-    )
+    hls_stream_type = orch_config["hls_stream_type"]
 
-    run_loop(
-        orcasound_client,
-        model,
-        model_config,
-        orch_config,
-        blob_service_client,
-        cosmos_client,
-        logger,
-        model_id,
-        max_live_iterations=args.max_live_iterations,
-        max_segments=args.max_segments,
-    )
+    if hls_stream_type == "LiveHLS":
+        location_ids = [loc["location_id"] for loc in locations]
+        logger.info(
+            f"Starting LiveHLS loop: locations={location_ids}"
+        )
+        run_live_hls(
+            locations,
+            model,
+            base_model_config,
+            orch_config,
+            blob_service_client,
+            cosmos_client,
+            logger,
+            model_id,
+            max_live_iterations=args.max_live_iterations,
+        )
+
+    elif hls_stream_type == "DateRangeHLS":
+        loc = locations[0]
+        loc_model_config = resolve_location_model_config(
+            base_model_config, orch_config, loc, logger
+        )
+        orcasound_client = OrcasoundHLSClient(
+            bucket=ORCASOUND_S3_BUCKET,
+            hydrophone_id=loc["hls_hydrophone_id"],
+        )
+        logger.info(
+            f"Starting DateRangeHLS: hydrophone={loc['hls_hydrophone_id']}"
+        )
+        run_date_range(
+            orcasound_client,
+            model,
+            loc_model_config,
+            orch_config,
+            loc["hls_hydrophone_id"],
+            blob_service_client,
+            cosmos_client,
+            logger,
+            model_id,
+            max_segments=args.max_segments,
+        )
+
+    else:
+        raise ValueError("hls_stream_type should be one of LiveHLS or DateRangeHLS")
