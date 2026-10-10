@@ -99,6 +99,7 @@ namespace OrcaHello.Console.DataMigration.Services
             var queryIterator = sourceContainer.GetItemQueryIterator<Metadata>(query);
 
             int recordCount = 0;
+            int migratedCount = 0;
 
             while (queryIterator.HasMoreResults)
             {
@@ -107,79 +108,99 @@ namespace OrcaHello.Console.DataMigration.Services
                 foreach (var item in response)
                 {
                     recordCount++;
+
+                    var newItem = ConvertToNewSchema(item);
+
+                    if (newItem == null)
+                    {
+                        System.Console.WriteLine($"Skipping record #{recordCount} (id: {item.id}): missing location name.");
+                        continue;
+                    }
+
                     System.Console.WriteLine($"Migrating record #{recordCount}");
-
-                    // convert old schema to new schema
-                    var newItem = new Metadata2();
-
-                    newItem.id = item.id;
-                    newItem.audioUri = item.audioUri;
-                    newItem.imageUri = item.imageUri;
-                    newItem.timestamp = item.timestamp;
-                    newItem.location = item.location;
-                    newItem.predictions = item.predictions;
-                    newItem.whaleFoundConfidence = item.whaleFoundConfidence;
-                    newItem.comments = item.comments;
-                    newItem.moderator = item.moderator;
-                    newItem.dateModerated = item.dateModerated;
-
-                    // We are turning tags into a list in the schema so it can
-                    // be parsed and indexed better
-
-                    if (!string.IsNullOrWhiteSpace(item?.tags))
-                    {
-                        newItem.tags = item?.tags?.Split(";")?.ToList();
-                    }
-
-                    // We are creating a location name higher up to make it easier to
-                    // index
-
-                    // We are also renaming "Haro Strait" to "Orcasound Lab", but leaving the
-                    // node_name unchanged
-
-                    var name = item?.location?.name;
-
-                    if (name == "Haro Strait")
-                    {
-                        name = "Orcasound Lab";
-                    }
-
-                    newItem.locationName = name;
-                    newItem.location.name = name;
-
-                    // We are moving to a single field to indicate the state of the
-                    // item (Unreviewed, Positive, Negative, Unknown)
-
-                    if (!item.reviewed)
-                    {
-                        newItem.state = "Unreviewed";
-                    }
-
-                    if (item.reviewed && item.SRKWFound == "yes")
-                    {
-                        newItem.state = "Positive";
-                    }
-
-                    if (item.reviewed && item.SRKWFound == "no")
-                    {
-                        newItem.state = "Negative";
-                    }
-
-                    if (item.reviewed && item.SRKWFound == "don't know")
-                    {
-                        newItem.state = "Unknown";
-                    }
 
                     // We are creating a new partition key
                     PartitionKey partitionKey = new PartitionKey(newItem.state); // Adjust property name
 
                     // Insert data into local container
                     await targetContainer.CreateItemAsync(newItem, partitionKey);
+                    migratedCount++;
                 }
             }
 
-            System.Console.WriteLine($"Finished migrating {recordCount} records to {_config[AppSettings.TargetContainerName]} in emulator.");
+            System.Console.WriteLine($"Finished migrating {migratedCount} of {recordCount} records to {_config[AppSettings.TargetContainerName]} in emulator.");
             PressAnyKey();
+        }
+
+        /// <summary>
+        /// Converts a record from the old schema to the new schema, or returns null if the
+        /// record is missing a location name (and so can't satisfy the live API's validation).
+        /// </summary>
+        public static Metadata2? ConvertToNewSchema(Metadata item)
+        {
+            if (string.IsNullOrWhiteSpace(item.location?.name))
+            {
+                return null;
+            }
+
+            var newItem = new Metadata2();
+
+            newItem.id = item.id;
+            newItem.audioUri = item.audioUri;
+            newItem.imageUri = item.imageUri;
+            newItem.timestamp = item.timestamp;
+            newItem.location = item.location;
+            newItem.predictions = item.predictions;
+            newItem.whaleFoundConfidence = item.whaleFoundConfidence;
+            newItem.comments = item.comments;
+            newItem.moderator = item.moderator;
+            newItem.dateModerated = item.dateModerated;
+
+            // We are turning tags into a list in the schema so it can
+            // be parsed and indexed better
+
+            if (!string.IsNullOrWhiteSpace(item.tags))
+            {
+                newItem.tags = item.tags.Split(";").ToList();
+            }
+
+            // We are creating a location name higher up to make it easier to
+            // index
+
+            // We are also renaming "Haro Strait" to "Orcasound Lab", but leaving the
+            // node_name unchanged
+
+            if (item.location.name == "Haro Strait")
+            {
+                item.location.name = "Orcasound Lab";
+            }
+
+            newItem.locationName = item.location.name;
+
+            // We are moving to a single field to indicate the state of the
+            // item (Unreviewed, Positive, Negative, Unknown)
+
+            if (!item.reviewed)
+            {
+                newItem.state = "Unreviewed";
+            }
+
+            if (item.reviewed && item.SRKWFound == "yes")
+            {
+                newItem.state = "Positive";
+            }
+
+            if (item.reviewed && item.SRKWFound == "no")
+            {
+                newItem.state = "Negative";
+            }
+
+            if (item.reviewed && item.SRKWFound == "don't know")
+            {
+                newItem.state = "Unknown";
+            }
+
+            return newItem;
         }
 
         public async Task CreateCompositeIndexOnLocal()

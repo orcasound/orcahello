@@ -173,10 +173,10 @@ namespace OrcaHello.Web.Shared.Services
     {
         public HttpResponseException() { }
 
-        public HttpResponseException(HttpResponseMessage httpResponseMessage, string message)
+        public HttpResponseException(HttpResponseMessage? httpResponseMessage, string? message)
             : base(message) => this.HttpResponseMessage = httpResponseMessage;
 
-        public HttpResponseMessage HttpResponseMessage { get; private set; }
+        public HttpResponseMessage? HttpResponseMessage { get; private set; }
     }
 
     [ExcludeFromCodeCoverage]
@@ -432,7 +432,7 @@ namespace OrcaHello.Web.Shared.Services
     {
         public Xeption() : base() { }
 
-        public Xeption(string message) : base(message) { }
+        public Xeption(string? message) : base(message) { }
 
         public Xeption(string message, Exception innerException)
             : base(message, innerException)

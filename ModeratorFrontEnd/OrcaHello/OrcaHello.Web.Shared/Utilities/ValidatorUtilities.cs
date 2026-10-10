@@ -13,14 +13,15 @@
         public static bool IsInvalid(object input) => input == null;
         public static bool IsInvalid(DateTime input) => input == default(DateTime);
         public static bool IsInvalidGuidString(string input) => !Guid.TryParse(input, out Guid dummy);
-        public static string GetInnerMessage(Exception exception) => exception.InnerException.Message;
+        // Falls back to the outer message if there's no inner exception.
+        public static string GetInnerMessage(Exception exception) => exception.InnerException?.Message ?? exception.Message;
         public static string GetMessage(Exception exception) => exception.Message;
 
-        public static string GetMatchingEnumValue(string input, Type enumType)
+        public static string? GetMatchingEnumValue(string input, Type enumType)
         {
-            if (Enum.TryParse(enumType, input, true, out object enumValue))
+            if (Enum.TryParse(enumType, input, true, out object? enumValue))
             {
-                return enumValue.ToString();
+                return enumValue?.ToString();
             }
 
             return null;

@@ -15,7 +15,7 @@
         private async ValueTask<T> GetAsync<T>(string relativeUrl) =>
             await _apiClient.GetContentAsync<T>(createFullUrl(relativeUrl));
 
-        private async ValueTask<T> PostAsync<T>(string relativeUrl, T content) =>
+        private async ValueTask<T?> PostAsync<T>(string relativeUrl, T content) =>
             await _apiClient.PostContentAsync<T>(createFullUrl(relativeUrl), content);
 
         private async ValueTask<TResult> PutAsync<T, TResult>(string relativeUrl, T content) =>
