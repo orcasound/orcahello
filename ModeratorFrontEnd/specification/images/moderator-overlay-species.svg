@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="710" viewBox="0 0 1200 710" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <style>
+      .panel{fill:#fff;stroke:#c9d3dc;stroke-width:1.5}.navy{fill:#0c4968}.title{fill:#fff;font-size:15px;font-weight:700}.label{fill:#263847;font-size:13px}.small{fill:#607483;font-size:11px}.tiny{fill:#718493;font-size:10px}.chip{fill:#e8f4f8;stroke:#91bed0}.a{fill:#1d9a75}.b{fill:#df7b2d}.axis{stroke:#91a3b1;stroke-width:1}.grid{stroke:#30434f;stroke-width:.7;opacity:.55}
+      .callout{fill:#fff3e0;stroke:#c25a2b;stroke-width:1.2}.calloutText{fill:#8a3c15;font-size:11px;font-weight:600}.leader{stroke:#c25a2b;stroke-width:1.2;stroke-dasharray:3 2;fill:none}.cdot{fill:#c25a2b}
+      .ok{fill:#17864b;font-size:11px;font-weight:700}.amber{fill:#b05b22;font-size:11px;font-weight:700}.bound{stroke:#61a9ff;stroke-width:3}
+    </style>
+    <linearGradient id="spec" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#09131c"/><stop offset=".55" stop-color="#152d39"/><stop offset="1" stop-color="#081018"/></linearGradient>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#dfe8ee"/><line x1="0" y1="0" x2="0" y2="6" stroke="#9fb3c0" stroke-width="2"/></pattern>
+  </defs>
+  <rect width="1200" height="710" fill="#eef3f6"/>
+  <rect width="1200" height="44" class="navy"/>
+  <text x="18" y="28" class="title" font-size="17">Moderator overlay · species-first swimlanes (M2) + change minimap</text>
+  <text x="980" y="27" class="title" font-size="12">Orcasound Lab · 07:55–08:15</text>
+
+  <rect x="20" y="58" width="1160" height="634" rx="6" class="panel"/>
+
+  <!-- minimap ribbon -->
+  <text x="34" y="86" class="small" font-weight="700">Session minimap · density + change markers</text>
+  <text x="700" y="85" class="small" font-weight="700">Bout limits</text>
+  <rect x="770" y="66" width="142" height="24" rx="4" fill="#fff" stroke="#4d93ad"/>
+  <text x="841" y="82" class="small" text-anchor="middle">All annotation labels ▾</text>
+  <rect x="924" y="66" width="146" height="24" rx="4" fill="#fff" stroke="#b05b22"/>
+  <text x="997" y="82" class="amber" text-anchor="middle">Force merge bouts…</text>
+  <text x="1080" y="82" class="tiny">compatible only</text>
+  <rect x="34" y="94" width="1000" height="26" rx="4" fill="#0c1c26"/>
+  <g fill="#3f6b7d"><rect x="60" y="100" width="40" height="14"/><rect x="140" y="98" width="70" height="18"/><rect x="260" y="102" width="50" height="12"/><rect x="420" y="97" width="90" height="20"/><rect x="620" y="101" width="60" height="14"/><rect x="820" y="99" width="80" height="16"/></g>
+  <path d="M470 90l8 6-8 6-8-6z" fill="#ffcf6b"/><text x="470" y="132" class="tiny" text-anchor="middle" fill="#8a3c15">✦ change 08:04</text>
+  <rect x="1044" y="94" width="120" height="26" rx="4" class="callout"/><text x="1052" y="111" class="calloutText">off-screen changes visible</text>
+
+  <!-- spectrogram -->
+  <rect x="34" y="150" width="1000" height="150" rx="3" fill="url(#spec)"/>
+  <g class="grid"><line x1="34" y1="195" x2="1034" y2="195"/><line x1="34" y1="240" x2="1034" y2="240"/><line x1="34" y1="285" x2="1034" y2="285"/></g>
+  <g opacity=".9" fill="#dcf1f8"><rect x="227" y="172" width="6" height="112" rx="2"/><rect x="236" y="190" width="3" height="88" rx="2" fill="#bfe6f4"/><rect x="377" y="178" width="6" height="104" rx="2"/><rect x="567" y="176" width="6" height="108" rx="2"/><rect x="517" y="182" width="6" height="98" rx="2"/><rect x="667" y="184" width="6" height="94" rx="2"/><rect x="767" y="180" width="6" height="100" rx="2"/><rect x="877" y="204" width="5" height="70" rx="2"/></g>
+  <g fill="none" stroke-width="2.5">
+    <rect x="208" y="164" width="44" height="128" rx="3" stroke="#39b98f"/><rect x="358" y="164" width="44" height="128" rx="3" stroke="#39b98f"/><rect x="548" y="164" width="44" height="128" rx="3" stroke="#39b98f"/>
+    <rect x="498" y="168" width="44" height="124" rx="3" stroke="#7f8ff0" stroke-dasharray="1 4"/><rect x="648" y="168" width="44" height="124" rx="3" stroke="#7f8ff0" stroke-dasharray="6 4"/><rect x="748" y="168" width="44" height="124" rx="3" stroke="#7f8ff0" stroke-dasharray="6 4"/>
+    <rect x="858" y="196" width="44" height="80" rx="3" stroke="#9fb6c4" stroke-dasharray="4 3"/>
+  </g>
+  <g fill="#fff" font-size="14" font-weight="700"><text x="214" y="180">✓</text><text x="364" y="180">✓</text><text x="554" y="180">✓</text><text x="504" y="184">□</text><text x="654" y="184">□</text><text x="754" y="184">×</text><text x="864" y="212">?</text></g>
+  <g class="tiny" fill="#a9c4d1"><text x="34" y="314">07:55</text><text x="270" y="314">08:00</text><text x="520" y="314">08:05</text><text x="770" y="314">08:10</text><text x="1000" y="314">08:15</text></g>
+
+  <!-- alignment guides: annotation boxes line up with lower lane markers -->
+  <g stroke="#61a9ff" stroke-width="1" stroke-dasharray="2 4" opacity=".4"><line x1="230" y1="300" x2="230" y2="366"/><line x1="380" y1="300" x2="380" y2="366"/><line x1="570" y1="300" x2="570" y2="366"/><line x1="520" y1="300" x2="520" y2="418"/><line x1="670" y1="300" x2="670" y2="418"/><line x1="770" y1="300" x2="770" y2="418"/><line x1="880" y1="300" x2="880" y2="464"/></g>
+
+  <!-- Humpback lane (bout 1) -->
+  <text x="34" y="352" class="label" font-weight="700">Humpback</text>
+  <rect x="150" y="336" width="884" height="30" rx="4" fill="#eaf5ef"/>
+  <rect x="182" y="336" width="438" height="30" rx="4" fill="none" stroke="#17864b" stroke-width="2" stroke-dasharray="5 3"/>
+  <text x="190" y="332" class="ok">◄ bout #1 · humpback (07:58–08:07)</text>
+  <line x1="182" y1="330" x2="182" y2="372" class="bound"/><line x1="620" y1="330" x2="620" y2="372" class="bound"/>
+  <rect x="220" y="341" width="20" height="20" rx="2" fill="none" stroke="#39b98f" stroke-width="2"/><text x="225" y="356" class="ok">✓</text>
+  <rect x="370" y="341" width="20" height="20" rx="2" fill="none" stroke="#39b98f" stroke-width="2"/><text x="375" y="356" class="ok">✓</text>
+  <rect x="560" y="341" width="20" height="20" rx="2" fill="none" stroke="#39b98f" stroke-width="2"/><text x="565" y="356" class="ok">✓</text>
+
+  <!-- Transient lane (bout 2) overlapping in time -->
+  <text x="34" y="404" class="label" font-weight="700">Transient</text>
+  <rect x="150" y="388" width="884" height="30" rx="4" fill="#eef0fb"/>
+  <rect x="470" y="388" width="350" height="30" rx="4" fill="none" stroke="#5b6bd6" stroke-width="2" stroke-dasharray="5 3"/>
+  <text x="478" y="384" fill="#3b46a8" font-size="11" font-weight="700">◄ bout #2 · transient (08:04–08:11) — overlaps bout #1 (08:04–08:07); allowed for different species</text>
+  <line x1="470" y1="382" x2="470" y2="424" class="bound"/><line x1="820" y1="382" x2="820" y2="424" class="bound"/>
+  <rect x="512" y="396" width="16" height="16" rx="2" fill="none" stroke="#7f8ff0" stroke-width="2" stroke-dasharray="1 3"/><text x="515" y="409" class="tiny">□</text>
+  <rect x="662" y="396" width="16" height="16" rx="2" fill="none" stroke="#7f8ff0" stroke-width="2" stroke-dasharray="5 3"/><text x="665" y="409" class="tiny">□</text>
+  <rect x="762" y="396" width="16" height="16" rx="2" fill="none" stroke="#7f8ff0" stroke-width="2" stroke-dasharray="5 3"/><text x="765" y="409" class="tiny">×</text>
+
+  <!-- Unassigned lane -->
+  <text x="34" y="454" class="small">Unassigned</text>
+  <rect x="150" y="440" width="884" height="24" rx="4" fill="#f3f5f7"/>
+  <rect x="872" y="444" width="16" height="16" rx="2" fill="none" stroke="#607483" stroke-width="2" stroke-dasharray="1 3"/><text x="876" y="457" class="tiny">?</text>
+
+  <!-- legend -->
+  <rect x="34" y="486" width="470" height="96" rx="5" fill="#f5f8fa" stroke="#c9d3dc"/>
+  <text x="46" y="506" class="small" font-weight="700">Shared marker vocabulary</text>
+  <text x="46" y="530" class="small">Color = annotation label · outline: solid human / dashed model / dotted unknown</text>
+  <text x="46" y="558" class="small">Corner: □ unmoderated · ✓ confirmed · × false positive · ? needs confirmation</text>
+
+  <!-- change-alert banner -->
+  <rect x="524" y="486" width="510" height="44" rx="6" fill="#fff7e9" stroke="#df7b2d"/>
+  <path d="M548 508l9 7-9 7z" fill="#df7b2d"/>
+  <text x="566" y="504" class="amber">Evidence changed at 08:04 (humpback → transient)</text>
+  <text x="566" y="522" class="small">Boundary updated automatically · alerts active editor + prior watchers · View before/after ▸</text>
+  <rect x="524" y="540" width="510" height="42" rx="6" class="callout"/>
+  <text x="536" y="557" class="calloutText">The label and resulting valid boundaries save atomically.</text>
+  <text x="536" y="572" class="calloutText">Save stays disabled if the timeframe invariant cannot be met.</text>
+
+  <!-- integrated M2-A annotation tagging bar -->
+  <rect x="34" y="610" width="1130" height="62" rx="6" fill="#e8f4f8" stroke="#4d93ad" stroke-width="1.5"/>
+  <text x="50" y="633" class="label" font-weight="700">M2-A annotation tagging · 2 proposed annotations selected · 08:04:10–08:04:18</text>
+  <text x="50" y="655" class="small">Selection remains visible in species lanes and spectrogram</text>
+  <rect x="650" y="623" width="92" height="34" rx="4" fill="#fff" stroke="#607483"/><text x="696" y="645" class="label" text-anchor="middle">▶ Listen</text>
+  <rect x="752" y="623" width="118" height="34" rx="4" fill="#fff" stroke="#607483"/><text x="811" y="645" class="label" text-anchor="middle">Tag: transient</text>
+  <rect x="880" y="623" width="122" height="34" rx="4" fill="#17864b"/><text x="941" y="645" fill="#fff" font-size="13" font-weight="700" text-anchor="middle">✓ Confirm (2)</text>
+  <rect x="1012" y="623" width="136" height="34" rx="4" fill="#fff" stroke="#b05b22"/><text x="1080" y="645" class="amber" text-anchor="middle">Change labels</text>
+</svg>

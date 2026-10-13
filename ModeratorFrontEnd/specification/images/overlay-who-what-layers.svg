@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="620" viewBox="0 0 1180 620" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <style>
+      .panel{fill:#fff;stroke:#c9d3dc;stroke-width:1.5}.navy{fill:#0c4968}.title{fill:#fff;font-size:15px;font-weight:700}.label{fill:#263847;font-size:13px}.small{fill:#607483;font-size:11px}.tiny{fill:#718493;font-size:10px}.axis{stroke:#91a3b1;stroke-width:1}.button{fill:#087c8c}
+      .callout{fill:#fff3e0;stroke:#c25a2b;stroke-width:1.2}.calloutText{fill:#8a3c15;font-size:11px;font-weight:600}.leader{stroke:#c25a2b;stroke-width:1.2;stroke-dasharray:3 2;fill:none}.cdot{fill:#c25a2b}.ok{fill:#17864b;font-size:11px;font-weight:700}
+      .box{fill:none;stroke-width:2.5}.hbox{stroke:#39b98f}.tbox{stroke:#7f8ff0}.vbox{stroke:#d3a24a}
+    </style>
+    <linearGradient id="spec" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0a1a24"/><stop offset=".5" stop-color="#12303c"/><stop offset="1" stop-color="#0a141c"/></linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#bfe6f4" stop-opacity=".9"/><stop offset="1" stop-color="#bfe6f4" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="1180" height="620" fill="#eef3f6"/>
+  <rect width="1180" height="44" class="navy"/>
+  <text x="18" y="28" class="title" font-size="17">Main overlay · sonogram bursts always visible · tags are empty boxes drawn around them</text>
+
+  <rect x="20" y="58" width="1140" height="546" rx="6" class="panel"/>
+
+  <!-- controls -->
+  <text x="34" y="86" class="small" font-weight="700">Layers (both on)</text>
+  <rect x="150" y="74" width="16" height="16" rx="3" class="button"/><path d="M153 81l3 3 5-6" stroke="#fff" stroke-width="1.5" fill="none"/>
+  <text x="172" y="86" class="small">What · annotation label <tspan fill="#2f8f77" font-weight="700">(color)</tspan></text>
+  <rect x="380" y="74" width="16" height="16" rx="3" class="button"/><path d="M383 81l3 3 5-6" stroke="#fff" stroke-width="1.5" fill="none"/>
+  <text x="402" y="86" class="small">Who · source <tspan font-weight="700">(outline pattern)</tspan></text>
+  <line x1="700" y1="72" x2="700" y2="92" stroke="#c9d3dc"/>
+  <text x="720" y="86" class="small" font-weight="700">Lower bars grouping</text>
+  <circle cx="872" cy="82" r="7" fill="#087c8c" stroke="#087c8c" stroke-width="2"/><circle cx="872" cy="82" r="3" fill="#fff"/><text x="884" y="86" class="label" font-weight="700">by Who</text>
+  <circle cx="952" cy="82" r="7" fill="#fff" stroke="#087c8c" stroke-width="2"/><text x="964" y="86" class="small">by What</text>
+
+  <!-- SPECTROGRAM: always-on bursts -->
+  <rect x="34" y="104" width="1000" height="180" rx="3" fill="url(#spec)"/>
+  <!-- waveform bursts (bright energy, always shown) -->
+  <g>
+    <ellipse cx="150" cy="200" rx="34" ry="70" fill="url(#glow)"/><rect x="142" y="140" width="6" height="120" rx="2" fill="#dcf1f8" opacity=".95"/><rect x="152" y="158" width="4" height="96" rx="2" fill="#bfe6f4" opacity=".85"/><rect x="134" y="172" width="3" height="80" rx="2" fill="#bfe6f4" opacity=".7"/>
+    <ellipse cx="205" cy="210" rx="26" ry="54" fill="url(#glow)"/><rect x="200" y="164" width="5" height="96" rx="2" fill="#dcf1f8" opacity=".9"/><rect x="209" y="180" width="3" height="72" rx="2" fill="#bfe6f4" opacity=".7"/>
+    <ellipse cx="505" cy="196" rx="28" ry="66" fill="url(#glow)"/><rect x="500" y="146" width="5" height="112" rx="2" fill="#dcf1f8" opacity=".9"/><rect x="509" y="166" width="3" height="86" rx="2" fill="#bfe6f4" opacity=".7"/>
+    <ellipse cx="560" cy="212" rx="24" ry="50" fill="url(#glow)"/><rect x="556" y="170" width="5" height="86" rx="2" fill="#dcf1f8" opacity=".85"/>
+    <ellipse cx="675" cy="204" rx="26" ry="58" fill="url(#glow)"/><rect x="670" y="156" width="5" height="100" rx="2" fill="#dcf1f8" opacity=".9"/><rect x="679" y="176" width="3" height="76" rx="2" fill="#bfe6f4" opacity=".7"/>
+    <ellipse cx="880" cy="220" rx="24" ry="44" fill="url(#glow)"/><rect x="876" y="186" width="5" height="70" rx="2" fill="#dcf1f8" opacity=".8"/>
+  </g>
+
+  <!-- TAG BOXES: color=annotation label, outline pattern=source, corner glyph=moderation -->
+  <!-- H1: humpback · confirmed · human -->
+  <rect x="118" y="150" width="112" height="110" rx="3" class="box hbox"/>
+  <text x="124" y="166" fill="#bff0d3" font-size="16" font-weight="700">✓</text>
+  <!-- T1: transient · proposed(dashed) · model  (overlaps H2) -->
+  <rect x="484" y="140" width="150" height="126" rx="3" class="box tbox" stroke-dasharray="6 4"/>
+  <text x="490" y="160" fill="#fff" font-size="15">□</text>
+  <!-- H2: humpback · changed(amber) · human  (overlaps T1 on the right) -->
+  <rect x="612" y="150" width="118" height="112" rx="3" class="box hbox"/>
+  <text x="618" y="166" fill="#fff" font-size="15" font-weight="700">?</text>
+  <!-- V1: vessel · proposed(dashed) · model -->
+  <rect x="856" y="182" width="52" height="78" rx="3" class="box vbox" stroke-dasharray="6 4"/>
+  <text x="862" y="202" fill="#fff" font-size="15" font-weight="700">×</text>
+
+  <g class="tiny" fill="#a9c4d1"><text x="34" y="278">07:55</text><text x="500" y="278">08:05</text><text x="1000" y="278">08:15</text></g>
+
+  <!-- alignment guides: upper tag boxes line up with lower bars (same time) -->
+  <g stroke="#61a9ff" stroke-width="1" stroke-dasharray="2 4" opacity=".45"><line x1="174" y1="260" x2="174" y2="400"/><line x1="559" y1="266" x2="559" y2="400"/><line x1="671" y1="262" x2="671" y2="400"/><line x1="882" y1="260" x2="882" y2="400"/></g>
+
+  <!-- LOWER BARS grouped by Who -->
+  <text x="34" y="312" class="small" font-weight="700">Lower bars — grouped by Who (toggle above)</text>
+  <text x="34" y="346" class="small">● A · human</text>
+  <rect x="120" y="330" width="914" height="28" rx="4" fill="#eef3f6" stroke="#dbe4ea"/><line x1="120" y1="344" x2="1034" y2="344" class="axis"/>
+  <rect x="118" y="336" width="112" height="16" rx="2" fill="none" stroke="#2f8f77" stroke-width="2"/><text x="122" y="349" class="ok">✓</text>
+  <rect x="612" y="336" width="118" height="16" rx="2" fill="none" stroke="#2f8f77" stroke-width="2"/><text x="616" y="349" class="small">?</text>
+  <text x="34" y="388" class="small">▪ B · model</text>
+  <rect x="120" y="372" width="914" height="28" rx="4" fill="#eef3f6" stroke="#dbe4ea"/><line x1="120" y1="386" x2="1034" y2="386" class="axis"/>
+  <rect x="484" y="378" width="150" height="16" rx="2" fill="none" stroke="#5b6bd6" stroke-width="2" stroke-dasharray="5 3"/><text x="488" y="391" class="small">□</text>
+  <rect x="856" y="378" width="52" height="16" rx="2" fill="none" stroke="#b0873a" stroke-width="2" stroke-dasharray="5 3"/><text x="860" y="391" class="small">×</text>
+
+  <!-- ENCODING legend -->
+  <rect x="34" y="414" width="600" height="92" rx="6" fill="#f5f8fa" stroke="#c9d3dc"/>
+  <text x="46" y="434" class="label" font-weight="700">Tag box = empty outline around the burst (waveform stays visible)</text>
+  <rect x="46" y="446" width="26" height="16" rx="2" fill="none" stroke="#2f8f77" stroke-width="2"/><text x="80" y="459" class="small">Color = annotation label</text>
+  <rect x="210" y="446" width="26" height="16" fill="none" stroke="#12303d" stroke-width="2"/><rect x="246" y="446" width="26" height="16" fill="none" stroke="#12303d" stroke-width="2" stroke-dasharray="5 3"/><rect x="282" y="446" width="26" height="16" fill="none" stroke="#12303d" stroke-width="2" stroke-dasharray="1 3"/><text x="318" y="459" class="small">Source = solid / dash / dot</text>
+  <text x="46" y="487" class="small" font-weight="700">Corner state:</text><text x="126" y="487" class="small">□ unmoderated</text><text x="226" y="487" class="ok">✓ confirmed</text><text x="316" y="487" class="small">× false positive</text><text x="430" y="487" class="amber">? needs confirmation</text>
+
+  <!-- toggle-alt inset -->
+  <rect x="648" y="414" width="386" height="92" rx="6" fill="#f5f8fa" stroke="#c9d3dc"/>
+  <text x="660" y="434" class="tiny" font-weight="700">…toggle → lower bars grouped by What (species)</text>
+  <text x="660" y="456" class="tiny">Humpback</text><rect x="726" y="446" width="300" height="14" rx="3" fill="#eaf5ef"/><rect x="748" y="447" width="24" height="12" fill="none" stroke="#2f8f77" stroke-width="1.5"/>
+  <text x="660" y="478" class="tiny">Transient</text><rect x="726" y="468" width="300" height="14" rx="3" fill="#eef0fb"/><rect x="906" y="469" width="24" height="12" fill="none" stroke="#5b6bd6" stroke-width="1.5" stroke-dasharray="4 2"/>
+  <text x="660" y="500" class="tiny">Vessel</text><rect x="726" y="490" width="300" height="12" rx="3" fill="#f7f1e6"/>
+
+  <!-- callouts -->
+  <path class="leader" d="M560 140 C560 120 600 118 600 118"/><circle cx="560" cy="140" r="3" class="cdot"/>
+  <rect x="360" y="104" width="300" height="0" opacity="0"/>
+  <rect x="150" y="150" width="0" height="0"/>
+  <path class="leader" d="M170 205 C120 205 96 118 130 118"/>
+  <rect x="118" y="150" width="0" height="0"/>
+
+  <rect x="34" y="520" width="640" height="72" rx="6" fill="#fff6ee" stroke="#df7b2d"/>
+  <text x="46" y="542" class="small" font-weight="700">Reads like the real site</text>
+  <text x="46" y="562" class="small">The sonogram’s bursts are always shown; a tag is an empty rectangle around a</text>
+  <text x="46" y="580" class="small">burst, so the waveform stays visible. Two species in one timeframe = two overlapping boxes.</text>
+
+  <path class="leader" d="M812 92 C812 300 700 520 700 520"/>
+  <rect x="690" y="520" width="344" height="72" rx="6" class="callout"/>
+  <text x="702" y="542" class="calloutText">Same marker everywhere: color = annotation label,</text>
+  <text x="702" y="560" class="calloutText">outline = source, corner glyph = moderation. Toggle regroups</text>
+  <text x="702" y="578" class="calloutText">lower bars (Who ⇄ What) — upper tags are unchanged.</text>
+</svg>
