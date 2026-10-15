@@ -28,10 +28,10 @@ namespace OrcaHello.Web.Shared.Services
             _httpClient.DefaultRequestHeaders.Remove(headerName);
         }
 
-        public ValueTask<T> PostContentAsync<T>(string url, T content) =>
+        public ValueTask<T?> PostContentAsync<T>(string url, T content) =>
             PostContentAsync<T, T>(url, content);
 
-        public Task<T> PostContentTaskAsync<T>(string url, T content) =>
+        public Task<T?> PostContentTaskAsync<T>(string url, T content) =>
             PostContentAsync<T, T>(url, content).AsTask();
 
         private Uri NormalizeUrl(string url)
@@ -46,7 +46,7 @@ namespace OrcaHello.Web.Shared.Services
             }
         }
 
-        public async ValueTask<TResult> PostContentAsync<TContent, TResult>(string url, TContent content)
+        public async ValueTask<TResult?> PostContentAsync<TContent, TResult>(string url, TContent content)
         {
             var dataJson = System.Text.Json.JsonSerializer.Serialize(content, _jsonSerializeOptions);
             var stringContent = new StringContent(dataJson, Encoding.UTF8, "application/json");
@@ -125,11 +125,13 @@ namespace OrcaHello.Web.Shared.Services
             await ValidationService.ValidateHttpResponseAsync(responseMessage);
         }
 
+        // This can return null by design (e.g., a literal "null" response body). Callers'
+        // ValidateResponse<T> (Service.Guards.cs) expects that and throws its own
+        // Null*ResponseException.
         private async Task<T> Deserialize<T>(HttpResponseMessage httpResponseMessage)
         {
             var responseString = await httpResponseMessage.Content.ReadAsStringAsync();
-            var returnObject = System.Text.Json.JsonSerializer.Deserialize<T>(responseString, _jsonSerializeOptions);
-            return returnObject;
+            return System.Text.Json.JsonSerializer.Deserialize<T>(responseString, _jsonSerializeOptions)!;
         }
 
     }
