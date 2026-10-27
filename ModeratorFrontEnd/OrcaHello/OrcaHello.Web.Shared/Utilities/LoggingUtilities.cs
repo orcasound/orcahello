@@ -71,9 +71,9 @@
         {
             T exception = (T)Activator.CreateInstance(typeof(T), innerException)!;
 
-            if (logger is not null && exception is not null)
+            if (logger is not null && exception is Exception loggableException)
             {
-                LogError(logger, exception as Exception);
+                LogError(logger, loggableException);
             }
 
             return exception;
@@ -83,9 +83,9 @@
         {
             T exception = (T)Activator.CreateInstance(typeof(T), innerException)!;
 
-            if (logger is not null && exception is not null)
+            if (logger is not null && exception is Exception loggableException)
             {
-                LogWarn(logger, exception as Exception);
+                LogWarn(logger, loggableException);
             }
 
             return exception;
