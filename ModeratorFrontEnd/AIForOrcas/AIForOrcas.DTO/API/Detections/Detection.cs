@@ -234,7 +234,7 @@ namespace AIForOrcas.DTO.API
                 {
                     return "PODS-AI";
                 }
-                if (ModelId.StartsWith("orcasound/orcahello-srkw-detector"))
+                if (ModelId.StartsWith("orcasound/orcahello-srkw-detector") || ModelId == "FastAI" || ModelId == "AudioSet")
                 {
                     return "OrcaHello";
                 }
