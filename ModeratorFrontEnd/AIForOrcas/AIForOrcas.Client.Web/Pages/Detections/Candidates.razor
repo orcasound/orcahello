@@ -1,5 +1,6 @@
 ﻿@page "/"
 @page "/detections/candidates"
+@inherits PaginatedDetectionsPageBase<CandidateFilterOptionsDTO>
 <!-- Page Header / Title -->
 <PageHeadingComponent Title="Candidates for Review" PillCount=@pagination.TotalNumberOfMinutes />
 

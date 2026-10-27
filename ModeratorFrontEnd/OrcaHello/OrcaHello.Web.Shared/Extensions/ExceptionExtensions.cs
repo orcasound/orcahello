@@ -10,13 +10,15 @@
             var sb = new StringBuilder();
 
             // Loop through the exception and its inner exceptions
-            while (ex != null)
+            Exception? current = ex;
+
+            while (current != null)
             {
                 // Append the current exception message
-                sb.AppendLine(ex.Message);
+                sb.AppendLine(current.Message);
 
                 // Move to the next inner exception
-                ex = ex.InnerException;
+                current = current.InnerException;
             }
 
             // Return the concatenated messages
@@ -30,13 +32,15 @@
             var sb = new StringBuilder();
 
             // Loop through the exception and its inner exceptions
-            while (ex != null)
+            Exception? current = ex;
+
+            while (current != null)
             {
                 // Append the current exception stack trace
-                sb.AppendLine(ex.StackTrace);
+                sb.AppendLine(current.StackTrace);
 
                 // Move to the next inner exception
-                ex = ex.InnerException;
+                current = current.InnerException;
             }
 
             // Return the concatenated stack traces

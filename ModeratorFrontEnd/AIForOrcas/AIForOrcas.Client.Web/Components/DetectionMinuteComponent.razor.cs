@@ -99,6 +99,10 @@ public partial class DetectionMinuteComponent
 
     private bool IsSubmitDisabled { get => _submitting || string.IsNullOrWhiteSpace(DetectionMinute.Found); }
 
+    public bool IsViewMapDisabled =>
+        DetectionMinute?.Location?.Latitude == null
+        || DetectionMinute?.Location?.Longitude == null;
+
     private string WasFound { get => _ti.ToTitleCase(DetectionMinute.Found); }
 
     // The minute's Moderator joins each reviewer's identity with a comma;

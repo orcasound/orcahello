@@ -16,6 +16,9 @@ namespace AIForOrcas.DTO
         [DataMember]
         public string Timeframe { get; set; }
 
+        /// <summary>
+        /// The filter values formatted as a URL query string.
+        /// </summary>
         [JsonIgnore]
         public virtual string QueryString => $"timeframe={Timeframe}";
     }

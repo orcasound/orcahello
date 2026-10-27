@@ -21,12 +21,12 @@
         /// Longitude of the hydrophone's location.
         /// </summary>
         /// <example>-123.2166658</example>
-        public double Longitude { get; set; }
+        public double? Longitude { get; set; }
 
         /// <summary>
         /// Latitude of the hydrophone's location.
         /// </summary>
         /// <example>48.5499978</example>
-        public double Latitude { get; set; }
+        public double? Latitude { get; set; }
     }
 }
