@@ -16,6 +16,11 @@ namespace AIForOrcas.DTO.API
         public string Id { get; set; }
 
         /// <summary>
+        /// The Id of the model that generated the detection.
+        /// </summary>
+        public string ModelId { get; set; }
+
+        /// <summary>
         /// URI of the detection's audio file (.wav) in blob storage.
         /// </summary>
         /// <example>https://storagesite.blob.core.windows.net/audiowavs/audiofilename.wav</example>
@@ -215,8 +220,22 @@ namespace AIForOrcas.DTO.API
         public string GlobalPredictionLabel { get; set; }
 
         /// <summary>
-        /// AI Model that reported this detection.
+        /// UI label for the AI Model that reported this detection.
         /// </summary>
-        public string AIModel => string.IsNullOrEmpty(GlobalPredictionLabel) ? "OrcaHello" : "PODS-AI";
+        public string AIModel
+        {
+            get
+            {
+                if (ModelId.StartsWith("davethaler/whale-call-detector"))
+                {
+                    return "PODS-AI";
+                }
+                if (ModelId.StartsWith("orcasound/orcahello-srkw-detector"))
+                {
+                    return "OrcaHello";
+                }
+                return ModelId;
+            }
+        }
     }
 }
