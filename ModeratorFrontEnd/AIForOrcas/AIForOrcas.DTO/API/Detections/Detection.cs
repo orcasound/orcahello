@@ -226,14 +226,14 @@ namespace AIForOrcas.DTO.API
         {
             get
             {
-if (string.IsNullOrEmpty(ModelId))
-{
-    return string.Empty;
-}
-if (ModelId.StartsWith("davethaler/whale-call-detector"))
-{
-    return "PODS-AI";
-}
+                if (string.IsNullOrEmpty(ModelId))
+                {
+                    return string.Empty;
+                }
+                if (ModelId.StartsWith("davethaler/whale-call-detector"))
+                {
+                    return "PODS-AI";
+                }
                 if (ModelId.StartsWith("orcasound/orcahello-srkw-detector"))
                 {
                     return "OrcaHello";
