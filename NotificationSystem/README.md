@@ -149,6 +149,10 @@ Create an ignored `local.settings.json` in `NotificationSystem/NotificationSyste
         "AWS_ACCESS_KEY_ID": "<AWS Access Key>",
         "AWS_SECRET_ACCESS_KEY": "<AWS Secret Key>",
         "SenderEmail": "<email address>",
+        "FB_POST_ENABLED": "<true to enable Facebook posting; false to disable>",
+        "FB_PAGE_ID": "<facebook page id>",
+        "FB_PAGE_ACCESS_TOKEN": "<facebook page access token>",
+        "FB_GRAPH_API_VERSION": "v21.0",
         "SUBSCRIBER_EMAIL_COOLDOWN_MINUTES": "<minutes to wait before re-notifying subscribers for the same location; defaults to 15 if unset>",
         "ORCASITE_HOSTNAME": "live.orcasound.net",
         "ORCASITE_APIKEY": "<orcasite API key>",
@@ -156,6 +160,9 @@ Create an ignored `local.settings.json` in `NotificationSystem/NotificationSyste
     }
 }
 ```
+
+When `FB_POST_ENABLED` is set to `true`, the `SendFBPost` function publishes to Facebook only after a
+moderator-approved detection update (`reviewed == true` and `SRKWFound == "yes"`).
 
 Start Azurite, then run the Functions host from `NotificationSystem/NotificationSystem`:
 
