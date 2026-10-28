@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <style>
+      .panel{fill:#fff;stroke:#c9d3dc;stroke-width:1.5}.navy{fill:#0c4968}.title{fill:#fff;font-size:15px;font-weight:700}.label{fill:#263847;font-size:13px}.small{fill:#607483;font-size:11px}.tiny{fill:#718493;font-size:10px}.chip{fill:#e8f4f8;stroke:#91bed0}.axis{stroke:#91a3b1;stroke-width:1}.grid{stroke:#30434f;stroke-width:.7;opacity:.55}
+      .callout{fill:#fff3e0;stroke:#c25a2b;stroke-width:1.2}.calloutText{fill:#8a3c15;font-size:11px;font-weight:600}.leader{stroke:#c25a2b;stroke-width:1.2;stroke-dasharray:3 2;fill:none}.cdot{fill:#c25a2b}
+      .ok{fill:#17864b;font-size:11px;font-weight:700}.amber{fill:#b05b22;font-size:11px;font-weight:700}.button{fill:#087c8c}.green{fill:#17864b}.sel{stroke:#087c8c;stroke-width:2.5;fill:none}
+    </style>
+    <linearGradient id="spec" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#09131c"/><stop offset=".55" stop-color="#152d39"/><stop offset="1" stop-color="#081018"/></linearGradient>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#26424f"/><line x1="0" y1="0" x2="0" y2="6" stroke="#5c7d8c" stroke-width="2"/></pattern>
+  </defs>
+  <rect width="1200" height="620" fill="#eef3f6"/>
+  <rect width="1200" height="44" class="navy"/>
+  <text x="18" y="28" class="title" font-size="17">Post-bout Annotation Tagging (moderator-only) · timeline scrubber (S2)</text>
+  <text x="980" y="27" class="title" font-size="12">Orcasound Lab · logged bout</text>
+
+  <rect x="20" y="58" width="1160" height="544" rx="6" class="panel"/>
+
+  <!-- toolbar: zoom + queue -->
+  <text x="34" y="88" class="small" font-weight="700">Zoom</text>
+  <g>
+    <rect x="80" y="72" width="52" height="24" rx="4" fill="#fff" stroke="#aebdc9"/><text x="106" y="88" class="small" text-anchor="middle">10 s</text>
+    <rect x="136" y="72" width="52" height="24" rx="4" class="button"/><text x="162" y="88" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">2 min</text>
+    <rect x="192" y="72" width="56" height="24" rx="4" fill="#fff" stroke="#aebdc9"/><text x="220" y="88" class="small" text-anchor="middle">15 min</text>
+    <rect x="252" y="72" width="46" height="24" rx="4" fill="#fff" stroke="#aebdc9"/><text x="275" y="88" class="small" text-anchor="middle">1 h</text>
+  </g>
+  <text x="330" y="88" class="tiny">◀ scrub ▶ · audio stays in sync</text>
+  <rect x="980" y="70" width="184" height="28" rx="14" fill="#eaf5ef" stroke="#17864b"/>
+  <circle cx="998" cy="84" r="5" class="green"/><text x="1010" y="88" class="ok">CLOSED BOUTS · 6 pending</text>
+
+  <!-- default span note -->
+  <rect x="80" y="104" width="392" height="22" rx="4" class="callout"/><text x="92" y="120" class="calloutText">2 min default = 30 s before + full parent minute + 30 s after</text>
+  <rect x="600" y="104" width="116" height="22" rx="4" fill="#fff" stroke="#4d93ad"/><text x="658" y="119" class="tiny" text-anchor="middle">Fit start boundary</text>
+  <rect x="724" y="104" width="116" height="22" rx="4" fill="#fff" stroke="#4d93ad"/><text x="782" y="119" class="tiny" text-anchor="middle">Fit end boundary</text>
+  <text x="852" y="119" class="tiny">15 min outside + 1 min inside</text>
+
+  <!-- spectrogram with selectable annotation blocks -->
+  <rect x="34" y="136" width="1130" height="170" rx="3" fill="url(#spec)"/>
+  <g class="grid"><line x1="34" y1="186" x2="1164" y2="186"/><line x1="34" y1="236" x2="1164" y2="236"/><line x1="34" y1="286" x2="1164" y2="286"/></g>
+  <g class="tiny" fill="#a9c4d1"><text x="34" y="300">08:02:30</text><text x="315" y="300">08:03:00</text><text x="596" y="300">08:03:30</text><text x="877" y="300">08:04:00</text><text x="1095" y="300">08:04:30</text></g>
+
+  <!-- annotation blocks: empty boxes around always-visible bursts -->
+  <g opacity=".9" fill="#dcf1f8"><rect x="150" y="158" width="6" height="124" rx="2"/><rect x="160" y="176" width="4" height="96" rx="2" fill="#bfe6f4"/><rect x="276" y="168" width="6" height="104" rx="2"/><rect x="404" y="164" width="6" height="112" rx="2"/><rect x="498" y="172" width="6" height="96" rx="2"/><rect x="746" y="166" width="6" height="106" rx="2"/><rect x="924" y="178" width="5" height="84" rx="2"/></g>
+  <!-- confirmed human: annotation-label color, solid source outline, state glyph -->
+  <rect x="120" y="150" width="70" height="140" rx="4" fill="none" stroke="#39b98f" stroke-width="2.5"/><text x="128" y="166" fill="#bff0d3" font-size="11">✓</text>
+  <!-- proposed model (dashed) -->
+  <rect x="250" y="160" width="60" height="120" rx="4" fill="none" stroke="#7f8ff0" stroke-width="2.5" stroke-dasharray="6 4"/><text x="256" y="176" fill="#fff" font-size="11">□</text>
+  <!-- selected group (two proposed) -->
+  <rect x="380" y="156" width="64" height="128" rx="4" fill="none" stroke="#7f8ff0" stroke-width="2.5" stroke-dasharray="6 4"/><text x="386" y="172" fill="#fff" font-size="11">□</text>
+  <rect x="470" y="164" width="64" height="112" rx="4" fill="none" stroke="#39b98f" stroke-width="2.5"/><text x="476" y="180" fill="#fff" font-size="11">□</text>
+  <rect x="372" y="148" width="172" height="146" rx="8" class="sel" stroke-dasharray="6 4"/>
+  <text x="378" y="140" fill="#61a9ff" font-size="11" font-weight="700">2 selected</text>
+  <!-- proposed human (dashed) -->
+  <rect x="720" y="158" width="60" height="122" rx="4" fill="none" stroke="#39b98f" stroke-width="2.5"/><text x="726" y="174" fill="#fff" font-size="11">×</text>
+  <!-- unverified -->
+  <rect x="900" y="170" width="56" height="100" rx="4" fill="none" stroke="#d3a24a" stroke-width="2" stroke-dasharray="1 4"/><text x="906" y="186" fill="#fff" font-size="11">?</text>
+
+  <!-- action bar for selection -->
+  <rect x="34" y="322" width="1130" height="60" rx="6" fill="#f5f8fa" stroke="#c9d3dc"/>
+  <text x="48" y="346" class="label" font-weight="700">Selection · 2 annotations · 08:03:19–08:03:26</text>
+  <circle cx="60" cy="364" r="13" class="button"/><path d="M56 357l11 7-11 7z" fill="#fff"/><text x="84" y="368" class="small">Listen (scoped playback)</text>
+  <rect x="300" y="352" width="190" height="26" rx="4" fill="#fff" stroke="#b9c6cf"/><text x="312" y="369" class="small">Tag: transient (Biggs) ▾</text>
+  <rect x="510" y="352" width="120" height="26" rx="4" class="green"/><text x="570" y="369" fill="#fff" font-size="12" font-weight="700" text-anchor="middle">Confirm tags</text>
+  <rect x="642" y="352" width="242" height="26" rx="4" class="button"/><text x="763" y="369" fill="#fff" font-size="12" font-weight="700" text-anchor="middle">Change labels</text>
+  <text x="900" y="369" class="tiny">Confirm/Change → annotation authoritative ✓</text>
+
+  <!-- legend -->
+  <rect x="34" y="398" width="470" height="92" rx="5" fill="#f5f8fa" stroke="#c9d3dc"/>
+  <text x="46" y="418" class="small" font-weight="700">Annotation legend · color = label</text>
+  <rect x="46" y="428" width="18" height="14" rx="3" fill="none" stroke="#607483" stroke-width="2"/><rect x="76" y="428" width="18" height="14" rx="3" fill="none" stroke="#607483" stroke-width="2" stroke-dasharray="5 3"/><rect x="106" y="428" width="18" height="14" rx="3" fill="none" stroke="#607483" stroke-width="2" stroke-dasharray="1 3"/><text x="136" y="440" class="small">source: human / model / unknown</text>
+  <text x="46" y="462" class="small">corner: □ unmoderated · ✓ confirmed</text>
+  <text x="46" y="482" class="small">× false positive · ? needs confirmation</text>
+
+  <!-- callouts -->
+  <path class="leader" d="M155 290 C155 410 120 398 120 398"/><circle cx="155" cy="290" r="3" class="cdot"/>
+  <rect x="524" y="398" width="320" height="46" rx="5" class="callout"/>
+  <text x="536" y="416" class="calloutText">Confirmation is authoritative. Later reporter/model input</text>
+  <text x="536" y="431" class="calloutText">is preserved as a separate proposal for reconciliation.</text>
+
+  <path class="leader" d="M458 294 C458 320 300 322 300 322"/><circle cx="458" cy="294" r="3" class="cdot"/>
+  <rect x="524" y="452" width="640" height="38" rx="5" class="callout"/>
+  <text x="536" y="470" class="calloutText">Select annotations → Listen → Tag → Confirm. Confirm multiple consecutive intervals.</text>
+  <text x="536" y="484" class="calloutText">Writes annotation reviews to the main database; bout approval stays separate.</text>
+
+  <!-- feedback note -->
+  <rect x="34" y="506" width="1130" height="82" rx="6" fill="#fff" stroke="#c9d3dc"/>
+  <text x="48" y="528" class="label" font-weight="700">Downstream effects</text>
+  <text x="48" y="550" class="small">• Label change: atomically update affected bouts. Confirming existing annotation tags preserves boundaries.</text>
+  <text x="48" y="570" class="small">• Write model feedback (confirm / change label) for retraining; bout approval remains a separate action.</text>
+</svg>
