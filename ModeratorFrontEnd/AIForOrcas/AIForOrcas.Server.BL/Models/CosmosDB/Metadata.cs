@@ -6,6 +6,7 @@ namespace AIForOrcas.Server.BL.Models.CosmosDB
     public class Metadata
     {
         public string id { get; set; }
+        public string modelId { get; set; }
         public string source_guid { get; set; }
         public string audioUri { get; set; }
         public string imageUri { get; set; }

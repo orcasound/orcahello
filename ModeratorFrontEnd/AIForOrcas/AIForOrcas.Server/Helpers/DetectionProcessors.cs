@@ -89,6 +89,7 @@ public static class DetectionProcessors
         var detection = new Detection()
         {
             Id = string.IsNullOrEmpty(metadata.id) ? Guid.NewGuid().ToString() : metadata.id,
+            ModelId = metadata.modelId,
             SpectrogramUri = string.IsNullOrWhiteSpace(metadata.imageUri) ? string.Empty : metadata.imageUri,
             AudioUri = string.IsNullOrWhiteSpace(metadata.audioUri) ? string.Empty : metadata.audioUri,
             Reviewed = metadata.reviewed,
