@@ -21,6 +21,7 @@ var host = new HostBuilder()
         services.AddHttpClient<OrcasiteHelper>();
         services.AddSingleton<PostToOrcasite>();
         services.AddSingleton<IEmailService, AwsEmailService>();
+        services.AddHttpClient<IFacebookPostService, FacebookPostService>();
     })
     .Build();
 
