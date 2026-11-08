@@ -273,4 +273,9 @@ def inspect_audio(
 def api_key_is_valid(provided: str | None, expected: str | None) -> bool:
     if not expected:
         return True
-    return provided is not None and hmac.compare_digest(provided, expected)
+    if provided is None:
+        return False
+    return hmac.compare_digest(
+        provided.encode("utf-8", errors="replace"),
+        expected.encode("utf-8", errors="replace"),
+    )

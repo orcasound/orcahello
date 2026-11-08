@@ -271,6 +271,17 @@ def test_api_key_is_optional_but_enforced_when_configured():
     assert missing.json() == {"detail": "invalid or missing API key"}
 
 
+def test_non_ascii_api_key_returns_unauthorized():
+    client, _ = client_for(make_settings(api_key="secret"))
+    with client:
+        response = analyze(
+            client, audio_bytes(), headers={"X-API-Key": b"cl\xe9"}
+        )
+
+    assert response.status_code == 401
+    assert response.json() == {"detail": "invalid or missing API key"}
+
+
 def test_unconfigured_api_key_allows_local_requests():
     client, _ = client_for(make_settings(api_key=None))
     with client:
