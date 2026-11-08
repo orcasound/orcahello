@@ -27,6 +27,10 @@ print(f"Confidence: {result.global_confidence:.2f}")
 
 For more details see [MODEL_CARD.md](model/MODEL_CARD.md) for usage, and [DEVELOPMENT.md](DEVELOPMENT.md#model-inference) for development & convenience scripts.
 
+## Quick Start: Audio Analysis API
+
+The on-demand FastAPI service analyzes uploaded WAV/FLAC audio independently from the live streaming pipeline. See [docs/api.md](docs/api.md) for configuration, local and Docker startup, and request examples.
+
 ## Quick Start: Live Inference Orchestrator
 
 The inference orchestrator streams audio from Orcasound's S3 buckets, runs AI inference on audio segments, and uploads positive detections to the OrcaHello Azure backend (Blob Storage, CosmosDB). Entry point: [src/LiveInferenceOrchestrator.py](src/LiveInferenceOrchestrator.py).

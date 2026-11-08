@@ -7,8 +7,6 @@ from pathlib import Path
 
 import pytest
 import soundfile as sf
-import torch
-import torchaudio
 import yaml
 import json
 
@@ -22,28 +20,32 @@ sys.path.insert(0, str(SRC_DIR))
 # (Same patch as in fastai_inference.py)
 # =============================================================================
 
-_original_torchaudio_load = torchaudio.load
+try:
+    import torchaudio
+except (ImportError, OSError):
+    torchaudio = None
 
+if torchaudio is not None:
+    import torch
 
-def _patched_torchaudio_load(filepath, *args, **kwargs):
-    """Wrapper for torchaudio.load that uses soundfile directly"""
-    data, samplerate = sf.read(str(filepath), dtype="float32")
-    waveform = torch.from_numpy(data.T if data.ndim > 1 else data.reshape(1, -1))
-    return waveform, samplerate
+    _original_torchaudio_load = torchaudio.load
 
+    def _patched_torchaudio_load(filepath, *args, **kwargs):
+        """Wrapper for torchaudio.load that uses soundfile directly"""
+        data, samplerate = sf.read(str(filepath), dtype="float32")
+        waveform = torch.from_numpy(data.T if data.ndim > 1 else data.reshape(1, -1))
+        return waveform, samplerate
 
-torchaudio.load = _patched_torchaudio_load
+    torchaudio.load = _patched_torchaudio_load
 
-_original_torchaudio_save = torchaudio.save
+    _original_torchaudio_save = torchaudio.save
 
+    def _patched_torchaudio_save(filepath, src, sample_rate, *args, **kwargs):
+        """Wrapper for torchaudio.save that uses soundfile directly"""
+        audio_data = src.numpy().T if src.ndim > 1 else src.numpy().reshape(-1, 1)
+        sf.write(str(filepath), audio_data, sample_rate)
 
-def _patched_torchaudio_save(filepath, src, sample_rate, *args, **kwargs):
-    """Wrapper for torchaudio.save that uses soundfile directly"""
-    audio_data = src.numpy().T if src.ndim > 1 else src.numpy().reshape(-1, 1)
-    sf.write(str(filepath), audio_data, sample_rate)
-
-
-torchaudio.save = _patched_torchaudio_save
+    torchaudio.save = _patched_torchaudio_save
 
 # Test data directory
 TEST_DATA_DIR = Path(__file__).parent.parent / "tests" / "test_data"
