@@ -1,6 +1,7 @@
 import asyncio
 import base64
 import logging
+import math
 import os
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
@@ -68,9 +69,10 @@ class Settings:
         if self.onnx_output_type not in {"logits", "probabilities"}:
             raise ValueError("onnx_output_type must be logits or probabilities")
         if (
-            self.min_duration_seconds < 0
-            or self.max_duration_seconds <= 0
-            or self.min_duration_seconds > self.max_duration_seconds
+            not math.isfinite(self.min_duration_seconds)
+            or not math.isfinite(self.max_duration_seconds)
+            or self.min_duration_seconds < 0
+            or self.min_duration_seconds >= self.max_duration_seconds
         ):
             raise ValueError("audio duration limits are invalid")
 

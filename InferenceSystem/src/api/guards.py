@@ -145,17 +145,6 @@ class RequestGuardMiddleware:
             await self.app(scope, receive, send)
             return
 
-        client_key = client_ip_for_scope(scope, self.trusted_proxy_cidrs)
-        retry_after = await self.limiter.check(client_key)
-        if retry_after is not None:
-            response = JSONResponse(
-                status_code=429,
-                content={"detail": "rate limit exceeded"},
-                headers={"Retry-After": str(max(1, math.ceil(retry_after)))},
-            )
-            await response(scope, receive, send)
-            return
-
         headers = dict(scope.get("headers", []))
         provided_api_key = headers.get(b"x-api-key", b"").decode("latin-1") or None
         if not api_key_is_valid(provided_api_key, self.expected_api_key):
@@ -163,6 +152,17 @@ class RequestGuardMiddleware:
                 status_code=401,
                 content={"detail": "invalid or missing API key"},
                 headers={"WWW-Authenticate": "ApiKey"},
+            )
+            await response(scope, receive, send)
+            return
+
+        client_key = client_ip_for_scope(scope, self.trusted_proxy_cidrs)
+        retry_after = await self.limiter.check(client_key)
+        if retry_after is not None:
+            response = JSONResponse(
+                status_code=429,
+                content={"detail": "rate limit exceeded"},
+                headers={"Retry-After": str(max(1, math.ceil(retry_after)))},
             )
             await response(scope, receive, send)
             return
@@ -251,6 +251,14 @@ def inspect_audio(
         info = sf.info(str(file_path))
     except Exception as exc:
         raise InvalidAudio from exc
+
+    if (
+        not math.isfinite(min_duration_seconds)
+        or not math.isfinite(max_duration_seconds)
+        or min_duration_seconds < 0
+        or min_duration_seconds >= max_duration_seconds
+    ):
+        raise ValueError("audio duration limits are invalid")
 
     audio_format = info.format.upper()
     suffix_for_format = {"WAV": ".wav", "FLAC": ".flac"}.get(audio_format)

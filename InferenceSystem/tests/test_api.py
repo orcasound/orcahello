@@ -28,6 +28,7 @@ from api.guards import (
     SlidingWindowRateLimiter,
     client_ip_for_scope,
 )
+from api.schemas import AnalyzeResponse
 
 
 class FakeEngine:
@@ -179,6 +180,83 @@ def test_rejects_audio_shorter_than_model_window():
     assert engine.paths == []
 
 
+@pytest.mark.parametrize(
+    ("minimum", "maximum"),
+    [
+        (float("nan"), 10.0),
+        (0.0, float("nan")),
+        (float("inf"), 10.0),
+        (0.0, float("inf")),
+        (-float("inf"), 10.0),
+        (0.0, -float("inf")),
+    ],
+)
+def test_settings_reject_non_finite_duration_bounds(minimum, maximum):
+    with pytest.raises(ValueError, match="audio duration limits are invalid"):
+        make_settings(min_duration_seconds=minimum, max_duration_seconds=maximum)
+
+
+@pytest.mark.parametrize(
+    ("variable", "value"),
+    [
+        ("MIN_AUDIO_DURATION_SECONDS", "nan"),
+        ("MIN_AUDIO_DURATION_SECONDS", "inf"),
+        ("MIN_AUDIO_DURATION_SECONDS", "-inf"),
+        ("MAX_AUDIO_DURATION_SECONDS", "nan"),
+        ("MAX_AUDIO_DURATION_SECONDS", "inf"),
+        ("MAX_AUDIO_DURATION_SECONDS", "-inf"),
+    ],
+)
+def test_settings_reject_non_finite_duration_environment_values(
+    monkeypatch, variable, value
+):
+    monkeypatch.setenv(variable, value)
+    with pytest.raises(ValueError, match="audio duration limits are invalid"):
+        Settings.from_env()
+
+
+def test_settings_accept_valid_duration_boundaries():
+    settings = make_settings(min_duration_seconds=0.0, max_duration_seconds=0.001)
+
+    assert settings.min_duration_seconds == 0.0
+    assert settings.max_duration_seconds == 0.001
+
+
+def test_settings_reject_equal_duration_bounds():
+    with pytest.raises(ValueError, match="audio duration limits are invalid"):
+        make_settings(min_duration_seconds=3.0, max_duration_seconds=3.0)
+
+
+@pytest.mark.parametrize("duration", [float("nan"), float("inf"), -float("inf")])
+def test_response_schema_rejects_non_finite_duration(duration):
+    with pytest.raises(ValueError):
+        AnalyzeResponse(
+            duration_seconds=duration,
+            has_detection=False,
+            global_confidence=0.0,
+            detections=[],
+        )
+
+
+@pytest.mark.parametrize(
+    ("minimum", "maximum"),
+    [
+        (float("nan"), 10.0),
+        (float("inf"), 10.0),
+        (-float("inf"), 10.0),
+        (0.0, float("nan")),
+        (0.0, float("inf")),
+        (0.0, -float("inf")),
+    ],
+)
+def test_audio_inspection_rejects_non_finite_runtime_bounds(tmp_path, minimum, maximum):
+    audio_path = tmp_path / "sample.wav"
+    audio_path.write_bytes(audio_bytes())
+
+    with pytest.raises(ValueError, match="audio duration limits are invalid"):
+        api_module.inspect_audio(audio_path, ".wav", minimum, maximum)
+
+
 def test_rejects_file_over_upload_limit():
     client, engine = client_for(make_settings(max_upload_bytes=64))
     with client:
@@ -271,12 +349,25 @@ def test_api_key_is_optional_but_enforced_when_configured():
     assert missing.json() == {"detail": "invalid or missing API key"}
 
 
+@pytest.mark.parametrize(
+    "headers", [None, {"X-API-Key": "wrong"}], ids=["missing", "invalid"]
+)
+def test_unauthorized_requests_do_not_consume_rate_limit(headers):
+    client, _ = client_for(make_settings(api_key="secret", rate_limit_per_minute=1))
+    with client:
+        unauthorized = [
+            analyze(client, audio_bytes(), headers=headers) for _ in range(12)
+        ]
+        authorized = analyze(client, audio_bytes(), headers={"X-API-Key": "secret"})
+
+    assert [response.status_code for response in unauthorized] == [401] * 12
+    assert authorized.status_code == 200
+
+
 def test_non_ascii_api_key_returns_unauthorized():
     client, _ = client_for(make_settings(api_key="secret"))
     with client:
-        response = analyze(
-            client, audio_bytes(), headers={"X-API-Key": b"cl\xe9"}
-        )
+        response = analyze(client, audio_bytes(), headers={"X-API-Key": b"cl\xe9"})
 
     assert response.status_code == 401
     assert response.json() == {"detail": "invalid or missing API key"}

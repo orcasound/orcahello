@@ -4,6 +4,28 @@ The API analyzes an uploaded WAV or FLAC file without connecting to the live S3/
 
 ## Local Run
 
+FFmpeg must be installed and available on `PATH` to decode non-WAV formats such as FLAC.
+
+Ubuntu/Debian:
+
+```bash
+sudo apt-get update && sudo apt-get install -y ffmpeg
+```
+
+macOS:
+
+```bash
+brew install ffmpeg
+```
+
+Windows:
+
+```powershell
+winget install Gyan.FFmpeg
+# or
+choco install ffmpeg
+```
+
 From `InferenceSystem/`, install the API dependencies and start one worker:
 
 ```bash
