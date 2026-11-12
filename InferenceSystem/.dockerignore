@@ -1,5 +1,10 @@
 inference-venv
 model-v1-venv
+.venv/
+.git/
+tests/
+__pycache__/
+*.pyc
 *.html
 *.css
 *.wav
