@@ -14,6 +14,8 @@ import sys
 import wave
 from datetime import datetime, timezone
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import Mock
 
 import pytest
 from pytz import timezone as pytz_tz
@@ -49,6 +51,135 @@ KNOWN_NEXT_FOLDER_EPOCH = 1599010219
 
 
 # --- HLS Locator Tests ---
+
+
+class TestHLSLocatorOffline:
+    @pytest.fixture
+    def storage(self, monkeypatch):
+        def configure(folders, durations):
+            listing = Mock(
+                side_effect=lambda bucket, hls_prefix, prefix: sorted(
+                    f for f in folders if str(f).startswith(prefix)
+                )
+            )
+            playlist = Mock(
+                side_effect=lambda bucket, hydrophone, folder: [
+                    SimpleNamespace(
+                        duration=d, base_uri="https://example.com/", uri=f"live{i}.ts"
+                    )
+                    for i, d in enumerate(durations.get(folder, []))
+                ]
+            )
+            monkeypatch.setattr(
+                "orcasound_hls.utils._list_folders_with_prefix", listing
+            )
+            monkeypatch.setattr("orcasound_hls.utils.load_hls_playlist", playlist)
+            monkeypatch.setattr("orcasound_hls.client.load_hls_playlist", playlist)
+            return listing, playlist
+
+        return configure
+
+    @pytest.mark.parametrize("prefix_length", [4, 5])
+    @pytest.mark.parametrize("days", [7, 30])
+    def test_multi_day_folder(self, storage, prefix_length, days):
+        folder = KNOWN_FOLDER_EPOCH
+        start = folder + days * 86400
+        storage([folder, start + 3600], {folder: [days * 86400, 86400]})
+
+        assert find_folder_for_timestamp(
+            BUCKET, HYDRO, start, prefix_length
+        ) == (folder, start - folder)
+        assert list_folders_in_range(
+            BUCKET, HYDRO, start, start + 60, prefix_length
+        ) == [folder]
+
+    @pytest.mark.parametrize("seconds_before_end", [1, 0, -1])
+    def test_manifest_end_boundary(self, storage, seconds_before_end):
+        folder = KNOWN_FOLDER_EPOCH
+        duration = 8 * 86400
+        start = int(folder + FOLDER_TO_AUDIO_OFFSET + duration - seconds_before_end)
+        storage([folder], {folder: [duration - 10, 10]})
+
+        expected = (folder, start - folder) if seconds_before_end > 0 else (None, None)
+        assert find_folder_for_timestamp(BUCKET, HYDRO, start) == expected
+        assert list_folders_in_range(BUCKET, HYDRO, start, start + 60) == (
+            [folder] if seconds_before_end > 0 else []
+        )
+
+    def test_range_spans_multiple_folders(self, storage):
+        folder = KNOWN_FOLDER_EPOCH
+        start = folder + 7 * 86400
+        next_folder = start + 60
+        end = next_folder + 60
+        storage(
+            [folder - 86400, folder, next_folder, end + 1],
+            {folder: [8 * 86400]},
+        )
+
+        assert list_folders_in_range(BUCKET, HYDRO, start, end) == [
+            folder, next_folder
+        ]
+
+    def test_selects_most_recent_folder(self, storage):
+        folder = KNOWN_FOLDER_EPOCH
+        start = folder + 120
+        storage(
+            [folder - 60, folder, start + 60],
+            {folder - 60: [3600], folder: [3600]},
+        )
+
+        assert find_folder_for_timestamp(BUCKET, HYDRO, start) == (folder, 120)
+
+    @pytest.mark.parametrize("folders", [[], [KNOWN_FOLDER_EPOCH + 60]])
+    def test_no_preceding_folder(self, storage, folders):
+        listing, playlist = storage(folders, {})
+
+        assert find_folder_for_timestamp(BUCKET, HYDRO, KNOWN_FOLDER_EPOCH) == (
+            None, None
+        )
+        assert listing.call_count <= 9
+        playlist.assert_not_called()
+
+    def test_prefix_boundary_does_not_scan_archive(self, storage):
+        start = 1700000000
+        folder = start - 100
+        listing, _ = storage([folder], {folder: [3600]})
+
+        assert find_folder_for_timestamp(BUCKET, HYDRO, start) == (folder, 100)
+        assert [call.args[2] for call in listing.call_args_list] == ["1700", "1699"]
+
+    def test_future_timestamp_after_last_playlist(self, storage):
+        listing, _ = storage([KNOWN_FOLDER_EPOCH], {KNOWN_FOLDER_EPOCH: [3600]})
+
+        assert find_folder_for_timestamp(BUCKET, HYDRO, 9999999999) == (None, None)
+        assert listing.call_count <= 9
+
+    def test_client_gets_audio_from_multi_day_folder(self, storage):
+        folder = KNOWN_FOLDER_EPOCH
+        storage([folder], {folder: [10] * (7 * 8640 + 12)})
+        start = folder + 7 * 86400 + FOLDER_TO_AUDIO_OFFSET
+
+        segments = OrcasoundHLSClient(BUCKET, HYDRO).get_segments(start, start + 65)
+
+        assert len(segments) == 1
+        assert segments[0].folder_epoch == folder
+        assert segments[0].start_unix == start
+        assert segments[0].duration_s == 60
+
+    def test_empty_playlist(self, storage):
+        storage([KNOWN_FOLDER_EPOCH], {})
+        start = KNOWN_FOLDER_EPOCH + 60
+
+        assert find_folder_for_timestamp(BUCKET, HYDRO, start) == (None, None)
+        assert list_folders_in_range(BUCKET, HYDRO, start, start + 60) == []
+
+    def test_unavailable_playlist(self, storage):
+        _, playlist = storage([KNOWN_FOLDER_EPOCH], {})
+        playlist.side_effect = OSError("Playlist unavailable")
+        start = KNOWN_FOLDER_EPOCH + 60
+
+        assert find_folder_for_timestamp(BUCKET, HYDRO, start) == (None, None)
+        assert list_folders_in_range(BUCKET, HYDRO, start, start + 60) == []
 
 
 class TestHLSLocator:
