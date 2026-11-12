@@ -257,6 +257,24 @@ def test_audio_inspection_rejects_non_finite_runtime_bounds(tmp_path, minimum, m
         api_module.inspect_audio(audio_path, ".wav", minimum, maximum)
 
 
+@pytest.mark.parametrize("audio_format", ["WAVEX", "RF64"])
+def test_audio_inspection_accepts_extended_wav_formats(
+    tmp_path, monkeypatch, audio_format
+):
+    monkeypatch.setattr(
+        sf,
+        "info",
+        lambda _: SimpleNamespace(
+            format=audio_format, frames=8000, samplerate=8000, channels=1
+        ),
+    )
+
+    assert (
+        api_module.inspect_audio(tmp_path / "sample.wav", ".wav", 0.0, 2.0)
+        == pytest.approx(1.0)
+    )
+
+
 def test_rejects_file_over_upload_limit():
     client, engine = client_for(make_settings(max_upload_bytes=64))
     with client:

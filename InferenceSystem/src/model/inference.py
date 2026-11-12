@@ -175,9 +175,11 @@ class OrcaHelloSRKWDetectorV1(
         self.eval()
 
         def predict_batch(batch: Tensor) -> Tensor:
-            return self.forward(batch.to(device=self._device, dtype=self._dtype))
+            return self.predict_call(batch.to(device=self._device, dtype=self._dtype))
 
-        return run_file_inference(wav_file_path, overrides, predict_batch)
+        return run_file_inference(
+            wav_file_path, overrides, predict_batch, output_type="probabilities"
+        )
 
     @classmethod
     def from_checkpoint(cls, checkpoint_path: str, config: Dict) -> "OrcaHelloSRKWDetectorV1":

@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 import soundfile as sf
+import torch
 import yaml
 import json
 
@@ -26,8 +27,6 @@ except (ImportError, OSError):
     torchaudio = None
 
 if torchaudio is not None:
-    import torch
-
     _original_torchaudio_load = torchaudio.load
 
     def _patched_torchaudio_load(filepath, *args, **kwargs):

@@ -261,7 +261,12 @@ def inspect_audio(
         raise ValueError("audio duration limits are invalid")
 
     audio_format = info.format.upper()
-    suffix_for_format = {"WAV": ".wav", "FLAC": ".flac"}.get(audio_format)
+    suffix_for_format = {
+        "WAV": ".wav",
+        "WAVEX": ".wav",
+        "RF64": ".wav",
+        "FLAC": ".flac",
+    }.get(audio_format)
     if suffix_for_format is None or suffix_for_format != expected_suffix:
         raise UnsupportedAudioFormat
     if info.frames <= 0 or info.samplerate <= 0 or info.channels <= 0:
