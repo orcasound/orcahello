@@ -135,6 +135,46 @@ def m3u8_exists(bucket: str, hydrophone_id: str, folder_epoch: int) -> bool:
 # --- Playlist helpers ---
 
 
+LIVE_MANIFEST = "live.m3u8"
+# node_2026 orcanodes write a short rolling live.m3u8 (-hls_list_size 10) plus
+# a full-session archive.m3u8 that upload_s3.py merges and uploads every ~5 min.
+ARCHIVE_MANIFEST = "archive.m3u8"
+
+
+def playlist_url(
+    bucket: str, hydrophone_id: str, folder_epoch: int, name: str = LIVE_MANIFEST
+) -> str:
+    return f"{S3_BASE_URL}/{bucket}/{hydrophone_id}/hls/{folder_epoch}/{name}"
+
+
+def load_playlist(
+    bucket: str, hydrophone_id: str, folder_epoch: int, name: str = LIVE_MANIFEST
+) -> Optional[m3u8.M3U8]:
+    """Load a playlist from a folder; return None if it does not exist.
+
+    The full ``m3u8.M3U8`` object is returned (not just ``.segments``) because
+    rolling playlists need ``media_sequence`` to know which .ts files they list.
+    """
+    url = playlist_url(bucket, hydrophone_id, folder_epoch, name)
+    try:
+        return m3u8.load(url, timeout=HLS_DOWNLOAD_TIMEOUT_S)
+    except urllib.error.HTTPError as exc:
+        # The public bucket answers 403 (no ListBucket on that key) or 404 for missing keys.
+        if exc.code in (403, 404):
+            return None
+        raise
+
+
+def url_exists(url: str) -> bool:
+    """HEAD a URL; True on 2xx. Used only for .ts files not listed in any playlist."""
+    req = urllib.request.Request(url, method="HEAD")
+    try:
+        with urllib.request.urlopen(req, timeout=HLS_DOWNLOAD_TIMEOUT_S) as resp:
+            return 200 <= resp.status < 300
+    except urllib.error.HTTPError:
+        return False
+
+
 def load_hls_playlist(bucket: str, hydrophone_id: str, folder_epoch: int):
     """Load an M3U8 playlist and return its segment list."""
     url = m3u8_url(bucket, hydrophone_id, folder_epoch)
