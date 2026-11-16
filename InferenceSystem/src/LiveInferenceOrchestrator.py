@@ -20,7 +20,7 @@ from dotenv import load_dotenv
 from model.inference import OrcaHelloSRKWDetectorV1
 from model.types import DetectorInferenceConfig
 from opencensus.ext.azure.log_exporter import AzureEventHandler, AzureLogHandler
-from orcasound_hls import OrcasoundHLSClient
+from orca_hls_utils.DateRangeHLSStream import DateRangeHLSStream
 from pytz import timezone as pytz_tz
 
 AZURE_STORAGE_ACCOUNT_NAME = "livemlaudiospecstorage"
@@ -260,11 +260,11 @@ def setup_azure_clients(orch_config):
     return blob_service_client, cosmos_client
 
 
-def build_orcasound_client(orch_config) -> OrcasoundHLSClient:
-    """Return an ``OrcasoundHLSClient`` from orch_config."""
-    return OrcasoundHLSClient(
-        bucket=ORCASOUND_S3_BUCKET,
-        hydrophone_id=orch_config["hls_hydrophone_id"],
+def build_orcasound_stream_base(orch_config):
+    """Return the Orcasound HLS stream URL for the configured hydrophone."""
+    return (
+        f"https://s3-us-west-2.amazonaws.com/{ORCASOUND_S3_BUCKET}/"
+        f"{orch_config['hls_hydrophone_id']}"
     )
 
 
@@ -340,8 +340,24 @@ def cleanup_azure_uploads(
         logger.debug(f"Deleted CosmosDB doc: id={cosmos_id}")
 
 
-def _process_segment(
-    segment,
+def _normalize_hls_timestamp(timestamp):
+    """Normalize an orca-hls-utils clip timestamp to an ISO-8601 UTC value."""
+    if isinstance(timestamp, datetime):
+        clip_datetime = timestamp
+    else:
+        try:
+            clip_datetime = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+        except ValueError:
+            clip_datetime = datetime.strptime(timestamp, "%Y_%m_%d_%H_%M_%S")
+
+    if clip_datetime.tzinfo is None:
+        clip_datetime = clip_datetime.astimezone(timezone.utc)
+    return clip_datetime.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _process_clip(
+    clip_path,
+    start_timestamp,
     model,
     model_config,
     orch_config,
@@ -349,25 +365,11 @@ def _process_segment(
     cosmos_client,
     logger,
     model_id,
-    local_dir,
 ):
-    """Process a single HLS segment: download, inference, upload."""
+    """Process a downloaded HLS clip: inference and optional upload."""
     hls_hydrophone_id = orch_config["hls_hydrophone_id"]
 
-    logger.info(
-        f"Segment: folder={segment.folder_epoch}, "
-        f"indices=[{segment.start_index}:{segment.end_index}), "
-        f"start={segment.start_iso}, duration={segment.duration_s:.1f}s"
-    )
-
-    # --- Download and convert to WAV ---
-    try:
-        clip_path = segment.download_as_wav(local_dir)
-    except Exception as e:
-        logger.warning(f"Failed to download segment: {e}")
-        return
-
-    start_timestamp = segment.start_iso
+    start_timestamp = _normalize_hls_timestamp(start_timestamp)
     logger.info(
         f"Processing clip: {os.path.basename(clip_path)}, "
         f"start_timestamp={start_timestamp}"
@@ -429,7 +431,7 @@ def _process_segment(
 
 
 def run_loop(
-    orcasound_client,
+    stream_base,
     model,
     model_config,
     orch_config,
@@ -440,7 +442,7 @@ def run_loop(
     max_live_iterations=None,
     max_segments=None,
 ):
-    """Main inference loop: fetch HLS segments via orcasound_client, run model, upload detections."""
+    """Fetch HLS clips with orca-hls-utils, run inference, and upload detections."""
     local_dir = "wav_dir"
     os.makedirs(local_dir, exist_ok=True)
 
@@ -459,7 +461,7 @@ def run_loop(
         end_unix = int(pytz_tz("US/Pacific").localize(end_dt).timestamp())
 
         logger.debug(
-            f"DateRange: hydrophone={orcasound_client.hydrophone_id}, "
+            f"DateRange: hydrophone={orch_config['hls_hydrophone_id']}, "
             f"start_unix={start_unix}, end_unix={end_unix}, "
             f"start_pst={hls_start_time_pst}, end_pst={hls_end_time_pst}"
         )
@@ -468,17 +470,26 @@ def run_loop(
             f"Fetching DateRange segments: start_unix={start_unix}, "
             f"end_unix={end_unix}, segment_size={segment_size}"
         )
-        segments = orcasound_client.get_segments(
-            start_unix=start_unix,
-            end_unix=end_unix,
-            segment_size=segment_size,
+        stream = DateRangeHLSStream(
+            stream_base=stream_base,
+            polling_interval=segment_size,
+            start_unix_time=start_unix,
+            end_unix_time=end_unix,
+            wav_dir=local_dir,
+            overwrite_output=True,
         )
-        if max_segments is not None:
-            segments = segments[:max_segments]
-        logger.info(f"Got {len(segments)} segments from date range")
-        for segment in segments:
-            _process_segment(
-                segment,
+        logger.info(f"Found {len(stream.valid_folders)} HLS folders in date range")
+        clip_count = 0
+        while (
+            not stream.is_stream_over()
+            and stream.current_folder_index < len(stream.valid_folders)
+        ):
+            clip_path, clip_start_time, _ = stream.get_next_clip()
+            if clip_path is None:
+                continue
+            _process_clip(
+                clip_path,
+                clip_start_time,
                 model,
                 model_config,
                 orch_config,
@@ -486,8 +497,11 @@ def run_loop(
                 cosmos_client,
                 logger,
                 model_id,
-                local_dir,
             )
+            clip_count += 1
+            if max_segments is not None and clip_count >= max_segments:
+                break
+        logger.info(f"Processed {clip_count} clips from date range")
 
     elif hls_stream_type == "LiveHLS":
 
@@ -510,17 +524,25 @@ def run_loop(
                 f"[{start_unix:.0f}, {end_unix:.0f}] "
                 f"(now={now:.0f}, delay={live_delay_buffer}s)"
             )
-            segments = orcasound_client.get_segments(
-                start_unix=start_unix,
-                end_unix=end_unix,
-                segment_size=segment_size,
+            stream = DateRangeHLSStream(
+                stream_base=stream_base,
+                polling_interval=segment_size,
+                start_unix_time=start_unix,
+                end_unix_time=end_unix,
+                wav_dir=local_dir,
+                overwrite_output=True,
             )
-            logger.info(
-                f"[iter {live_iteration_count}] LiveHLS poll: got {len(segments)} segments"
-            )
-            for segment in segments:
-                _process_segment(
-                    segment,
+            clip_count = 0
+            while (
+                not stream.is_stream_over()
+                and stream.current_folder_index < len(stream.valid_folders)
+            ):
+                clip_path, clip_start_time, _ = stream.get_next_clip()
+                if clip_path is None:
+                    continue
+                _process_clip(
+                    clip_path,
+                    clip_start_time,
                     model,
                     model_config,
                     orch_config,
@@ -528,8 +550,11 @@ def run_loop(
                     cosmos_client,
                     logger,
                     model_id,
-                    local_dir,
                 )
+                clip_count += 1
+            logger.info(
+                f"[iter {live_iteration_count}] LiveHLS poll: got {clip_count} clips"
+            )
 
             live_iteration_count += 1
             if max_live_iterations is not None and live_iteration_count >= max_live_iterations:
@@ -572,14 +597,14 @@ if __name__ == "__main__":
     blob_service_client, cosmos_client = setup_azure_clients(orch_config)
     logger.info(f"Azure upload: {orch_config['upload_to_azure']}")
 
-    orcasound_client = build_orcasound_client(orch_config)
+    stream_base = build_orcasound_stream_base(orch_config)
     logger.info(
         f"Starting inference loop: hydrophone={orch_config['hls_hydrophone_id']}, "
         f"stream_type={orch_config['hls_stream_type']}"
     )
 
     run_loop(
-        orcasound_client,
+        stream_base,
         model,
         model_config,
         orch_config,

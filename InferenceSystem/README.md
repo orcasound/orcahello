@@ -29,7 +29,13 @@ For more details see [MODEL_CARD.md](model/MODEL_CARD.md) for usage, and [DEVELO
 
 ## Quick Start: Live Inference Orchestrator
 
-The inference orchestrator streams audio from Orcasound's S3 buckets, runs AI inference on audio segments, and uploads positive detections to the OrcaHello Azure backend (Blob Storage, CosmosDB). Entry point: [src/LiveInferenceOrchestrator.py](src/LiveInferenceOrchestrator.py).
+The inference orchestrator streams audio from Orcasound's S3 buckets through the `orca-hls-utils` submodule, runs AI inference on audio clips, and uploads positive detections to the OrcaHello Azure backend (Blob Storage, CosmosDB). Entry point: [src/LiveInferenceOrchestrator.py](src/LiveInferenceOrchestrator.py).
+
+Initialize the `orca-hls-utils` submodule before installing dependencies:
+
+```bash
+git submodule update --init
+```
 
 ```bash
 cd InferenceSystem

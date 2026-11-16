@@ -134,8 +134,8 @@ def test_livehls_smoke():
     assert returncode == 0, f"Orchestrator exited with code {returncode}"
     assert "[iter 1]" in output, "Expected at least two iterations"
     expected_strings = [
-        "WARNING No HLS folders",
-        "WARNING Failed to load M3U8",
+        "Found 0 HLS folders",
+        "No content returned",
         "global_prediction",
     ]
     assert any(s in output for s in expected_strings), (

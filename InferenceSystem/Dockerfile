@@ -20,6 +20,7 @@ ENV PATH="/root/.local/bin:$PATH"
 WORKDIR /usr/src/install
 COPY ./pyproject.toml ./pyproject.toml
 COPY ./uv.lock ./uv.lock
+COPY ./orca-hls-utils ./orca-hls-utils
 ENV UV_PROJECT_ENVIRONMENT=/usr/src/venv
 ENV UV_PYTHON=3.11
 RUN uv python install 3.11 && uv sync --group prod --no-dev
