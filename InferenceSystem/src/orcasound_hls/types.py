@@ -46,6 +46,19 @@ class OrcasoundHLSSegment:
     # approximate calibration constant that may vary between hydrophones or stream conditions
     folder_to_audio_offset_s: float = FOLDER_TO_AUDIO_OFFSET
 
+    # True if any .ts in this clip was not listed in a playlist, so its time was
+    # extrapolated from a neighbouring EXT-X-PROGRAM-DATE-TIME (error << 1 s for
+    # a few segments of extrapolation).
+    approximate: bool = False
+
+    # Timing conventions:
+    #  * Playlists with EXT-X-PROGRAM-DATE-TIME (node_2026 and repaired folders):
+    #    start_cum_dur_s = PDT start - folder_epoch and folder_to_audio_offset_s = 0,
+    #    so start_unix is exactly the PDT.
+    #  * Legacy playlists without PDT: cumulative EXTINF durations from live000.ts
+    #    plus the FOLDER_TO_AUDIO_OFFSET calibration constant (unchanged behaviour).
+    # start_index / end_index are HLS media sequence numbers (the NNN in liveNNN.ts).
+
     # --- convenience ---
     @property
     def duration_s(self) -> float:
