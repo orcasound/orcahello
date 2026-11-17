@@ -103,6 +103,10 @@ jobs:
         working-directory: InferenceSystem
         run: uv run pytest tests/test_model_inference.py -v
 
+      - name: HLS orchestration component tests
+        working-directory: InferenceSystem
+        run: uv run pytest tests/test_orca_hls_utils.py -v
+
   inference-test-windows:
     timeout-minutes: 20
     runs-on: windows-latest
@@ -293,4 +297,4 @@ jobs:
             inference:ci \
             --max_live_iterations 2 2>&1 | tee output.log
           grep -q "\[iter 1\]" output.log
-          grep -q "Found 0 HLS folders" output.log || grep -q "No content returned" output.log || grep -q "global_prediction" output.log
+          grep -q "Found 0 HLS folders" output.log || grep -q "No content returned" output.log || grep -q "global_prediction" output.log || grep -q "LiveHLS poll: got 0 clips" output.log

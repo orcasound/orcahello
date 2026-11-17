@@ -4,6 +4,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 import LiveInferenceOrchestrator as orchestrator
@@ -36,6 +38,7 @@ def test_run_loop_uses_orca_hls_stream_for_date_range(monkeypatch, tmp_path):
             stream_arguments.update(kwargs)
             self.valid_folders = [1]
             self.current_folder_index = 0
+            self.current_clip_start_time = kwargs["start_unix_time"]
             self.calls = 0
 
         def is_stream_over(self):
@@ -111,3 +114,60 @@ def test_run_loop_uses_orca_hls_stream_for_date_range(monkeypatch, tmp_path):
         "2026_11_16_23_00_00", "%Y_%m_%d_%H_%M_%S"
     ).astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     assert uploaded["timestamp"] == expected_timestamp
+
+
+@pytest.mark.parametrize("stream_type", ["DateRangeHLS", "LiveHLS"])
+def test_run_loop_skips_failed_download_and_processes_later_clip(
+    monkeypatch, tmp_path, caplog, stream_type
+):
+    """Verify failed downloads cannot stall either inference loop."""
+    monkeypatch.chdir(tmp_path)
+    calls = []
+    processed = []
+
+    class FakeDateRangeHLSStream:
+        def __init__(self, **kwargs):
+            """Initialize the requested stream window."""
+            self.current_clip_start_time = kwargs["start_unix_time"]
+            self.end = kwargs["end_unix_time"]
+            self.valid_folders = [1]
+            self.current_folder_index = 0
+
+        def is_stream_over(self):
+            """Stop when the requested window has been consumed."""
+            return self.current_clip_start_time >= self.end
+
+        def get_next_clip(self):
+            """Fail once, then return a clip from the next interval."""
+            calls.append(self.current_clip_start_time)
+            assert len(calls) <= 3
+            if len(calls) == 1:
+                raise RuntimeError("download failed")
+            self.current_clip_start_time += 60
+            return "clip.wav", "2026_11_16_23_00_00", None
+
+    monkeypatch.setattr(orchestrator, "DateRangeHLSStream", FakeDateRangeHLSStream)
+    monkeypatch.setattr(
+        orchestrator, "_process_clip", lambda *args: processed.append(args[0])
+    )
+    monkeypatch.setattr(orchestrator.time, "sleep", lambda _: None)
+    config = {
+        "hls_stream_type": stream_type,
+        "hls_start_time_pst": "2026-11-16 23:00",
+        "hls_end_time_pst": "2026-11-16 23:03",
+        "hls_hydrophone_id": "rpi_test",
+        "inference_segment_size": 60,
+    }
+
+    with caplog.at_level(logging.ERROR):
+        orchestrator.run_loop(
+            "https://s3-us-west-2.amazonaws.com/audio-orcasound-net/rpi_test",
+            None, None, config, None, None, logging.getLogger("test"), "model-id",
+            max_live_iterations=2, max_segments=1,
+        )
+
+    assert len(calls) == 2
+    if stream_type == "DateRangeHLS":
+        assert calls[1] == calls[0] + 60
+    assert processed == ["clip.wav"]
+    assert "Failed to retrieve HLS clip" in caplog.text

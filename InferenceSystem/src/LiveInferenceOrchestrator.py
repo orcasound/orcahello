@@ -430,6 +430,19 @@ def _process_clip(
         logger.debug(f"Deleted local files: {', '.join(deleted)}")
 
 
+def _get_next_clip(stream, segment_size, logger):
+    """Skip a failed download and advance to the next requested interval."""
+    clip_start = stream.current_clip_start_time
+    try:
+        return stream.get_next_clip()
+    except RuntimeError:
+        logger.exception("Failed to retrieve HLS clip at %s; skipping", clip_start)
+        stream.current_clip_start_time = max(
+            stream.current_clip_start_time, clip_start + segment_size
+        )
+        return None, None, None
+
+
 def run_loop(
     stream_base,
     model,
@@ -484,7 +497,7 @@ def run_loop(
             not stream.is_stream_over()
             and stream.current_folder_index < len(stream.valid_folders)
         ):
-            clip_path, clip_start_time, _ = stream.get_next_clip()
+            clip_path, clip_start_time, _ = _get_next_clip(stream, segment_size, logger)
             if clip_path is None:
                 continue
             _process_clip(
@@ -537,7 +550,7 @@ def run_loop(
                 not stream.is_stream_over()
                 and stream.current_folder_index < len(stream.valid_folders)
             ):
-                clip_path, clip_start_time, _ = stream.get_next_clip()
+                clip_path, clip_start_time, _ = _get_next_clip(stream, segment_size, logger)
                 if clip_path is None:
                     continue
                 _process_clip(
