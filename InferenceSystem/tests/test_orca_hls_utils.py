@@ -10,6 +10,7 @@ import LiveInferenceOrchestrator as orchestrator
 
 
 def test_normalize_hls_timestamp():
+    """Verify ISO and local HLS timestamps normalize to UTC."""
     assert (
         orchestrator._normalize_hls_timestamp("2026-11-16T23:00:00-08:00")
         == "2026-11-17T07:00:00Z"
@@ -24,21 +25,25 @@ def test_normalize_hls_timestamp():
 
 
 def test_run_loop_uses_orca_hls_stream_for_date_range(monkeypatch, tmp_path):
+    """Verify date-range inference uses the shared stream and UTC metadata."""
     monkeypatch.chdir(tmp_path)
     stream_arguments = {}
     uploaded = {}
 
     class FakeDateRangeHLSStream:
         def __init__(self, **kwargs):
+            """Record stream arguments and initialize a single-clip stream."""
             stream_arguments.update(kwargs)
             self.valid_folders = [1]
             self.current_folder_index = 0
             self.calls = 0
 
         def is_stream_over(self):
+            """Report completion after the single clip has been retrieved."""
             return self.calls > 0
 
         def get_next_clip(self):
+            """Create a fake audio clip and return its local HLS timestamp."""
             self.calls += 1
             clip_path = Path("wav_dir/clip.wav")
             clip_path.write_bytes(b"audio")
@@ -46,6 +51,7 @@ def test_run_loop_uses_orca_hls_stream_for_date_range(monkeypatch, tmp_path):
 
     class FakeModel:
         def detect_srkw_from_file(self, clip_path, _model_config):
+            """Verify the clip exists and return a positive detection."""
             assert Path(clip_path).exists()
             return SimpleNamespace(
                 global_prediction=1,
@@ -56,6 +62,7 @@ def test_run_loop_uses_orca_hls_stream_for_date_range(monkeypatch, tmp_path):
             )
 
     def fake_write_spectrogram(clip_path):
+        """Create a placeholder spectrogram alongside the audio clip."""
         image_path = Path(clip_path).with_suffix(".png")
         image_path.write_bytes(b"image")
         return str(image_path)
@@ -63,6 +70,7 @@ def test_run_loop_uses_orca_hls_stream_for_date_range(monkeypatch, tmp_path):
     def fake_upload(
         _clip_path, _image_path, _result, timestamp, *_args
     ):
+        """Capture the uploaded timestamp and return placeholder identifiers."""
         uploaded["timestamp"] = timestamp
         return ("clip.wav", "clip.png", "metadata-id")
 
