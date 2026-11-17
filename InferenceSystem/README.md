@@ -2,6 +2,12 @@
 
 Southern Resident Killer Whale call detection model and live inference orchestrator (together called the "Inference System").
 
+Clone this repository recursively to include the `orca-hls-utils` submodule before following the setup instructions:
+
+```bash
+git clone --recurse-submodules https://github.com/orcasound/orcahello.git
+```
+
 ## Quick Start: Standalone SRKW Detector Model
 
 **Model on HuggingFace**: [orcasound/orcahello-srkw-detector-v1](https://huggingface.co/orcasound/orcahello-srkw-detector-v1)
