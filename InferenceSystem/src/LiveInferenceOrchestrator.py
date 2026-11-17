@@ -8,6 +8,7 @@ import sys
 import time
 import uuid
 from datetime import datetime, timezone
+from urllib.error import URLError
 
 # local
 import spectrogram_visualizer
@@ -435,7 +436,7 @@ def _get_next_clip(stream, segment_size, logger):
     clip_start = stream.current_clip_start_time
     try:
         return stream.get_next_clip()
-    except RuntimeError:
+    except (RuntimeError, URLError):
         logger.exception("Failed to retrieve HLS clip at %s; skipping", clip_start)
         stream.current_clip_start_time = max(
             stream.current_clip_start_time, clip_start + segment_size

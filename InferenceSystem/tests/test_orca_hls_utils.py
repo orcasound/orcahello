@@ -3,6 +3,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace
+from urllib.error import HTTPError, URLError
 
 import pytest
 
@@ -117,10 +118,18 @@ def test_run_loop_uses_orca_hls_stream_for_date_range(monkeypatch, tmp_path):
 
 
 @pytest.mark.parametrize("stream_type", ["DateRangeHLS", "LiveHLS"])
+@pytest.mark.parametrize(
+    "failure",
+    [
+        RuntimeError("download failed"),
+        URLError("network failed"),
+        HTTPError("https://example.test/live.m3u8", 503, "unavailable", None, None),
+    ],
+)
 def test_run_loop_skips_failed_download_and_processes_later_clip(
-    monkeypatch, tmp_path, caplog, stream_type
+    monkeypatch, tmp_path, caplog, stream_type, failure
 ):
-    """Verify failed downloads cannot stall either inference loop."""
+    """Verify failed clip and playlist requests cannot stall either inference loop."""
     monkeypatch.chdir(tmp_path)
     calls = []
     processed = []
@@ -142,7 +151,7 @@ def test_run_loop_skips_failed_download_and_processes_later_clip(
             calls.append(self.current_clip_start_time)
             assert len(calls) <= 3
             if len(calls) == 1:
-                raise RuntimeError("download failed")
+                raise failure
             self.current_clip_start_time += 60
             return "clip.wav", "2026_11_16_23_00_00", None
 
@@ -171,3 +180,44 @@ def test_run_loop_skips_failed_download_and_processes_later_clip(
         assert calls[1] == calls[0] + 60
     assert processed == ["clip.wav"]
     assert "Failed to retrieve HLS clip" in caplog.text
+
+
+def test_playlist_http_failure_advances_stream(monkeypatch, tmp_path):
+    """Verify failures from m3u8's HTTP client reach clip recovery."""
+    from urllib.request import OpenerDirector
+
+    from orca_hls_utils import s3_utils
+
+    def fail_request(self, request, timeout=None):
+        """Simulate an unavailable playlist."""
+        raise HTTPError(request, 503, "unavailable", None, None)
+
+    monkeypatch.setattr(OpenerDirector, "open", fail_request)
+    monkeypatch.setattr(s3_utils, "get_all_folders", lambda *args, **kwargs: ["100"])
+    stream = orchestrator.DateRangeHLSStream(
+        stream_base="https://s3-us-west-2.amazonaws.com/audio-orcasound-net/rpi_test",
+        polling_interval=60,
+        start_unix_time=100,
+        end_unix_time=220,
+        wav_dir=str(tmp_path),
+    )
+
+    assert orchestrator._get_next_clip(stream, 60, logging.getLogger("test")) == (
+        None, None, None
+    )
+    assert stream.current_clip_start_time == 160
+
+
+def test_get_next_clip_propagates_unrelated_errors():
+    """Verify unexpected errors are not hidden by download recovery."""
+    class BrokenStream:
+        current_clip_start_time = 100
+
+        def get_next_clip(self):
+            """Raise an unrelated error."""
+            raise ValueError("unexpected failure")
+
+    stream = BrokenStream()
+    with pytest.raises(ValueError, match="unexpected failure"):
+        orchestrator._get_next_clip(stream, 60, logging.getLogger("test"))
+    assert stream.current_clip_start_time == 100
