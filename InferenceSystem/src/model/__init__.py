@@ -13,7 +13,6 @@ Usage:
 
 __version__ = "1.1.0"
 
-from .inference import OrcaHelloSRKWDetectorV1
 from .types import (
     DetectorInferenceConfig,
     DetectionResult,
@@ -24,3 +23,11 @@ __all__ = [
     "DetectorInferenceConfig",
     "DetectionResult",
 ]
+
+
+def __getattr__(name):
+    if name == "OrcaHelloSRKWDetectorV1":
+        from .inference import OrcaHelloSRKWDetectorV1
+
+        return OrcaHelloSRKWDetectorV1
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

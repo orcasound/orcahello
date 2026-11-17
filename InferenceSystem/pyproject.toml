@@ -24,6 +24,15 @@ dependencies = [
 ]
 
 [dependency-groups]
+api = [
+    "fastapi==0.141.1",
+    "matplotlib==3.10.8",
+    "python-multipart==0.0.32",
+    "uvicorn==0.52.1",
+]
+api-onnx = [
+    "onnxruntime>=1.20,<2",
+]
 prod = [
     # Spectrogram generation (cv2)
     "opencv-python==4.13.0.92",
@@ -42,7 +51,9 @@ prod = [
     "matplotlib==3.10.8",
 ]
 dev = [
+    {include-group = "api"},
     {include-group = "prod"},
+    "httpx==0.28.1",
     "pytest==9.0.3",
     "pytest-cov==7.0.0",
 ]

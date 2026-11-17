@@ -1,20 +1,16 @@
-import time
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torchvision.models import resnet50
-from typing import Dict, Optional, Union, List
+from typing import Dict, Optional, Union
 from torch import Tensor
 from huggingface_hub import PyTorchModelHubMixin
 
-from .audio_frontend import AudioPreprocessor
+from .prediction import aggregate_predictions as aggregate_predictions
+from .prediction import run_file_inference
 from .types import (
     DetectorInferenceConfig,
-    GlobalPredictionConfig,
-    SegmentPrediction,
     DetectionResult,
-    DetectionMetadata,
 )
 
 
@@ -38,65 +34,6 @@ def _resolve_dtype(precision_str: str, device: torch.device) -> torch.dtype:
     if precision_str == "float16":
         return torch.float16
     return torch.float32
-
-
-def aggregate_predictions(
-    segment_preds: List[SegmentPrediction],
-    config: GlobalPredictionConfig
-) -> tuple[List[int], int, float]:
-    """
-    Aggregate segment predictions into local predictions and global prediction/confidence.
-
-    Args:
-        segment_preds: List of SegmentPrediction objects with confidence scores
-        config: GlobalPredictionConfig with aggregation settings
-
-    Returns:
-        Tuple of (local_predictions, global_prediction, global_confidence)
-        - local_predictions: List of binary predictions (0/1) per segment
-        - global_prediction: Binary prediction (0/1) for the file
-        - global_confidence: Aggregated confidence score (0-1)
-    """
-    if len(segment_preds) == 0:
-        return [], 0, 0.0
-
-    # Binary local predictions based on pred_local_threshold
-    local_predictions = [
-        1 if seg.confidence > config.pred_local_threshold else 0
-        for seg in segment_preds
-    ]
-
-    if config.aggregation_strategy == "mean_thresholded":
-        # Global confidence = mean of positive segment confidences
-        num_positive = sum(local_predictions)
-        if num_positive > 0:
-            positive_confs = [
-                seg.confidence for seg, pred in zip(segment_preds, local_predictions)
-                if pred == 1
-            ]
-            global_confidence = sum(positive_confs) / len(positive_confs)
-        else:
-            global_confidence = 0.0
-
-    elif config.aggregation_strategy == "mean_top_k":
-        # Sort segments by confidence descending
-        sorted_segs = sorted(segment_preds, key=lambda s: s.confidence, reverse=True)
-
-        # Take top K segments (at least 1, at most len(sorted_segs))
-        k = max(1, min(config.mean_top_k, len(sorted_segs)))
-        top_segs = sorted_segs[:k]
-
-        # Global confidence = mean of top K confidences
-        global_confidence = sum(s.confidence for s in top_segs) / len(top_segs)
-
-    else:
-        raise ValueError(f"Unknown aggregation_strategy: {config.aggregation_strategy}")
-
-    # Global prediction based on pred_global_threshold
-    global_prediction = 1 if global_confidence >= config.pred_global_threshold else 0
-
-    return local_predictions, global_prediction, global_confidence
-
 
 
 class AdaptiveConcatPool2d(nn.Module):
@@ -202,7 +139,7 @@ class OrcaHelloSRKWDetectorV1(
         with torch.no_grad():
             logits = self.forward(x)
             return F.softmax(logits, dim=1)[:, self.call_class_index]
-    
+
     def detect_srkw_from_file(
         self,
         wav_file_path: str,
@@ -226,7 +163,7 @@ class OrcaHelloSRKWDetectorV1(
         Returns:
             DetectionResult with local predictions, confidences, and global prediction
         """
-        # Parse overrides and merge with stored config defaults
+        # Parse overrides and delegate to the shared backend-independent pipeline.
         if config is None:
             overrides = self.config
         elif isinstance(config, DetectorInferenceConfig):
@@ -235,84 +172,13 @@ class OrcaHelloSRKWDetectorV1(
             # Dict -- backward compatible path
             overrides = DetectorInferenceConfig.from_dict(config)
 
-        inf = overrides.inference
-        max_batch_size = inf.max_batch_size
+        self.eval()
 
-        # Generate segments and process into spectrograms using AudioPreprocessor
-        start_time = time.perf_counter()
-        preprocessor = AudioPreprocessor(overrides)
-        spectrograms = []
-        segment_info = []  # Track start times and durations
+        def predict_batch(batch: Tensor) -> Tensor:
+            return self.predict_call(batch.to(device=self._device, dtype=self._dtype))
 
-        for mel_spec, start_s, duration_s in preprocessor.process_segments(wav_file_path):
-            spectrograms.append(mel_spec)
-            segment_info.append({
-                'start_time_s': start_s,
-                'duration_s': duration_s
-            })
-
-        if len(spectrograms) == 0:
-            # No segments generated - return empty result
-            processing_time = time.perf_counter() - start_time
-            return DetectionResult(
-                local_predictions=[],
-                local_confidences=[],
-                global_prediction=0,
-                global_confidence=0.0,
-                segment_predictions=[],
-                metadata=DetectionMetadata(
-                    wav_file_path=wav_file_path,
-                    file_duration_s=0.0,
-                    processing_time_s=processing_time
-                )
-            )
-
-        # Process spectrograms in batches to control memory usage
-        all_confidences = []
-
-        for batch_start in range(0, len(spectrograms), max_batch_size):
-            batch_end = min(batch_start + max_batch_size, len(spectrograms))
-            batch = torch.stack(spectrograms[batch_start:batch_end])
-            # Move batch to model's device and cast to model dtype (e.g., fp16)
-            batch = batch.to(device=self._device, dtype=self._dtype)
-            batch_confidences = self.predict_call(batch)
-            all_confidences.append(batch_confidences.cpu().float())
-
-        # Concatenate all batch results
-        confidences = torch.cat(all_confidences)
-
-        # Build segment predictions (typed objects with start_time, duration, confidence)
-        segment_preds = [
-            SegmentPrediction(
-                start_time_s=seg_info['start_time_s'],
-                duration_s=seg_info['duration_s'],
-                confidence=conf.item()
-            )
-            for seg_info, conf in zip(segment_info, confidences)
-        ]
-
-        # Aggregate predictions using configured method
-        local_predictions, global_prediction, global_confidence = aggregate_predictions(
-            segment_preds, overrides.global_prediction
-        )
-        local_confidences = [seg.confidence for seg in segment_preds]
-
-        # Calculate file duration from last segment end time
-        last_seg = segment_info[-1]
-        file_duration_s = last_seg['start_time_s'] + last_seg['duration_s']
-        processing_time_s = time.perf_counter() - start_time
-
-        return DetectionResult(
-            local_predictions=local_predictions,
-            local_confidences=local_confidences,
-            global_prediction=global_prediction,
-            global_confidence=global_confidence,
-            segment_predictions=segment_preds,
-            metadata=DetectionMetadata(
-                wav_file_path=wav_file_path,
-                file_duration_s=file_duration_s,
-                processing_time_s=processing_time_s
-            )
+        return run_file_inference(
+            wav_file_path, overrides, predict_batch, output_type="probabilities"
         )
 
     @classmethod
@@ -336,4 +202,3 @@ class OrcaHelloSRKWDetectorV1(
         model.to(device=model._device, dtype=model._dtype)
         model.eval()
         return model
-
