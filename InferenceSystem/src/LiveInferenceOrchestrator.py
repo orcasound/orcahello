@@ -14,6 +14,7 @@ from urllib.error import URLError
 import spectrogram_visualizer
 
 # third-party
+import ffmpeg
 import yaml
 from azure.cosmos import CosmosClient
 from azure.storage.blob import BlobServiceClient
@@ -432,11 +433,11 @@ def _process_clip(
 
 
 def _get_next_clip(stream, segment_size, logger):
-    """Skip a failed download and advance to the next requested interval."""
+    """Skip a failed clip retrieval and advance to the next requested interval."""
     clip_start = stream.current_clip_start_time
     try:
         return stream.get_next_clip()
-    except (RuntimeError, URLError):
+    except (RuntimeError, URLError, ffmpeg.Error):
         logger.exception("Failed to retrieve HLS clip at %s; skipping", clip_start)
         stream.current_clip_start_time = max(
             stream.current_clip_start_time, clip_start + segment_size
@@ -495,7 +496,8 @@ def run_loop(
         logger.info(f"Found {len(stream.valid_folders)} HLS folders in date range")
         clip_count = 0
         while (
-            not stream.is_stream_over()
+            (max_segments is None or clip_count < max_segments)
+            and not stream.is_stream_over()
             and stream.current_folder_index < len(stream.valid_folders)
         ):
             clip_path, clip_start_time, _ = _get_next_clip(stream, segment_size, logger)
@@ -513,8 +515,6 @@ def run_loop(
                 model_id,
             )
             clip_count += 1
-            if max_segments is not None and clip_count >= max_segments:
-                break
         logger.info(f"Processed {clip_count} clips from date range")
 
     elif hls_stream_type == "LiveHLS":

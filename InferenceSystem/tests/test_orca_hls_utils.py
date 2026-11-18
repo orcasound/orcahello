@@ -5,6 +5,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from urllib.error import HTTPError, URLError
 
+import ffmpeg
 import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
@@ -124,6 +125,7 @@ def test_run_loop_uses_orca_hls_stream_for_date_range(monkeypatch, tmp_path):
         RuntimeError("download failed"),
         URLError("network failed"),
         HTTPError("https://example.test/live.m3u8", 503, "unavailable", None, None),
+        ffmpeg.Error("ffmpeg", b"", b"conversion failed"),
     ],
 )
 def test_run_loop_skips_failed_download_and_processes_later_clip(
@@ -132,6 +134,7 @@ def test_run_loop_skips_failed_download_and_processes_later_clip(
     """Verify failed clip and playlist requests cannot stall either inference loop."""
     monkeypatch.chdir(tmp_path)
     calls = []
+    windows = []
     processed = []
 
     class FakeDateRangeHLSStream:
@@ -139,6 +142,7 @@ def test_run_loop_skips_failed_download_and_processes_later_clip(
             """Initialize the requested stream window."""
             self.current_clip_start_time = kwargs["start_unix_time"]
             self.end = kwargs["end_unix_time"]
+            windows.append((self.current_clip_start_time, self.end))
             self.valid_folders = [1]
             self.current_folder_index = 0
 
@@ -163,7 +167,7 @@ def test_run_loop_skips_failed_download_and_processes_later_clip(
     config = {
         "hls_stream_type": stream_type,
         "hls_start_time_pst": "2026-11-16 23:00",
-        "hls_end_time_pst": "2026-11-16 23:03",
+        "hls_end_time_pst": "2026-11-16 23:02",
         "hls_hydrophone_id": "rpi_test",
         "inference_segment_size": 60,
     }
@@ -178,8 +182,61 @@ def test_run_loop_skips_failed_download_and_processes_later_clip(
     assert len(calls) == 2
     if stream_type == "DateRangeHLS":
         assert calls[1] == calls[0] + 60
+        assert windows[0][1] - windows[0][0] == 120
+    else:
+        assert len(windows) == 2
+        assert all(end - start == 60 for start, end in windows)
     assert processed == ["clip.wav"]
     assert "Failed to retrieve HLS clip" in caplog.text
+
+
+@pytest.mark.parametrize(
+    ("max_segments", "expected_count"), [(0, 0), (1, 1), (2, 2), (None, 3)]
+)
+def test_date_range_respects_clip_limit(monkeypatch, tmp_path, max_segments, expected_count):
+    """Verify the clip limit is checked before each date-range fetch."""
+    monkeypatch.chdir(tmp_path)
+    calls = []
+    processed = []
+
+    class FakeDateRangeHLSStream:
+        def __init__(self, **kwargs):
+            """Initialize a three-clip date range."""
+            self.current_clip_start_time = kwargs["start_unix_time"]
+            self.end = kwargs["end_unix_time"]
+            self.valid_folders = [1]
+            self.current_folder_index = 0
+
+        def is_stream_over(self):
+            """Report whether the date range has been consumed."""
+            return self.current_clip_start_time >= self.end
+
+        def get_next_clip(self):
+            """Return the next interval and record the fetch."""
+            calls.append(self.current_clip_start_time)
+            self.current_clip_start_time += 60
+            return "clip.wav", "2026_11_16_23_00_00", None
+
+    monkeypatch.setattr(orchestrator, "DateRangeHLSStream", FakeDateRangeHLSStream)
+    monkeypatch.setattr(
+        orchestrator, "_process_clip", lambda *args: processed.append(args[0])
+    )
+    config = {
+        "hls_stream_type": "DateRangeHLS",
+        "hls_start_time_pst": "2026-11-16 23:00",
+        "hls_end_time_pst": "2026-11-16 23:03",
+        "hls_hydrophone_id": "rpi_test",
+        "inference_segment_size": 60,
+    }
+
+    orchestrator.run_loop(
+        "https://s3-us-west-2.amazonaws.com/audio-orcasound-net/rpi_test",
+        None, None, config, None, None, logging.getLogger("test"), "model-id",
+        max_segments=max_segments,
+    )
+
+    assert len(calls) == expected_count
+    assert processed == ["clip.wav"] * expected_count
 
 
 def test_playlist_http_failure_advances_stream(monkeypatch, tmp_path):
