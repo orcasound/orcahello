@@ -1,0 +1,3 @@
+[submodule "InferenceSystem/orca-hls-utils"]
+	path = InferenceSystem/orca-hls-utils
+	url = https://github.com/orcasound/orca-hls-utils.git

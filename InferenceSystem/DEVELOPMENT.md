@@ -175,7 +175,7 @@ Tests run via `.github/workflows/InferenceSystem.yaml`.
 
 ## Inference Orchestrator
 
-See [README.md](README.md#quick-start-live-inference-orchestrator) for a quick start on running the orchestrator locally. The entry point is [src/LiveInferenceOrchestrator.py](src/LiveInferenceOrchestrator.py), which streams HLS audio from Orcasound's S3 buckets via the internal `orcasound_hls` module, runs the SRKW detector model on each segment, and uploads positive detections to the OrcaHello Azure backend. 
+See [README.md](README.md#quick-start-live-inference-orchestrator) for a quick start on running the orchestrator locally. The entry point is [src/LiveInferenceOrchestrator.py](src/LiveInferenceOrchestrator.py), which uses the `orca-hls-utils` submodule to read HLS audio from Orcasound's S3 buckets, runs the SRKW detector model on each clip, and uploads positive detections to the OrcaHello Azure backend.
 
 In production:
 * The orchestrator runs as a Docker container deployed to Azure Kubernetes Service (AKS). 

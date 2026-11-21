@@ -32,6 +32,11 @@ This repository contains multiple interconnected components:
 
 ## Coding Standards
 
+### General Guidelines
+- Comments must end in punctuation (typically a period).
+- **DON'T** include commented-out code. Remove dead code rather than commenting it out.
+- All code functions should have function-level comments at the top of the function.
+
 ### C# Guidelines
 - Use file-scoped namespaces (NET 6+ feature)
 - Follow established naming conventions (PascalCase for public members, camelCase for private)
