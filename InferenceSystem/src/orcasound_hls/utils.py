@@ -14,7 +14,7 @@ import m3u8
 from botocore import UNSIGNED
 from botocore.config import Config
 
-from orcasound_hls.types import HLS_DOWNLOAD_TIMEOUT_S
+from orcasound_hls.types import FOLDER_TO_AUDIO_OFFSET, HLS_DOWNLOAD_TIMEOUT_S
 
 logger = logging.getLogger(__name__)
 
@@ -60,33 +60,41 @@ def find_folder_for_timestamp(
     hls_prefix = f"{hydrophone_id}/hls/"
     ts_prefix = str(unix_ts)[:prefix_length]
 
-    folders = _list_folders_with_prefix(bucket, hls_prefix, ts_prefix)
-
-    # Each 4-digit prefix spans ~100,000s (~27.8 hours), and a single HLS folder
-    # can contain up to ~24 hours of audio. So a folder in prefix "1598" can hold
-    # audio that extends into the "1599" range. Check the previous prefix to find
-    # folders that started in an earlier prefix window but still contain our timestamp.
-    prev_prefix_int = int(ts_prefix) - 1
-    if prev_prefix_int > 0:
-        prev_folders = _list_folders_with_prefix(
-            bucket, hls_prefix, str(prev_prefix_int)
-        )
-        folders = sorted(set(folders + prev_folders))
-
-    if not folders:
-        logger.warning(
-            "No HLS folders found near timestamp %d for %s", unix_ts, hydrophone_id
-        )
-        return None, None
-
-    idx = bisect.bisect_right(folders, unix_ts)
-    if idx == 0:
-        logger.warning(
-            "Timestamp %d is before first available folder %d", unix_ts, folders[0]
-        )
-        return None, None
+    # Check the current and preceding windows before widening the prefix, so
+    # crossing a prefix boundary does not require scanning the whole archive.
+    while True:
+        folders = _list_folders_with_prefix(bucket, hls_prefix, ts_prefix)
+        idx = bisect.bisect_right(folders, unix_ts)
+        if idx > 0:
+            break
+        if not ts_prefix:
+            logger.warning(
+                "No HLS folders found before timestamp %d for %s", unix_ts, hydrophone_id
+            )
+            return None, None
+        prev_prefix = int(ts_prefix) - 1
+        if prev_prefix > 0:
+            folders = _list_folders_with_prefix(
+                bucket, hls_prefix, str(prev_prefix).zfill(len(ts_prefix))
+            )
+            idx = bisect.bisect_right(folders, unix_ts)
+            if idx > 0:
+                break
+        ts_prefix = ts_prefix[:-1]
 
     folder_epoch = folders[idx - 1]
+    try:
+        segments = load_hls_playlist(bucket, hydrophone_id, folder_epoch)
+    except Exception as exc:
+        logger.warning("Failed to load M3U8 for folder %d: %s", folder_epoch, exc)
+        return None, None
+
+    audio_end = (
+        folder_epoch + FOLDER_TO_AUDIO_OFFSET + sum(s.duration for s in segments)
+    )
+    if not segments or unix_ts >= audio_end:
+        return None, None
+
     offset = unix_ts - folder_epoch
     return folder_epoch, offset
 
@@ -107,18 +115,17 @@ def list_folders_in_range(
     end_prefix = int(str(end_unix)[:prefix_length])
 
     all_folders: List[int] = []
-    # Include prefix before start to catch folders that started just before our range
-    for p in range(start_prefix - 1, end_prefix + 1):
+    for p in range(start_prefix, end_prefix + 1):
         if p > 0:
             all_folders.extend(_list_folders_with_prefix(bucket, hls_prefix, str(p)))
 
-    all_folders = sorted(set(all_folders))
-
-    # Keep folders that started before end_unix and could still contain audio
-    # at start_unix. A folder can contain audio well after its epoch, so we
-    # include anything from (start_unix - 24h) to end_unix.
-    earliest = start_unix - 86400
-    return [f for f in all_folders if earliest <= f <= end_unix]
+    folder_epoch, _ = find_folder_for_timestamp(
+        bucket, hydrophone_id, start_unix, prefix_length
+    )
+    folders = {f for f in all_folders if start_unix <= f <= end_unix}
+    if folder_epoch is not None:
+        folders.add(folder_epoch)
+    return sorted(folders)
 
 
 def m3u8_url(bucket: str, hydrophone_id: str, folder_epoch: int) -> str:
