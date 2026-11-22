@@ -14,6 +14,7 @@ import pytest
 import torch
 import torch.nn.functional as F
 
+import model.inference as inference_module
 from model.inference import OrcaHelloSRKWDetectorV1
 
 # Add src to path (for when tests are run directly)
@@ -79,6 +80,30 @@ class TestOrcaHelloSRKWDetectorUnit:
 
             assert (probs >= 0).all(), f"Found negative probability: {probs}"
             assert (probs <= 1).all(), f"Found probability > 1: {probs}"
+
+    def test_file_inference_uses_predict_call_override(self, model_v1, monkeypatch):
+        expected = torch.tensor([0.75])
+        input_batch = torch.randn(1, 1, 256, 312, dtype=torch.float64)
+        observed_batches = []
+
+        def predict_call_override(batch):
+            observed_batches.append(batch)
+            return expected
+
+        result = object()
+
+        def run_file_inference(_, __, predict_batch, output_type):
+            assert output_type == "probabilities"
+            assert predict_batch(input_batch) is expected
+            return result
+
+        monkeypatch.setattr(model_v1, "predict_call", predict_call_override)
+        monkeypatch.setattr(inference_module, "run_file_inference", run_file_inference)
+
+        assert model_v1.detect_srkw_from_file("unused.wav") is result
+        assert len(observed_batches) == 1
+        assert observed_batches[0].device == model_v1._device
+        assert observed_batches[0].dtype == model_v1._dtype
 
     def test_from_checkpoint_missing_file(self, v1_config):
         """Test from_checkpoint() raises error for missing file"""
