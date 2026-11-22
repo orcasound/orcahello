@@ -41,10 +41,9 @@ prod = [
     "azure-storage-blob==12.28.0",
     # App Insights logging
     "opencensus-ext-azure==1.1.15",
-    # HLS segment download and conversion
+    # Orcasound HLS access
+    "orca-hls-utils",
     "ffmpeg-python==0.2.0",
-    "m3u8==6.0.0",
-    "boto3==1.42.70",
     # Timezone handling
     "pytz==2025.2",
     # Spectrogram generation
@@ -57,6 +56,9 @@ dev = [
     "pytest==9.0.3",
     "pytest-cov==7.0.0",
 ]
+
+[tool.uv.sources]
+orca-hls-utils = { path = "orca-hls-utils" }
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

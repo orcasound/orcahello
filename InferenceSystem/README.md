@@ -2,6 +2,12 @@
 
 Southern Resident Killer Whale call detection model and live inference orchestrator (together called the "Inference System").
 
+Clone this repository recursively to include the `orca-hls-utils` submodule before following the setup instructions:
+
+```bash
+git clone --recurse-submodules https://github.com/orcasound/orcahello.git
+```
+
 ## Quick Start: Standalone SRKW Detector Model
 
 **Model on HuggingFace**: [orcasound/orcahello-srkw-detector-v1](https://huggingface.co/orcasound/orcahello-srkw-detector-v1)
@@ -33,7 +39,7 @@ The on-demand FastAPI service analyzes uploaded WAV/FLAC audio independently fro
 
 ## Quick Start: Live Inference Orchestrator
 
-The inference orchestrator streams audio from Orcasound's S3 buckets, runs AI inference on audio segments, and uploads positive detections to the OrcaHello Azure backend (Blob Storage, CosmosDB). Entry point: [src/LiveInferenceOrchestrator.py](src/LiveInferenceOrchestrator.py).
+The inference orchestrator streams audio from Orcasound's S3 buckets through the `orca-hls-utils` submodule, runs AI inference on audio clips, and uploads positive detections to the OrcaHello Azure backend (Blob Storage, CosmosDB). Entry point: [src/LiveInferenceOrchestrator.py](src/LiveInferenceOrchestrator.py).
 
 ```bash
 cd InferenceSystem
@@ -51,13 +57,8 @@ uv run python src/LiveInferenceOrchestrator.py \
 Since this is a test meant to run locally, `upload_to_azure` within `orch_config` is set to `false` and no updates are made to the backend (Azure Blob Storage, CosmosDB). See [tests/orch_configs](tests/orch_configs) for more config examples.
 
 ```
-2026-03-20 15:38:00,012 INFO --- [iter 1] LiveHLS poll: fetching segments in [1774046160, 1774046220] (now=1774046280, delay=60.0s)
-2026-03-20 15:38:00,319 INFO Found 1 folders in date range
-2026-03-20 15:38:00,576 INFO Dropping 10.0s tail audio (1 ts_segments)
-2026-03-20 15:38:00,577 INFO [iter 1] LiveHLS poll: got 1 segments
-2026-03-20 15:38:00,577 INFO Segment: folder=1773990017, indices=[5614:5620), start=2026-03-20T22:35:59Z, duration=60.0s
-2026-03-20 15:38:02,144 INFO Processing clip: rpi-north-sjc_2026_03_20_15_35_59_PDT.wav, start_timestamp=2026-03-20T22:35:59Z
-2026-03-20 15:38:02,662 DEBUG Generated spectrogram: wav_dir/rpi-north-sjc_2026_03_20_15_35_59_PDT.png
+2026-03-20 15:38:00,012 INFO --- [iter 0] LiveHLS poll: fetching segments in [1774046160, 1774046220] (now=1774046280, delay=60.0s)
+2026-03-20 15:38:02,144 INFO Processing clip: rpi-orcasound-lab_2026_03_20_15_36_00.wav, start_timestamp=2026-03-20T22:36:00Z
 .../.venv/lib/python3.11/site-packages/torchaudio/functional/functional.py:582: UserWarning: At least one mel filterbank has all zero values. The value for `n_mels` (256) may be set too high. Or, the value for `n_freqs` (1281) may be set too low.
   warnings.warn(
 
@@ -72,7 +73,8 @@ Detected at times: [14.0]
 global_confidence: 0.491
 global_prediction: 0
 2026-03-20 15:38:02,964 INFO Inference: prediction=0, confidence=0.491, positive_segments=1/29
-2026-03-20 15:38:02,964 DEBUG Deleted local files: wav_dir/rpi-north-sjc_2026_03_20_15_35_59_PDT.wav, wav_dir/rpi-north-sjc_2026_03_20_15_35_59_PDT.png
+2026-03-20 15:38:02,964 DEBUG Deleted local files: wav_dir/rpi-orcasound-lab_2026_03_20_15_36_00.wav
+2026-03-20 15:38:02,964 INFO [iter 0] LiveHLS poll: got 1 clips
 2026-03-20 15:38:02,964 DEBUG Sleeping for 57.0s until 1774046340
 ```
 

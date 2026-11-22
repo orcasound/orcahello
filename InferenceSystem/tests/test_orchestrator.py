@@ -134,10 +134,21 @@ def test_livehls_smoke():
     assert returncode == 0, f"Orchestrator exited with code {returncode}"
     assert "[iter 1]" in output, "Expected at least two iterations"
     expected_strings = [
-        "WARNING No HLS folders",
-        "WARNING Failed to load M3U8",
+        "Found 0 HLS folders",
+        "No content returned",
         "global_prediction",
+        "LiveHLS poll: got 0 clips",
     ]
     assert any(s in output for s in expected_strings), (
         f"Expected at least one of the expected strings in output: {expected_strings}"
     )
+
+
+def test_livehls_smoke_accepts_empty_poll(monkeypatch):
+    """Verify an empty live poll is accepted by the smoke check."""
+    monkeypatch.setattr(
+        sys.modules[__name__],
+        "run_orchestrator",
+        lambda *args, **kwargs: ("[iter 1] LiveHLS poll: got 0 clips", 0),
+    )
+    test_livehls_smoke()

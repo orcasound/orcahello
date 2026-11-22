@@ -229,6 +229,42 @@ public partial class DetectionMinuteComponent
                 // button default to yes.  Instead leave it unselected,
                 // like OrcaHello candidates do.
             }
+
+            // Tags written by the model (e.g., PODS-AI prefilling "srkw") bypass AddTag,
+            // so their parent tags were never added. Add any missing parents now, so a
+            // prefilled "srkw" also gets "orca" and "whale".
+            AddMissingParentTags();
+        }
+    }
+
+    /// <summary>
+    /// Add the missing ancestor tags (per <see cref="Detection.TagHierarchy"/>) of every tag already in the list,
+    /// appending them after the existing tags so children stay before their parents.
+    /// This deliberately does not go through <see cref="AddTag"/>, so adding "srkw" as the parent of a pod tag
+    /// does not set the SRKW Found value to "Yes"; the moderator still has to select it.
+    /// </summary>
+    private void AddMissingParentTags()
+    {
+        var tagList = DetectionMinute.TagList;
+        var added = false;
+        foreach (var tag in tagList.ToList())
+        {
+            var current = tag;
+            while (Detection.TagHierarchy.TryGetValue(current, out string parentTag) &&
+                   !string.IsNullOrWhiteSpace(parentTag))
+            {
+                if (!tagList.Contains(parentTag, StringComparer.OrdinalIgnoreCase))
+                {
+                    tagList.Add(parentTag);
+                    added = true;
+                }
+                current = parentTag;
+            }
+        }
+
+        if (added)
+        {
+            DetectionMinute.Tags = string.Join(";", tagList);
         }
     }
 
